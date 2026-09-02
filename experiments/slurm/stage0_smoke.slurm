@@ -24,6 +24,9 @@ set -euo pipefail
 source "$SLURM_SUBMIT_DIR/experiments/slurm/_common.sh"
 activate_env
 
+# Smoke runs before Stage 0.5 exists, so an absent baseline is expected here.
+export ALLOW_MISSING_BASELINE=1
+
 load_cell "s0_smoke"
 
 # Both servers, disjoint GPUs, then block until healthy.

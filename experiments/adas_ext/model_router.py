@@ -83,6 +83,9 @@ class RoleClient:
     max_retries: int = 4
     retry_backoff: float = 2.0
     client: openai.OpenAI = field(init=False, repr=False)
+    # Reasoning content from the most recent call. Token counts alone cannot
+    # distinguish a designer that deliberated from one that emitted filler.
+    last_reasoning: Optional[str] = field(init=False, default=None, repr=False)
 
     def __post_init__(self) -> None:
         self.client = openai.OpenAI(
@@ -186,7 +189,14 @@ class RoleClient:
                 continue
 
             self._record_usage(response, time.time() - started)
-            content = response.choices[0].message.content
+            message = response.choices[0].message
+            # vLLM exposes the split-out trace as reasoning_content when a
+            # reasoning parser is active, and folds it into content otherwise.
+            self.last_reasoning = (
+                getattr(message, "reasoning_content", None)
+                or getattr(message, "reasoning", None)
+            )
+            content = message.content
             if content is None:
                 raise ValueError("Model returned an empty message body")
             parsed = json.loads(content)

@@ -192,6 +192,12 @@ def _median(acc_list):
     return float(np.median(acc_list)) if len(acc_list) else 0.0
 
 
+def _meta_reasoning():
+    """Trace from the meta agent's last call, capped so archives stay readable."""
+    trace = getattr(META_CLIENT, "last_reasoning", None) if META_CLIENT else None
+    return trace[:20000] if trace else None
+
+
 def _seed_cache_path(args):
     """Seed-archive fitness is cached per (worker, domain, split).
 
@@ -301,6 +307,8 @@ def search(args):
 
     seed_cache = _load_seed_cache(args)
     for solution in archive:
+        if solution.get('generation', 'initial') == 'initial':
+            solution.setdefault('design_id', f"{args.run_id}/seed/{solution['name']}")
         if 'fitness' in solution:
             continue
 
@@ -343,6 +351,10 @@ def search(args):
         failure_trace = []
 
         system_prompt, prompt = get_prompt(archive)
+        design_id = f"{args.run_id}/g{generation + 1}/a{attempt}"
+        # Exactly what the designer could see, so archive utilisation is measured
+        # rather than inferred from structural similarity.
+        archive_context = [e.get('design_id') or e.get('name') for e in archive]
         msg_list = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt},
@@ -356,7 +368,10 @@ def search(args):
             instrumentation.record_failure(category, str(e), stage="propose")
             failure_trace.append({"stage": "propose", "category": category, "message": str(e)[:2000]})
             budget.record_failure(category, debug_attempts=0, failure_trace=failure_trace)
-            instrumentation.record_abandoned(generation + 1, attempt, category, 0, None, failure_trace)
+            instrumentation.record_abandoned(generation + 1, attempt, category, 0, None,
+                                             failure_trace, design_id=design_id,
+                                             archive_context=archive_context,
+                                             meta_reasoning=_meta_reasoning())
             continue
 
         result = None
@@ -396,7 +411,10 @@ def search(args):
             # metric toward the subset each model could successfully produce.
             instrumentation.record_abandoned(generation + 1, attempt,
                                              terminal_failure or "runtime_exception",
-                                             debug_attempts, next_solution, failure_trace)
+                                             debug_attempts, next_solution, failure_trace,
+                                             design_id=design_id,
+                                             archive_context=archive_context,
+                                             meta_reasoning=_meta_reasoning())
             continue
 
         outcome = budget.record_success(debug_attempts, failure_trace)
@@ -408,6 +426,9 @@ def search(args):
         next_solution['meta_model'] = args.model
         next_solution['worker_model'] = args.worker_model
         next_solution['run_id'] = args.run_id
+        next_solution['design_id'] = design_id
+        next_solution['archive_context'] = archive_context
+        next_solution['meta_reasoning'] = _meta_reasoning()
         next_solution['meta_usage'] = instrumentation.usage_for(generation + 1).get("meta", {})
 
         if 'debug_thought' in next_solution:
@@ -429,10 +450,75 @@ def search(args):
     instrumentation.write(os.path.join(args.save_dir, args.run_id))
 
 
+# Stage 0.5 reference conditions. The bare agent is the floor for Q1 and the
+# anchor for the Pareto front; solo CoT is what the informed meta agent is told
+# its worker already achieves.
+BARE_FORWARD = """def forward(self, taskInfo):
+    agent = LLMAgentBase(['answer'], 'Bare Agent')
+    answer = agent([taskInfo], "Solve the task. Reply with the final answer only.")[0]
+    return answer
+"""
+
+
+def run_baseline(args):
+    """Measure the worker with no searched scaffold.
+
+    Routed through run_evaluation so the baseline is produced by exactly the
+    machinery that scores every searched agent; a separately written evaluation
+    path would not be comparable to the thing it anchors.
+    """
+    instrumentation = get_instrumentation()
+
+    if args.baseline == "cot":
+        entry = next(e for e in get_init_archive() if e.get("name") == "Chain-of-Thought")
+        code, name = entry["code"], entry["name"]
+    else:
+        code, name = BARE_FORWARD, "Bare Model"
+
+    medians, per_question, resources = [], [], []
+    for rep in range(max(1, args.baseline_repeats)):
+        instrumentation.set_context(phase="baseline",
+                                    generation=f"{args.baseline}:rep{rep + 1}",
+                                    attempt=rep + 1)
+        result = run_evaluation(args, code)
+        acc_list = result["acc_list"]
+        medians.append(_median(acc_list))
+        per_question.append(acc_list)
+        resources.append(result.get("usage", {}).get("worker", {}))
+        print(f"  {args.baseline} rep {rep + 1}/{args.baseline_repeats}: "
+              f"median accuracy {medians[-1]:.4f}")
+
+    pooled = [outcome for rep in per_question for outcome in rep]
+    payload = {
+        "condition": args.baseline,
+        "name": name,
+        "worker_model": args.worker_model,
+        "worker_reasoning_effort": args.worker_reasoning_effort,
+        "domain": args.domain,
+        "valid_size": args.valid_size,
+        "shuffle_seed": args.shuffle_seed,
+        "repeats": len(medians),
+        # Mean across repeats: this single number is what the meta prompt quotes.
+        "accuracy": sum(medians) / len(medians),
+        "accuracy_per_repeat": medians,
+        "fitness": bootstrap_confidence_interval(pooled),
+        "per_question": per_question,
+        "resource": resources,
+        "code": code,
+    }
+
+    os.makedirs(args.save_dir, exist_ok=True)
+    out_path = os.path.join(args.save_dir, f"{args.baseline}_baseline.json")
+    with open(out_path, "w") as handle:
+        json.dump(payload, handle, indent=2)
+    print(f"{name} baseline: {payload['accuracy']:.4f} over {payload['repeats']} repeats "
+          f"-> {out_path}")
+    instrumentation.write(os.path.join(args.save_dir, args.run_id))
+
+
 def evaluate(args):
     instrumentation = get_instrumentation()
     instrumentation.set_context(phase="test")
-
     file_path = os.path.join(args.save_dir, f"{args.expr_name}_run_archive.json")
     eval_file_path = str(os.path.join(args.save_dir, f"{args.expr_name}_run_archive.json")).strip(".json") + "_evaluate.json"
     with open(file_path, 'r') as json_file:
@@ -670,6 +756,14 @@ if __name__ == "__main__":
     parser.add_argument('--search_only', action='store_true', default=False)
     parser.add_argument('--evaluate_only', action='store_true', default=False)
 
+    # --- stage 0.5 ---
+    parser.add_argument('--baseline', choices=['bare', 'cot'], default=None,
+                        help="Measure the worker alone instead of searching. "
+                             "'cot' writes cot_baseline.json, which the informed meta prompt quotes.")
+    parser.add_argument('--baseline_repeats', type=int, default=1,
+                        help="Independent re-evaluations. Stage 0.5 replicates via --n_repreat "
+                             "instead, so raising both multiplies the cost.")
+
     args = parser.parse_args()
     if args.run_id is None:
         args.run_id = args.expr_name
@@ -687,12 +781,18 @@ if __name__ == "__main__":
         informed=args.informed_meta,
     )
 
-    if not args.evaluate_only:
+    if args.baseline:
+        # Measured on the validation split, so the number quoted to the meta
+        # agent is on the same questions the search will optimise against.
         SEARCHING_MODE = True
-        search(args)
+        run_baseline(args)
+    else:
+        if not args.evaluate_only:
+            SEARCHING_MODE = True
+            search(args)
 
-    if not args.search_only:
-        SEARCHING_MODE = False
-        evaluate(args)
+        if not args.search_only:
+            SEARCHING_MODE = False
+            evaluate(args)
 
     get_instrumentation().write(os.path.join(args.save_dir, args.run_id))

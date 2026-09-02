@@ -174,10 +174,13 @@ class Instrumentation:
 
     def record_abandoned(self, generation: Any, attempt: int, terminal_failure: str,
                          debug_attempts: int, solution: Optional[dict],
-                         failure_trace: List[dict]) -> None:
+                         failure_trace: List[dict], design_id: Optional[str] = None,
+                         archive_context: Optional[List[str]] = None,
+                         meta_reasoning: Optional[str] = None) -> None:
         """Persist a generation that never produced an archive entry."""
         with self._lock:
             self.abandoned.append({
+                "design_id": design_id or (solution or {}).get("design_id"),
                 "generation": generation,
                 "attempt": attempt,
                 "terminal_failure": terminal_failure,
@@ -185,6 +188,8 @@ class Instrumentation:
                 "thought": (solution or {}).get("thought"),
                 "name": (solution or {}).get("name"),
                 "code": (solution or {}).get("code"),
+                "archive_context": archive_context,
+                "meta_reasoning": meta_reasoning,
                 "failure_trace": failure_trace,
                 "t": time.time(),
             })

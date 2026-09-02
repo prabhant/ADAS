@@ -161,21 +161,34 @@ def archive_utilization(lineage: Sequence[dict], archive: Sequence[dict]) -> Dic
     distances = [node["nearest_predecessor_distance"] for node in lineage
                  if node["nearest_predecessor_distance"] is not None]
     names = {str(entry.get("name", "")).lower() for entry in archive if entry.get("name")}
+    id_to_name = {entry["design_id"]: str(entry.get("name", "")).lower()
+                  for entry in archive if entry.get("design_id")}
+
     references = 0
     considered = 0
+    context_sizes = []
     for entry in archive:
         thought = str(entry.get("thought", "")).lower()
         if not thought:
             continue
         considered += 1
         own = str(entry.get("name", "")).lower()
-        if any(name and name != own and name in thought for name in names):
+        # Prefer what the designer was actually shown; fall back to the whole
+        # archive for runs recorded before archive_context was logged.
+        context = entry.get("archive_context")
+        if context:
+            context_sizes.append(len(context))
+            visible = {id_to_name.get(ref, str(ref).lower()) for ref in context}
+        else:
+            visible = names
+        if any(name and name != own and name in thought for name in visible):
             references += 1
 
     mean_distance = sum(distances) / len(distances) if distances else None
     return {
         "mean_distance_to_nearest_predecessor": mean_distance,
         "explicit_reference_rate": references / considered if considered else 0.0,
+        "mean_context_size": sum(context_sizes) / len(context_sizes) if context_sizes else None,
         "n_considered": considered,
     }
 

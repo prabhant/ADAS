@@ -144,10 +144,23 @@ load_cell() {
 
 # Measured solo-CoT accuracy from Stage 0.5, fed to the meta prompt so it is
 # calibrating against its actual worker rather than against gpt-3.5.
+#
+# Reasoning effort is part of the worker's identity: gpt-oss-20b at low and high
+# effort are different workers and have different baselines, so the effort-
+# specific directory is preferred when one exists.
 worker_cot_baseline() {
-    local path="$RESULTS_ROOT/s05_cot_${WORKER_KEY}/cot_baseline.json"
-    [[ -f "$path" ]] || return 0
-    python -c "import json,sys; print(json.load(open(sys.argv[1]))['accuracy'])" "$path"
+    local candidates=()
+    [[ -n "${WORKER_REASONING_EFFORT:-}" ]] \
+        && candidates+=("$RESULTS_ROOT/s05_cot_${WORKER_KEY}_${WORKER_REASONING_EFFORT}/cot_baseline.json")
+    candidates+=("$RESULTS_ROOT/s05_cot_${WORKER_KEY}/cot_baseline.json")
+    local path
+    for path in "${candidates[@]}"; do
+        if [[ -f "$path" ]]; then
+            python -c "import json,sys; print(json.load(open(sys.argv[1]))['accuracy'])" "$path"
+            return 0
+        fi
+    done
+    return 0
 }
 
 # Assemble the argument list common to every search invocation.
@@ -186,9 +199,20 @@ search_args() {
 
     local baseline
     baseline="$(worker_cot_baseline || true)"
-    [[ -n "$baseline" ]] && args+=(--worker_cot_accuracy "$baseline")
+    if [[ -n "$baseline" ]]; then
+        args+=(--worker_cot_accuracy "$baseline")
+    elif [[ "${INFORMED_META:-1}" == "1" && -n "${META_MODEL:-}" && "${ALLOW_MISSING_BASELINE:-0}" != "1" ]]; then
+        # Without this the run would silently proceed as "informed minus the
+        # accuracy number", quietly invalidating the Stage 1b informed/blind
+        # contrast while still producing a healthy-looking archive.
+        echo "no Stage 0.5 baseline for worker '${WORKER_KEY}${WORKER_REASONING_EFFORT:+ (${WORKER_REASONING_EFFORT})}'." >&2
+        echo "run experiments/slurm/stage05_baselines.slurm first, or set ALLOW_MISSING_BASELINE=1 to accept a weaker informed condition." >&2
+        exit 1
+    fi
 
     case "${CELL_CONDITION:-}" in
+        bare_model)           args+=(--baseline bare) ;;
+        solo_cot)             args+=(--baseline cot) ;;
         random_recombination) args+=(--search_mode random) ;;
         no_reflection)        args+=(--no_reflection) ;;
         empty_archive)        args+=(--init_archive empty) ;;

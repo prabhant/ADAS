@@ -1,0 +1,34 @@
+=== node: tcn476.local.snellius.surf.nl  job: 26326096 ===
+=== interpreter ===
+Python 3.11.16
+core deps ok
+sqlite3 ok (xgrammar backend depends on it)
+=== config parses and is internally consistent ===
+52 cells reference 6 registered models, all resolvable
+every cell fits in one 4-GPU node
+=== managed cache holds every model the grid asks for ===
+  [ok] gpt-oss-20b -> openai/gpt-oss-20b
+  [ok] qwen3.5-27b -> Qwen/Qwen3.5-27B
+  [ok] gpt-oss-120b -> openai/gpt-oss-120b
+  [ok] nemotron-3-super-120b -> nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8
+  [ok] mistral-7b -> mistralai/Mistral-7B-Instruct-v0.2
+  [ok] phi-4 -> microsoft/phi-4
+=== search modules import under both domains ===
+mgsm search imports
+mmlu search imports
+=== sandbox guards actually hold ===
+  [ok] network_blocked
+  [ok] subprocess_blocked
+  [ok] write_blocked
+sandbox guards hold
+=== analysis layers run against the seed archive ===
+  Chain-of-Thought             agents=1 calls=1 halluc=0
+  Self-Consistency with Chain-of-Thought agents=5 calls=1 halluc=0
+  Self-Refine (Reflexion)      agents=2 calls=3 halluc=0
+  LLM Debate                   agents=4 calls=3 halluc=0
+  Step-back Abstraction        agents=2 calls=2 halluc=0
+  Quality-Diversity            agents=2 calls=3 halluc=0
+  Dynamic Assignment of Roles  agents=5 calls=2 halluc=0
+  pooled stats over 7 designs; degeneracy threshold 3.673
+  bootstrap CI smoke: {'median': 1.0, 'mean': 0.6666666666666666, 'low': 0.3333333333333333, 'high': 1.0, 'n': 6}
+=== sanity 00 PASSED ===

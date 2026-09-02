@@ -112,7 +112,17 @@ for entry in scored:
     assert vector, f"{entry['name']} has no per-question vector; Layer 4 would be empty"
     print(f"  {entry['name']:<28} fitness={entry['raw_median_accuracy']:.3f} "
           f"vector_len={len(vector)} debug_attempts={entry.get('debug_attempts')}")
-
+# Q7/Q8/Q9 capture: designs must be addressable campaign-wide, and the archive
+# the designer actually saw must be recorded rather than inferred later.
+assert all(e.get("design_id") for e in designs), \
+    f"designs without design_id: {[e['name'] for e in designs if not e.get('design_id')]}"
+generated = [e for e in designs if isinstance(e.get("generation"), int)]
+assert generated, "no design was generated; only seeds are present"
+for entry in generated:
+    assert entry.get("archive_context") is not None, \
+        f"{entry['name']} has no archive_context; Q8 archive utilisation would be inferred"
+    print(f"  {entry['design_id']}  saw {len(entry['archive_context'])} archive entries, "
+          f"reasoning={'yes' if entry.get('meta_reasoning') else 'not exposed'}")
 with open(os.path.join(run_dir, "budget_summary.json")) as handle:
     print("  budget:", json.load(handle))
 PYTHON
