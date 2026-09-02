@@ -1,0 +1,263 @@
+# Model registry for the ADAS scaling study.
+#
+# Every `source: managed` entry was verified present in the Snellius managed
+# cache by directory listing, so none of them need a download or a servicedesk
+# ticket. `hf_id` is the exact repo id; the cache directory is
+# models--<hf_id with / replaced by -->.
+#
+# THE BINDING CONSTRAINT IS VRAM PER NODE, NOT DISK.
+# One gpu_h100 node is 4 x H100 94GB, and meta + worker must share it. That caps
+# the meta agent at tensor_parallel_size 2 whenever the worker needs more than
+# one GPU, and rules out every checkpoint above ~180GB as a meta agent no matter
+# how capable it is. `checkpoint_gb` is the on-disk size; `vram_gb` is the
+# serving estimate including KV cache. Where the two could diverge the entry
+# carries `verify: true` and must be confirmed by the Stage 0 sanity jobs.
+#
+# `roles` restricts which side of the experiment a model may be used on.
+# `max_output_tokens` is the *usable* completion budget and is calibrated per
+# model so that reasoning-trace emitters are not silently starved relative to
+# non-reasoning models (see "Fairness controls" in followinstructions.md).
+
+defaults:
+  managed_cache: /projects/2/managed_datasets/hf_cache_dir
+  dtype: bfloat16
+  gpu_memory_utilization: 0.90
+  api_key: local-vllm
+  node_vram_gb: 376              # 4 x H100 94GB, shared between the two roles
+
+# Exactly the variables the SURF documentation prescribes. HF_HOME must not
+# point into the managed cache: it is read-only and the hub writes locks there.
+# Snellius does not export login-shell variables into jobs, so every job script
+# has to set these itself.
+hf_env:
+  HF_HUB_CACHE: /projects/2/managed_datasets/hf_cache_dir
+  HF_HOME: /scratch-shared/$USER/hf
+  HF_HUB_OFFLINE: 1
+  vllm_flag: --download-dir $HF_HUB_CACHE
+
+models:
+  gpt-oss-20b:
+    hf_id: openai/gpt-oss-20b
+    source: managed
+    params_total: 21B
+    params_active: 3.6B
+    architecture: moe
+    context: 131072
+    license: Apache-2.0
+    roles: [meta, worker]
+    tensor_parallel_size: 1
+    gpus: 1
+    max_model_len: 131072
+    max_output_tokens: 8192        # doubled: reasoning trace shares the budget
+    emits_reasoning: true
+    supports_reasoning_effort: true
+    reasoning_efforts: [low, medium, high]
+    ladder: meta_floor
+
+  qwen3.5-27b:
+    hf_id: Qwen/Qwen3.5-27B
+    source: managed
+    family: qwen
+    params_total: 27B
+    params_active: 27B
+    architecture: dense
+    context: 131072
+    license: Apache-2.0
+    checkpoint_gb: 52
+    vram_gb: 62
+    roles: [meta, worker]
+    tensor_parallel_size: 1
+    gpus: 1
+    max_model_len: 65536
+    max_output_tokens: 4096
+    emits_reasoning: false
+    supports_reasoning_effort: false
+    ladder: [meta_mid, worker_large]
+    verify: true                   # confirm native context and chat template
+
+  gpt-oss-120b:
+    hf_id: openai/gpt-oss-120b
+    source: managed
+    family: openai
+    params_total: 117B
+    params_active: 5.1B
+    architecture: moe
+    context: 131072
+    license: Apache-2.0
+    checkpoint_gb: 183             # repo total: bf16 AND mxfp4 copies
+    vram_gb: 75                    # mxfp4 weights ~61GB, plus KV cache
+    roles: [meta]
+    tensor_parallel_size: 2
+    gpus: 2
+    max_model_len: 131072
+    max_output_tokens: 8192
+    emits_reasoning: true
+    supports_reasoning_effort: true
+    reasoning_efforts: [low, medium, high]
+    stage_to_node_nvme: true       # $TMPDIR with --constraint=scratch-node
+    ladder: meta_top
+    # The 183GB disk figure is the whole repo, not the serving footprint. If
+    # vLLM picks bf16 over mxfp4 this needs 3 GPUs and pairing it with a 2-GPU
+    # worker becomes infeasible. Sanity job 02 settles it.
+    verify: true
+    fallback: nemotron-3-super-120b
+
+  nemotron-3-super-120b:
+    hf_id: nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8
+    source: managed
+    family: nvidia
+    params_total: 120B
+    params_active: 12B
+    architecture: moe
+    context: 131072
+    license: nvidia-open-model
+    checkpoint_gb: 120             # already FP8, so disk ~= VRAM
+    vram_gb: 140
+    roles: [meta]
+    tensor_parallel_size: 2
+    gpus: 2
+    max_model_len: 65536
+    max_output_tokens: 8192
+    emits_reasoning: true
+    supports_reasoning_effort: false
+    ladder: meta_top_alternate
+    verify: true                   # confirm FP8 kernel support in this vLLM
+
+  mistral-7b:
+    hf_id: mistralai/Mistral-7B-Instruct-v0.2
+    source: managed
+    family: mistral
+    params_total: 7B
+    params_active: 7B
+    architecture: dense
+    context: 32768
+    license: Apache-2.0
+    checkpoint_gb: 14
+    vram_gb: 20
+    roles: [worker]
+    tensor_parallel_size: 1
+    gpus: 1
+    max_model_len: 32768
+    max_output_tokens: 4096
+    emits_reasoning: false
+    supports_reasoning_effort: false
+    ladder: worker_small
+    # Chosen for the low rung over the smaller Phi-3-mini despite being larger:
+    # it is much weaker at grade-school maths, which widens the capability span,
+    # and it keeps all three worker rungs in different model families so that
+    # capability is not confounded with training recipe.
+
+  phi-4:
+    hf_id: microsoft/phi-4
+    source: managed
+    family: microsoft
+    params_total: 14B
+    params_active: 14B
+    architecture: dense
+    context: 16384
+    license: MIT
+    checkpoint_gb: 28
+    vram_gb: 36
+    roles: [worker]                # 16k context: unusable as a meta agent
+    tensor_parallel_size: 1
+    gpus: 1
+    max_model_len: 16384
+    max_output_tokens: 4096
+    emits_reasoning: false
+    supports_reasoning_effort: false
+    ladder: worker_mid
+
+# ---------------------------------------------------------------------------
+# Present in the managed cache and correctly sized, but not on the ladder. Kept
+# so an arm can be added without re-deriving the sizing.
+# ---------------------------------------------------------------------------
+eligible_alternates:
+  phi-3-mini-128k:
+    hf_id: microsoft/Phi-3-mini-128k-instruct
+    params_total: 3.8B
+    context: 131072
+    checkpoint_gb: 7.2
+    roles: [worker]
+    tensor_parallel_size: 1
+    note: smallest usable worker; shares a training recipe with phi-4
+
+  phi-3-medium-128k:
+    hf_id: microsoft/Phi-3-medium-128k-instruct
+    params_total: 14B
+    context: 131072
+    checkpoint_gb: 27
+    roles: [worker]
+    tensor_parallel_size: 1
+    note: phi-4 with 128k context; swap in if 16k proves binding for scaffolds
+
+  qwen3-14b:
+    hf_id: Qwen/Qwen3-14B
+    params_total: 14B
+    context: 131072
+    checkpoint_gb: 28
+    roles: [worker]
+    tensor_parallel_size: 1
+    note: same-family 14B counterpart to qwen3.5-27b
+
+  nemotron-3-nano-30b:
+    hf_id: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
+    params_total: 30B
+    params_active: 3B
+    architecture: moe
+    checkpoint_gb: 60
+    roles: [meta, worker]
+    tensor_parallel_size: 1
+    note: 3B active at 30B total; a sparse counterpart to qwen3.5-27b
+
+# Held-out models. Never used as meta or worker, so that judging and embedding
+# cannot correlate with the axis under study.
+held_out:
+  embedding:
+    hf_id: sentence-transformers/all-MiniLM-L6-v2
+    source: self_download        # not in the managed cache
+    used_by: [analysis/prompt_semantics.py, analysis/lineage.py]
+  judge:
+    hf_id: mistralai/Mixtral-8x7B-Instruct-v0.1
+    source: managed
+    checkpoint_gb: 87
+    tensor_parallel_size: 2
+    max_model_len: 32768
+    used_by: [analysis/designer_signature.py]
+    fallback: mistralai/Mistral-7B-Instruct-v0.3
+    note: >
+      Runs in its own analysis job so it may take two GPUs without competing
+      with a search. Held out from both ladders; promoting it to a ladder rung
+      would stop the thought-code alignment scores from being independent.
+
+# ---------------------------------------------------------------------------
+# Excluded, with the reason, so the sizing is not re-litigated later.
+# ---------------------------------------------------------------------------
+excluded:
+  # --- too large to co-reside with a worker on one node ---
+  qwen3.5-397b-a17b: 752GB; needs two full H100 nodes
+  qwen3.5-122b-a10b: 234GB bf16; tp=4 consumes the node, leaving none for the worker
+  mixtral-8x22b-instruct-v0.1: 262GB; tp=4 consumes the node
+  deepseek-r1: 642-700GB, two full H100 nodes
+  deepseek-v3.2: 642-700GB, two full H100 nodes
+  qwen2.5-72b-instruct: 145GB; would fit as meta at tp=2 but is a 2024 model
+
+  # --- context too short ---
+  phi-2: 2k context; cannot hold an agent scaffold, let alone the meta prompt
+  phi-3-mini-4k / phi-3-medium-4k: 4k context; the 128k variants cost the same
+  gpt-j / gpt-neox / gpt-2: 2k context, obsolete
+  phi-4-as-meta: 16k context; fails by mid-run once the archive grows
+
+  # --- base models, no chat template ---
+  mistral-7b-v0.1: base model; the framework assumes a chat endpoint
+  mixtral-8x7b-v0.1 / mixtral-8x22b-v0.1: base models; use the Instruct variants
+
+  # --- wrong modality ---
+  phi-3-vision-128k: vision-language; no text-only gain over phi-3-medium
+  videollama3-7b / llava-video-7b: video understanding
+  whisper-large-v3: speech recognition
+
+  # --- planned earlier, corrected against the actual cache ---
+  qwen3-4b: not in the managed catalogue; the cache carries Qwen3.5, not Qwen3-4B
+  qwen3-27b-instruct: does not exist; the managed entry is Qwen/Qwen3.5-27B
+  mistral-small-3.2-24b: not in the cache; judge role moved to Mixtral-8x7B-Instruct
+  llama-2 / codellama-2: gated and superseded

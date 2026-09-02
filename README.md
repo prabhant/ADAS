@@ -38,6 +38,55 @@ pip install -r requirements.txt
 export OPENAI_API_KEY="YOUR KEY HERE"
 ```
 
+### Snellius: hosted Hugging Face models
+
+Snellius provides a shared Hugging Face cache at
+`/projects/2/managed_datasets/hf_cache_dir`. The setup below uses it in offline
+mode, so model weights are not copied into the project or downloaded again.
+See the [SURF list of available datasets and models](https://servicedesk.surf.nl/wiki/spaces/WIKI/pages/62227640/Available+datasets+and+models+on+Snellius).
+
+Create the Conda environment once on a login node:
+
+```bash
+./scripts/create_snellius_env.sh
+```
+
+Do not run model inference on a login node. For interactive work, log in to a
+GPU node first:
+
+```bash
+ssh gcn1
+```
+
+That node hands out a single A100 MIG slice (1g.5gb). It is fine for quick
+checks such as `torch.cuda.is_available()`, but vLLM cannot start on a MIG
+device (NVML device inspection fails), so run the pipeline itself on a full GPU
+through `salloc`/`sbatch` on the `gpu_a100` partition.
+
+Submit the included GPU job, which starts a local OpenAI-compatible vLLM server
+and then runs ADAS against it:
+
+```bash
+sbatch --export=ALL,MODEL=mistralai/Mistral-7B-Instruct-v0.2 \
+  scripts/run_adas_vllm.slurm --n_generation 1 --valid_size 8 --max_workers 8
+```
+
+The default target is `_mmlu/search.py`. Select another ADAS entry point with
+`ADAS_SCRIPT`, for example:
+
+```bash
+sbatch --export=ALL,MODEL=mistralai/Mistral-7B-Instruct-v0.2,ADAS_SCRIPT=_gpqa/search.py \
+  scripts/run_adas_vllm.slurm --n_generation 1 --valid_size 8 --max_workers 8
+```
+
+The model must be present in the shared cache and accessible under its license.
+Restricted models require access through a SURF service-desk request. Larger
+models may require more GPUs and matching vLLM tensor-parallel settings. The
+job exports `ADAS_MODEL`, `OPENAI_BASE_URL`, and the Hugging Face offline/cache
+variables; both the meta-agent and generated agents therefore use the selected
+local model. To use an already-running OpenAI-compatible endpoint instead, set
+those variables manually and pass its model name through `--model`.
+
 ## Running Instructions
 
 ### Running Meta Agent Search

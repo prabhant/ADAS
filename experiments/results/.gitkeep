@@ -1,0 +1,5 @@
+# Per-cell run artifacts land here: `<cell_id>/` directories holding the run
+# archive, evaluation archive, token usage, per-call dataflow log, failure log,
+# abandoned generations, and budget summary.
+#
+# Tracked only so the directory exists before the first job writes to it.

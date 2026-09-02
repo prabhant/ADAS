@@ -232,6 +232,7 @@ Analyze the transformation rules based on the provided Examples and determine wh
 from collections import namedtuple, Union
 import numpy as np
 import json
+import os
 
 from utils import random_id, format_arc_data, eval_solution, list_to_string, bootstrap_confidence_interval
 import openai
@@ -296,11 +297,11 @@ class LLMAgentBase:
     - id (str): Unique identifier for the agent instance.
     \"""
 
-    def __init__(self, output_fields: list, agent_name: str, role='helpful assistant', model='gpt-3.5-turbo-0125', temperature=0.5) -> None:
+    def __init__(self, output_fields: list, agent_name: str, role='helpful assistant', model=None, temperature=0.5) -> None:
         self.output_fields = output_fields
         self.agent_name = agent_name
         self.role = role
-        self.model = model
+        self.model = model or os.environ.get('ADAS_MODEL', 'gpt-3.5-turbo-0125')
         self.temperature = temperature
         self.id = random_id()
     

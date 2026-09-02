@@ -1,0 +1,19 @@
+name: adas-snellius
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.11
+  - pip>=24
+  - pip:
+      - numpy
+      - tqdm
+      - pandas
+      - openai>=1.30,<3
+      - backoff
+      - scipy
+      - blobfile
+      - transformers>=4.51
+      - accelerate>=1.0
+      - huggingface-hub>=0.30
+      - vllm>=0.8

@@ -70,12 +70,12 @@ class LLMAgentBase():
     """
 
     def __init__(self, output_fields: list, agent_name: str,
-                 role='helpful assistant', model='gpt-3.5-turbo-0125', temperature=0.5) -> None:
+                 role='helpful assistant', model=None, temperature=0.5) -> None:
         self.output_fields = output_fields
         self.agent_name = agent_name
 
         self.role = role
-        self.model = model
+        self.model = model or os.environ.get('ADAS_MODEL', 'gpt-3.5-turbo-0125')
         self.temperature = temperature
 
         # give each instance a unique id
@@ -252,10 +252,8 @@ if __name__ == "__main__":
     parser.add_argument('--max_workers', type=int, default=48)
     parser.add_argument('--debug', action='store_true', default=True)
     parser.add_argument('--eval_file_path', type=str, default='')
-    parser.add_argument('--model',
-                        type=str,
-                        default='gpt-4o-2024-05-13',
-                        choices=['gpt-4-turbo-2024-04-09', 'gpt-3.5-turbo-0125', 'gpt-4o-2024-05-13'])
+    parser.add_argument('--model', type=str,
+                        default=os.environ.get('ADAS_MODEL', 'gpt-4o-2024-05-13'))
 
     args = parser.parse_args()
 

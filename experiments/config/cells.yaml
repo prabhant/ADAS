@@ -1,0 +1,205 @@
+# Experiment grid.
+#
+# `shuffle_seed` is held at 0 everywhere so that every cell sees identical
+# validation and test items. Replicates come from sampling temperature
+# (0.5 worker / 0.8 meta), not from a seed -- there is no LLM sampling seed in
+# this codebase.
+
+stage_defaults:
+  "0":
+    n_generation: 2
+    valid_size: 8
+    test_size: 8
+    domain: mgsm
+    max_attempts: 6
+    debug_max: 3
+  "0.5":
+    n_generation: 0          # no search: reference conditions only
+    valid_size: 128
+    test_size: 0
+    n_repreat: 5
+    domain: mgsm
+  "1":
+    n_generation: 10
+    valid_size: 64
+    test_size: 200
+    domain: mgsm
+    max_attempts: 30
+    debug_max: 3
+  "1b":
+    n_generation: 10
+    valid_size: 64
+    test_size: 200
+    domain: mgsm
+    max_attempts: 30
+    debug_max: 3
+  "2":
+    n_generation: 20
+    valid_size: 128
+    test_size: 300
+    domain: mgsm
+    max_attempts: 60
+    debug_max: 3
+  "2r":
+    n_generation: 20
+    valid_size: 128
+    test_size: 300
+    domain: mgsm
+    max_attempts: 60
+    debug_max: 3
+  "2c":
+    n_generation: 20
+    valid_size: 128
+    test_size: 300
+    domain: mgsm
+    max_attempts: 60
+    debug_max: 3
+  "2d":
+    n_generation: 20
+    valid_size: 128
+    test_size: 300
+    domain: mgsm
+    max_attempts: 60
+    debug_max: 3
+  "3":
+    n_generation: 20
+    valid_size: 128
+    test_size: 300
+    domain: mmlu
+    max_attempts: 60
+    debug_max: 3
+
+common:
+  shuffle_seed: 0
+  multiprocessing: true
+  max_workers: 192           # matched to vLLM --max-num-seqs, see launch_vllm.sh
+  meta_temperature: 0.8
+  worker_temperature: 0.5
+  informed_meta: true
+  sandbox: true
+
+# ---------------------------------------------------------------------------
+# Stage 0 -- plumbing smoke test (one cell)
+# ---------------------------------------------------------------------------
+cells:
+  - id: s0_smoke
+    stage: "0"
+    meta: gpt-oss-20b
+    worker: mistral-7b
+    seed: a
+
+  # -------------------------------------------------------------------------
+  # Stage 0.5 -- capability axis + Q1 anchors. No search.
+  # -------------------------------------------------------------------------
+  - {id: s05_bare_mistral-7b,  stage: "0.5", meta: null, worker: mistral-7b,   seed: a, condition: bare_model}
+  - {id: s05_bare_phi-4,       stage: "0.5", meta: null, worker: phi-4,        seed: a, condition: bare_model}
+  - {id: s05_bare_qwen3.5-27b, stage: "0.5", meta: null, worker: qwen3.5-27b,  seed: a, condition: bare_model}
+  - {id: s05_cot_mistral-7b,   stage: "0.5", meta: null, worker: mistral-7b,   seed: a, condition: solo_cot}
+  - {id: s05_cot_phi-4,        stage: "0.5", meta: null, worker: phi-4,        seed: a, condition: solo_cot}
+  - {id: s05_cot_qwen3.5-27b,  stage: "0.5", meta: null, worker: qwen3.5-27b,  seed: a, condition: solo_cot}
+  - {id: s05_cot_gpt-oss-20b_low,  stage: "0.5", meta: null, worker: gpt-oss-20b, seed: a, condition: solo_cot, worker_reasoning_effort: low}
+  - {id: s05_cot_gpt-oss-20b_high, stage: "0.5", meta: null, worker: gpt-oss-20b, seed: a, condition: solo_cot, worker_reasoning_effort: high}
+
+  # -------------------------------------------------------------------------
+  # Stage 1 -- full 3x3 grid, one seed. Array indices 0-8.
+  # -------------------------------------------------------------------------
+  - {id: s1_m20_w7b,   stage: "1", meta: gpt-oss-20b,  worker: mistral-7b,  seed: a, array_index: 0}
+  - {id: s1_m20_w14b,  stage: "1", meta: gpt-oss-20b,  worker: phi-4,       seed: a, array_index: 1}
+  - {id: s1_m20_w27b,  stage: "1", meta: gpt-oss-20b,  worker: qwen3.5-27b, seed: a, array_index: 2}
+  - {id: s1_m27_w7b,   stage: "1", meta: qwen3.5-27b,  worker: mistral-7b,  seed: a, array_index: 3}
+  - {id: s1_m27_w14b,  stage: "1", meta: qwen3.5-27b,  worker: phi-4,       seed: a, array_index: 4}
+  - {id: s1_m27_w27b,  stage: "1", meta: qwen3.5-27b,  worker: qwen3.5-27b, seed: a, array_index: 5}
+  - {id: s1_m120_w7b,  stage: "1", meta: gpt-oss-120b, worker: mistral-7b,  seed: a, array_index: 6}
+  - {id: s1_m120_w14b, stage: "1", meta: gpt-oss-120b, worker: phi-4,       seed: a, array_index: 7}
+  - {id: s1_m120_w27b, stage: "1", meta: gpt-oss-120b, worker: qwen3.5-27b, seed: a, array_index: 8}
+
+  # -------------------------------------------------------------------------
+  # Stage 1b -- does telling the meta agent its worker matter
+  # -------------------------------------------------------------------------
+  - {id: s1b_m120_w7b_informed,  stage: "1b", meta: gpt-oss-120b, worker: mistral-7b,  seed: a, informed_meta: true}
+  - {id: s1b_m120_w7b_blind,     stage: "1b", meta: gpt-oss-120b, worker: mistral-7b,  seed: a, informed_meta: false}
+  - {id: s1b_m120_w27b_informed, stage: "1b", meta: gpt-oss-120b, worker: qwen3.5-27b, seed: a, informed_meta: true}
+  - {id: s1b_m120_w27b_blind,    stage: "1b", meta: gpt-oss-120b, worker: qwen3.5-27b, seed: a, informed_meta: false}
+
+  # -------------------------------------------------------------------------
+  # Stage 2 -- main dataset. Populated after the Stage 1 redirect review;
+  # the corner cells below are the default if Stage 1 is uninformative.
+  # -------------------------------------------------------------------------
+  - {id: s2_m20_w7b_a,   stage: "2", meta: gpt-oss-20b,  worker: mistral-7b,  seed: a}
+  - {id: s2_m20_w7b_b,   stage: "2", meta: gpt-oss-20b,  worker: mistral-7b,  seed: b}
+  - {id: s2_m20_w27b_a,  stage: "2", meta: gpt-oss-20b,  worker: qwen3.5-27b, seed: a}
+  - {id: s2_m20_w27b_b,  stage: "2", meta: gpt-oss-20b,  worker: qwen3.5-27b, seed: b}
+  - {id: s2_m120_w7b_a,  stage: "2", meta: gpt-oss-120b, worker: mistral-7b,  seed: a}
+  - {id: s2_m120_w7b_b,  stage: "2", meta: gpt-oss-120b, worker: mistral-7b,  seed: b}
+  - {id: s2_m120_w27b_a, stage: "2", meta: gpt-oss-120b, worker: qwen3.5-27b, seed: a}
+  - {id: s2_m120_w27b_b, stage: "2", meta: gpt-oss-120b, worker: qwen3.5-27b, seed: b}
+  - {id: s2_m27_w14b_a,  stage: "2", meta: qwen3.5-27b,  worker: phi-4,       seed: a}
+  - {id: s2_m27_w14b_b,  stage: "2", meta: qwen3.5-27b,  worker: phi-4,       seed: b}
+
+  # -------------------------------------------------------------------------
+  # Stage 2r -- reasoning effort, worker model identity held fixed
+  # -------------------------------------------------------------------------
+  - {id: s2r_m120_wossl_a, stage: "2r", meta: gpt-oss-120b, worker: gpt-oss-20b, seed: a, worker_reasoning_effort: low}
+  - {id: s2r_m120_wossl_b, stage: "2r", meta: gpt-oss-120b, worker: gpt-oss-20b, seed: b, worker_reasoning_effort: low}
+  - {id: s2r_m120_wossh_a, stage: "2r", meta: gpt-oss-120b, worker: gpt-oss-20b, seed: a, worker_reasoning_effort: high}
+  - {id: s2r_m120_wossh_b, stage: "2r", meta: gpt-oss-120b, worker: gpt-oss-20b, seed: b, worker_reasoning_effort: high}
+
+  # -------------------------------------------------------------------------
+  # Stage 2c -- reference conditions, matched to Stage 2
+  # -------------------------------------------------------------------------
+  - {id: s2c_random_w7b,      stage: "2", meta: null,          worker: mistral-7b,  seed: a, condition: random_recombination, n_generation: 40}
+  - {id: s2c_random_w27b,     stage: "2", meta: null,          worker: qwen3.5-27b, seed: a, condition: random_recombination, n_generation: 40}
+  - {id: s2c_noreflect_w7b,   stage: "2", meta: gpt-oss-120b,  worker: mistral-7b,  seed: a, condition: no_reflection}
+  - {id: s2c_noreflect_w27b,  stage: "2", meta: gpt-oss-120b,  worker: qwen3.5-27b, seed: a, condition: no_reflection}
+  - {id: s2c_empty_w7b,       stage: "2", meta: gpt-oss-120b,  worker: mistral-7b,  seed: a, condition: empty_archive}
+  - {id: s2c_empty_w27b,      stage: "2", meta: gpt-oss-120b,  worker: qwen3.5-27b, seed: a, condition: empty_archive}
+
+  # -------------------------------------------------------------------------
+  # Stage 2d -- cost-penalised search on the corner cells (MaAS lambda range)
+  # -------------------------------------------------------------------------
+  - {id: s2d_m120_w7b_l1,   stage: "2d", meta: gpt-oss-120b, worker: mistral-7b,  seed: a, cost_lambda: 0.001}
+  - {id: s2d_m120_w7b_l5,   stage: "2d", meta: gpt-oss-120b, worker: mistral-7b,  seed: a, cost_lambda: 0.005}
+  - {id: s2d_m120_w7b_l10,  stage: "2d", meta: gpt-oss-120b, worker: mistral-7b,  seed: a, cost_lambda: 0.01}
+  - {id: s2d_m120_w27b_l1,  stage: "2d", meta: gpt-oss-120b, worker: qwen3.5-27b, seed: a, cost_lambda: 0.001}
+  - {id: s2d_m120_w27b_l5,  stage: "2d", meta: gpt-oss-120b, worker: qwen3.5-27b, seed: a, cost_lambda: 0.005}
+  - {id: s2d_m120_w27b_l10, stage: "2d", meta: gpt-oss-120b, worker: qwen3.5-27b, seed: a, cost_lambda: 0.01}
+
+  # -------------------------------------------------------------------------
+  # Stage 3 -- corner cells on MMLU
+  # -------------------------------------------------------------------------
+  - {id: s3_m20_w7b,   stage: "3", meta: gpt-oss-20b,  worker: mistral-7b,  seed: a}
+  - {id: s3_m20_w27b,  stage: "3", meta: gpt-oss-20b,  worker: qwen3.5-27b, seed: a}
+  - {id: s3_m120_w7b,  stage: "3", meta: gpt-oss-120b, worker: mistral-7b,  seed: a}
+  - {id: s3_m120_w27b, stage: "3", meta: gpt-oss-120b, worker: qwen3.5-27b, seed: a}
+
+# ---------------------------------------------------------------------------
+# Stage X -- cross-evaluation. Best validation agent from each source cell is
+# re-evaluated under every worker. Run regardless of what Stage 1 showed.
+# ---------------------------------------------------------------------------
+crosseval:
+  source_cells: [s2_m20_w7b_a, s2_m20_w27b_a, s2_m120_w7b_a, s2_m120_w27b_a, s2_m27_w14b_a]
+  target_workers: [mistral-7b, phi-4, qwen3.5-27b]
+  domain: mgsm
+  test_size: 300
+  n_repreat: 5
+
+# ---------------------------------------------------------------------------
+# Operational definitions. Fixed before Stage 1; do not change mid-campaign.
+# ---------------------------------------------------------------------------
+operational_definitions:
+  degenerate_cell:
+    terminal_failure_fraction: 0.5      # > half of attempts fail terminally
+    novelty_percentile_of_seed_pairwise: 10
+    action: keep_and_report             # raw material for Q6, never discarded
+  best_agent_selection: validation_fitness_only
+  failure_taxonomy:
+    - json_parse_error
+    - python_syntax_error
+    - runtime_exception
+    - context_overflow
+    - wallclock_timeout
+    - all_zero_accuracy
+    - semantically_wrong_but_running
+  generalization_gap: valid_fitness_minus_test_fitness
+  fitness_statistic: median_with_95pct_bootstrap_ci
+  tie_rule: median_inside_ci_of_best

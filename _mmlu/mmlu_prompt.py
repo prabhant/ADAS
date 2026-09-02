@@ -237,6 +237,7 @@ The constellation ... is a bright W-shaped constellation in the northern sky.
 (C) Cassiopeia
 (D) Cepheus
 
+[WORKER_INFO]
 # The utility code:
 
 ```python
@@ -244,6 +245,7 @@ from collections import namedtuple
 from typing import Union
 import numpy as np
 import json
+import os
 
 import openai
 import backoff
@@ -303,11 +305,11 @@ class LLMAgentBase:
     - id (str): Unique identifier for the agent instance.
     \"""
 
-    def __init__(self, output_fields: list, agent_name: str, role='helpful assistant', model='gpt-3.5-turbo-0125', temperature=0.5) -> None:
+    def __init__(self, output_fields: list, agent_name: str, role='helpful assistant', model=None, temperature=0.5) -> None:
         self.output_fields = output_fields
         self.agent_name = agent_name
         self.role = role
-        self.model = model
+        self.model = model or WORKER_MODEL  # the execution model named above
         self.temperature = temperature
         self.id = random_id()
     
@@ -532,11 +534,61 @@ def get_init_archive():
     return [COT, COT_SC, Reflexion, LLM_debate, Take_a_step_back, QD, Role_Assignment]
 
 
+# The meta agent is told which model will execute its designs. Stock ADAS leaves
+# it blind, so it can only adapt through fitness feedback -- which blunts the
+# questions about whether search recognises sufficiency. The blind variant is
+# retained as an ablation.
+_WORKER_DOC = {"informed": True, "text": "", "model_expr": "DEFAULT_MODEL"}
+
+_INFORMED_TEMPLATE = """# The model that will execute your design
+
+Every `LLMAgentBase` instance you create runs on **{worker_model}**, not on the model
+writing this design. Sampling temperature defaults to 0.5.{effort}
+
+{baseline}
+Design for this model's actual capability. Scaffolding that compensates for weak
+single-pass reasoning is wasted on a model that already reasons well, and a model
+that reasons poorly will not be rescued by a longer pipeline alone.
+
+"""
+
+_BLIND_TEXT = ""
+
+
+def set_worker_documentation(worker_model, worker_cot_accuracy=None,
+                             worker_reasoning_effort=None, informed=True):
+    """Configure the worker-model statement injected into the meta prompt."""
+    if not informed:
+        _WORKER_DOC.update(informed=False, text=_BLIND_TEXT, model_expr="DEFAULT_MODEL")
+        return _WORKER_DOC
+
+    if worker_cot_accuracy is None:
+        baseline = ("Its measured solo Chain-of-Thought accuracy on this benchmark's "
+                    "validation split has not been recorded for this run.")
+    else:
+        baseline = (f"Its measured solo Chain-of-Thought accuracy on this benchmark's "
+                    f"validation split is {worker_cot_accuracy:.1%}. Any design you propose "
+                    f"has to earn its extra calls against that number.")
+    effort = ""
+    if worker_reasoning_effort:
+        effort = (f" It is running with reasoning effort set to '{worker_reasoning_effort}', "
+                  f"so it deliberates internally before answering.")
+
+    _WORKER_DOC.update(
+        informed=True,
+        model_expr=repr(worker_model),
+        text=_INFORMED_TEMPLATE.format(worker_model=worker_model, baseline=baseline, effort=effort),
+    )
+    return _WORKER_DOC
+
+
 def get_prompt(current_archive, adaptive=False):
     archive_str = ",\n".join([json.dumps(sol) for sol in current_archive])
     archive_str = f"[{archive_str}]"
     prompt = base.replace("[ARCHIVE]", archive_str)
     prompt = prompt.replace("[EXAMPLE]", json.dumps(EXAMPLE))
+    prompt = prompt.replace("[WORKER_INFO]", _WORKER_DOC["text"])
+    prompt = prompt.replace("WORKER_MODEL", _WORKER_DOC["model_expr"])
 
     return system_prompt, prompt
 

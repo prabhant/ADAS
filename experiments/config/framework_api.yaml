@@ -1,0 +1,73 @@
+# The framework surface that generated agent code is actually allowed to use.
+#
+# Written down once, here, rather than inferred later. `analysis/designer_signature.py`
+# walks the AST of every discovered agent and counts calls that do not appear in
+# this list as hallucinated APIs -- a pure capability signal, cleanly separable
+# from design quality.
+#
+# Keep this in sync with the "# The utility code:" block in `_mgsm/mgsm_prompt.py`
+# and `_mmlu/mmlu_prompt.py`. If the meta prompt shows an API, it belongs here.
+
+classes:
+  LLMAgentBase:
+    constructor_args:
+      - output_fields        # list[str], positional 0
+      - agent_name           # str, positional 1
+      - role                 # str, keyword, default 'helpful assistant'
+      - model                # str | None, keyword; the worker model
+      - temperature          # float, keyword, default 0.5
+    methods:
+      - __call__             # (input_infos, instruction, iteration_idx=-1) -> list[Info]
+      - query                # same signature as __call__
+      - generate_prompt      # (input_infos, instruction) -> (system_prompt, prompt)
+      - __repr__
+    attributes:
+      - output_fields
+      - agent_name
+      - role
+      - model
+      - temperature
+      - id
+
+  AgentSystem:
+    methods:
+      - forward              # (taskInfo) -> Info | str
+
+namedtuples:
+  Info:
+    fields: [name, author, content, iteration_idx]
+
+module_functions:
+  - get_json_response_from_gpt   # (msg, model, system_message, temperature=0.5) -> dict
+  - random_id
+  - bootstrap_confidence_interval
+
+# Domain-specific helpers exposed to generated code.
+domain_functions:
+  mgsm:
+    - score_mgsm
+    - get_all_examples
+  mmlu:
+    - format_multichoice_question
+
+# Names importable inside generated code without being flagged.
+allowed_modules:
+  - json
+  - os
+  - re
+  - math
+  - copy
+  - random
+  - string
+  - itertools
+  - functools
+  - collections          # Counter / defaultdict, used by majority-vote designs
+  - typing
+  - numpy
+  - openai
+  - backoff
+
+# Attribute calls on `self` inside `forward`. `self` is an AgentSystem instance,
+# so anything beyond this is a hallucinated method.
+self_methods:
+  - forward
