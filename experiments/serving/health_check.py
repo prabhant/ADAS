@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from typing import Optional
@@ -38,8 +39,18 @@ def _post(url: str, payload: dict, timeout: float = 240.0):
         return json.loads(response.read())
 
 
+def _process_alive(pid: int) -> bool:
+    # A dead server child stays a zombie until the job shell reaps it, so a bare
+    # os.kill(pid, 0) would report it alive; read its state instead.
+    try:
+        with open(f"/proc/{pid}/stat") as handle:
+            return handle.read().rsplit(")", 1)[1].split()[0] != "Z"
+    except (FileNotFoundError, IndexError):
+        return False
+
+
 def wait_for_health(base_url: str, timeout: float, poll: float = 5.0,
-                    expect_model: Optional[str] = None) -> str:
+                    expect_model: Optional[str] = None, pid: Optional[int] = None) -> str:
     """Block until the endpoint serves ``expect_model``.
 
     A 200 from /health only proves something is listening on the port, not that
@@ -54,6 +65,9 @@ def wait_for_health(base_url: str, timeout: float, poll: float = 5.0,
     deadline = time.time() + timeout
     last_error = "no attempt made"
     while time.time() < deadline:
+        if pid is not None and not _process_alive(pid):
+            raise RuntimeError(f"{base_url}: server process {pid} exited before becoming ready "
+                               f"(last: {last_error}); see its log")
         try:
             status, _ = _get(f"{root}/health")
             if status == 200:
@@ -82,11 +96,16 @@ def check_json_mode(base_url: str, model: str) -> dict:
                                         'Set name to "probe" and keep the other fields to one short sentence.'},
         ],
         "temperature": 0.0,
-        "max_tokens": 512,
+        # Thinking models spend tokens reasoning before the JSON starts; 512 left
+        # them with no content at all and read as a JSON failure.
+        "max_tokens": 4096,
         "response_format": {"type": "json_object"},
     }
     response = _post(f"{base_url.rstrip('/')}/chat/completions", payload)
-    content = response["choices"][0]["message"]["content"]
+    choice = response["choices"][0]
+    content = choice["message"]["content"]
+    if content is None:
+        raise ValueError(f"no content returned (finish_reason={choice.get('finish_reason')})")
     parsed = json.loads(content)  # raises if JSON mode is not actually honoured
     usage = response.get("usage", {})
     details = usage.get("completion_tokens_details") or {}
@@ -102,23 +121,26 @@ def check_json_mode(base_url: str, model: str) -> dict:
 def check_guided_json(base_url: str, model: str) -> bool:
     """Schema-constrained decoding is preferred over plain JSON mode.
 
-    Probes with a schema the model would not satisfy by chance, so a pass means
-    the constraint was enforced rather than merely tolerated: vLLM's request
-    model allows unknown fields, so a wrong key name reports success while
-    enforcing nothing.
+    Uses the same response_format json_schema request the search sends, so this
+    reports whether production schema enforcement works on this server.
     """
     payload = {
         "model": model,
         "messages": [{"role": "user", "content": "Return a design named probe."}],
         "temperature": 0.0,
-        "max_tokens": 256,
-        "structured_outputs": {
-            "json": {
-                "type": "object",
-                "properties": {"thought": {"type": "string"}, "name": {"type": "string"},
-                               "code": {"type": "string"}},
-                "required": ["thought", "name", "code"],
-            }
+        "max_tokens": 4096,
+        "response_format": {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "probe",
+                "strict": True,
+                "schema": {
+                    "type": "object",
+                    "properties": {"thought": {"type": "string"}, "name": {"type": "string"},
+                                   "code": {"type": "string"}},
+                    "required": ["thought", "name", "code"],
+                },
+            },
         },
     }
     try:
@@ -170,6 +192,9 @@ def main() -> int:
     parser.add_argument("--expect-worker-model", default=None,
                         help="Reject a port that is serving something else, e.g. another job's server.")
     parser.add_argument("--expect-meta-model", default=None)
+    parser.add_argument("--worker-pid", type=int, default=None,
+                        help="Fail as soon as this server process dies, instead of polling to timeout.")
+    parser.add_argument("--meta-pid", type=int, default=None)
     parser.add_argument("--timeout", type=float, default=2400.0)
     parser.add_argument("--check-json", action="store_true")
     parser.add_argument("--check-reasoning-effort", action="store_true")
@@ -180,14 +205,14 @@ def main() -> int:
 
     endpoints = {}
     if args.worker_url:
-        endpoints["worker"] = (args.worker_url, args.expect_worker_model)
+        endpoints["worker"] = (args.worker_url, args.expect_worker_model, args.worker_pid)
     if args.meta_url:
-        endpoints["meta"] = (args.meta_url, args.expect_meta_model)
+        endpoints["meta"] = (args.meta_url, args.expect_meta_model, args.meta_pid)
 
     report = {}
     ok = True
-    for role, (url, expected) in endpoints.items():
-        model = wait_for_health(url, args.timeout, expect_model=expected)
+    for role, (url, expected, pid) in endpoints.items():
+        model = wait_for_health(url, args.timeout, expect_model=expected, pid=pid)
         entry = {"url": url, "model": model, "expected": expected, "healthy": True}
         print(f"[{role}] ready: {model} @ {url}")
 
@@ -211,6 +236,7 @@ def main() -> int:
         report[role] = entry
 
     if args.report:
+        os.makedirs(os.path.dirname(os.path.abspath(args.report)), exist_ok=True)
         with open(args.report, "w") as handle:
             json.dump(report, handle, indent=2)
 

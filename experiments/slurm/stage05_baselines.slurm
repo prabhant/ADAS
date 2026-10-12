@@ -28,7 +28,7 @@
 # as a single array.
 #
 #   sbatch --array=0-7 experiments/slurm/stage05_baselines.slurm
-#   sbatch --export=ALL,STAGE=0.5s --array=0-14 experiments/slurm/stage05_baselines.slurm
+#   sbatch --array=0-14 experiments/slurm/stage05_baselines.slurm 0.5s
 
 set -euo pipefail
 
@@ -36,7 +36,9 @@ source "$SLURM_SUBMIT_DIR/experiments/slurm/_common.sh"
 load_gpu_modules
 activate_env
 
-STAGE="${STAGE:-0.5}"
+# Positional, not --export: Snellius does not export the submitting shell, and
+# --export=ALL copies whatever happens to be set there.
+STAGE="${1:-0.5}"
 load_cell "stage_index=${STAGE}:${SLURM_ARRAY_TASK_ID}"
 
 if [[ -z "${CELL_CONDITION:-}" || ( "$CELL_CONDITION" != "bare_model" && "$CELL_CONDITION" != "solo_cot" ) ]]; then

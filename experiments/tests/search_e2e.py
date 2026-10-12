@@ -206,6 +206,10 @@ def main() -> int:
     archive = load(os.path.join(a_dir, f"{a_id}_run_archive.json"))
     generated = [e for e in archive if isinstance(e.get("generation"), int)]
     check(len(archive) == 10 and len(generated) == 3, f"7 seeds + 3 generated (got {len(archive)})")
+    if not generated:
+        print("  no design was generated; the remaining section A checks cannot run")
+        print(f"\n{check.failed} CHECK(S) FAILED  (artifacts in {workdir})")
+        return 1
     check(all(abs(e["raw_median_accuracy"] - acc_valid) < 1e-9 for e in archive),
           f"every design scores exactly the ground-truth {acc_valid:.4f}")
     check(all(e["valid_per_question"] == expected_valid for e in archive),

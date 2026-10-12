@@ -604,6 +604,7 @@ def get_prompt(current_archive, adaptive=False):
 
 
 def get_reflexion_prompt(prev_example):
+    if not prev_example:
+        return Reflexion_prompt_1.replace("[EXAMPLE]", ""), Reflexion_prompt_2
     prev_example_str = "Here is the previous agent you tried:\n" + json.dumps(_for_prompt(prev_example)) + "\n\n"
-    r1 = Reflexion_prompt_1.replace("[EXAMPLE]", prev_example_str) if prev_example else Reflexion_prompt_1.replace("[EXAMPLE]", "")
-    return r1, Reflexion_prompt_2
+    return Reflexion_prompt_1.replace("[EXAMPLE]", prev_example_str), Reflexion_prompt_2

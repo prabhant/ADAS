@@ -59,3 +59,93 @@ invalid), the method was no longer ADAS, and one generated design nearly doubled
 the prompt (22.9k -> 43.6k chars), overflowing 32k-context designers within a few
 generations. Now only thought/name/code/fitness/generation are shown (as stock
 ADAS). e2e test now asserts no analysis field reaches the designer.
+
+### 2026-10-12 13:37 - batch 1 submitted at commit 8b4068b
+
+```
+e2e_cpu	27933483
+stage0_smoke	27933485
+worker_screen	27933489
+designers_1gpu	27933494
+designers_2gpu	27933497
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### What to check before batch 2 (do not submit more until these are read)
+
+| Job | Pass looks like | If it fails |
+|---|---|---|
+| e2e_cpu | ends `PASSED`, incl. "no analysis fields reach the designer" | code bug; fix before any search |
+| stage0_smoke | `stage 0 complete`; budget has successes; read per-generation `wallclock_s` to cost Stage 1 | first full production path; read `.err` + `_serving_logs/` |
+| worker_screen | 15 `s05s_*/cot_baseline.json`; want a worker at ~40-70% CoT | a failed task is a model that will not serve here |
+| designers_1gpu / 2gpu | `screen_designers/<key>.json`; `usable_rate` = can it design at all (Q6) | per-model; gpt-oss-120b at tp=2 serving = feasibility answered |
+
+Decisions batch 1 should settle: which worker (headroom), MGSM vs MMLU, which
+designers go into the panel, whether gpt-oss-120b or nemotron-super is the
+large designer.
+
+Open, not blocking batch 1:
+- Mixtral is both a designer candidate and the held-out judge. If it joins the
+  panel, the judge must change (e.g. Qwen2.5-72B-Instruct, run separately).
+- Meta output budget for 32k-context designers: prompt + max_tokens must fit;
+  set per designer from the prompt_tokens the screen reports.
+
+### 2026-10-12 - batch 1 inspected: mostly failed, five root causes
+
+Results that did come back (numbers from job logs; the JSON files were lost, see 1):
+
+| Worker CoT | MGSM | MMLU |
+|---|---|---|
+| mistral-7b | 14.2% (s05) | **46.4%** |
+| phi-4 | 82.7% (s05) | 90.1% |
+| qwen3.5-27b | 81.2% (s05) | 93.0% |
+| qwen3-30b-a3b | 76.3% | 85.2% |
+| nemotron-3-nano-30b | 75.5% | 87.2% |
+| qwen3-14b | 13.3% (?) | 26.6% (? = chance) - suspicious, check samples |
+
+| Designer | usable | agents | note |
+|---|---|---|---|
+| gpt-oss-20b | 6/6 | 3.2 | most varied; proposes code-execution designs |
+| qwen3-14b | 6/6 | 3.8 | converges on verify-refine + self-consistency |
+| qwen3-30b-a3b | 6/6 | 2.8 | equation/code-centred |
+| nemotron-3-nano-30b | 5/6 | 2.2 | verbose (~6.6k tokens/proposal), 1 truncated |
+
+Root causes:
+1. Results landed in a login-node tmp dir: submit_batch1.sh used --export=ALL,
+   which copied a stale `RESULTS_ROOT=$(mktemp -d)` from a verification command
+   in the same terminal into every screen job. Never use --export=ALL.
+2. e2e: `get_reflexion_prompt(None)` crashed after the prompt-leak fix, so no
+   generation ever succeeded. The e2e test caught it (0 generated).
+3. Every tp=2 model failed: vLLM imports flashinfer.comm at startup, and
+   flashinfer/comm/fd_exchange.py uses `array.array[int]`, which needs
+   Python 3.12; this env is 3.11.
+4. qwen3.5-27b as designer: with the reasoning parser on, the health check's
+   short JSON probe spent all tokens thinking -> content None -> "failed".
+5. stage0_smoke: health_check wrote its report into a dir not yet created.
+   Also: dead servers were polled for the full 2400 s (40 min) instead of
+   failing fast - health check did not watch the server process.
+Model-specific: mistral-7b-v0.3 tokenizer conversion error; phi-3 mini/medium
+fail under transformers 5.x (longrope config missing
+original_max_position_embeddings).
+
+### 2026-10-12 - fixes for batch 1 failures (verified on CPU before resubmitting)
+
+- health_check: watches the server process (zombie-aware via /proc) and fails
+  in seconds instead of polling a dead server for 40 min; JSON probes now 4096
+  tokens and use the production response_format json_schema; report dir created.
+- get_reflexion_prompt(None) fixed in both domains (first generation).
+- experiments/env/patch_env.sh: flashinfer fd_exchange.py gets
+  `from __future__ import annotations` -> tp>=2 servers can start on Python 3.11.
+  Applied to the conda env (no jobs were running). Re-run after any reinstall.
+- No more --export anywhere: STAGE / screen group are positional args; results
+  root only from ADAS_RESULTS_ROOT. submit_batch1.sh replaced by
+  `submit_batch.sh <name>`.
+- Dropped as not servable here: mistral-7b-v0.3, phi-3-mini, phi-3-medium.
+  qwen3-14b dropped as a worker (empty answers), kept as a designer.
+
+Worker screen NOT rerun: its numbers are recovered above. Key finding: the only
+worker with headroom on either domain is mistral-7b on MMLU (46.4% CoT).
+
+Next: batch1b = e2e, stage0_smoke, 1gpu designers (0-4, to recover the actual
+designs), 2gpu designers (0-3). Same scope as batch 1, not new work.

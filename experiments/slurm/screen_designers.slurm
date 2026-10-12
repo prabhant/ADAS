@@ -14,9 +14,9 @@
 # all and what its first designs look like. No worker, no code execution.
 #
 # Two groups because #SBATCH cannot vary GPUs per array index:
-#   sbatch --export=ALL,SCREEN_GROUP=1gpu --array=0-7 experiments/slurm/screen_designers.slurm
-#   sbatch --export=ALL,SCREEN_GROUP=2gpu --gpus=2 --cpus-per-task=32 --time=01:30:00 \
-#          --array=0-3 experiments/slurm/screen_designers.slurm
+#   sbatch --array=0-4 experiments/slurm/screen_designers.slurm 1gpu
+#   sbatch --gpus=2 --cpus-per-task=32 --time=01:30:00 --array=0-3 \
+#          experiments/slurm/screen_designers.slurm 2gpu
 #
 # The 2gpu group includes gpt-oss-120b at tensor-parallel 2, which also settles
 # the feasibility question the old sanity 04 probe was written for.
@@ -27,11 +27,13 @@ source "$SLURM_SUBMIT_DIR/experiments/slurm/_common.sh"
 load_gpu_modules
 activate_env
 
-case "${SCREEN_GROUP:-1gpu}" in
-    1gpu) DESIGNERS=(gpt-oss-20b qwen3.5-27b qwen3-14b qwen3-30b-a3b nemotron-3-nano-30b
-                     mistral-7b-v0.3 phi-3-mini-128k phi-3-medium-128k) ;;
+# mistral-7b-v0.3 and both phi-3 models do not load under transformers 5.x here
+# (tokenizer conversion; longrope config) and are dropped.
+SCREEN_GROUP="${1:-1gpu}"
+case "$SCREEN_GROUP" in
+    1gpu) DESIGNERS=(gpt-oss-20b qwen3.5-27b qwen3-14b qwen3-30b-a3b nemotron-3-nano-30b) ;;
     2gpu) DESIGNERS=(gpt-oss-120b nemotron-3-super-120b qwen3.5-35b-a3b mixtral-8x7b) ;;
-    *) echo "unknown SCREEN_GROUP=${SCREEN_GROUP}" >&2; exit 1 ;;
+    *) echo "unknown screen group '$SCREEN_GROUP'" >&2; exit 1 ;;
 esac
 KEY="${DESIGNERS[$SLURM_ARRAY_TASK_ID]}"
 

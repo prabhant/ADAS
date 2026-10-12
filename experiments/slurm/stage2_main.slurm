@@ -13,13 +13,14 @@
 #
 # One array task per cell within a stage. STAGE selects which stage, so the same
 # script covers the main grid, the reasoning-effort arm, the reference
-# conditions and the cost-penalised arm. Snellius does not inherit login-shell
-# variables into jobs, so STAGE has to travel through --export:
+# conditions and the cost-penalised arm. STAGE is the first positional argument:
+# Snellius does not export the submitting shell, and --export=ALL would copy
+# whatever happens to be set there into every task.
 #
 #   sbatch --array=0-15 experiments/slurm/stage2_main.slurm
-#   sbatch --export=ALL,STAGE=2r --array=0-3 experiments/slurm/stage2_main.slurm
-#   sbatch --export=ALL,STAGE=2d --array=0-5 experiments/slurm/stage2_main.slurm
-#   sbatch --export=ALL,STAGE=1b --array=0-3 experiments/slurm/stage2_main.slurm
+#   sbatch --array=0-3 experiments/slurm/stage2_main.slurm 2r
+#   sbatch --array=0-5 experiments/slurm/stage2_main.slurm 2d
+#   sbatch --array=0-3 experiments/slurm/stage2_main.slurm 1b
 #
 # The reference conditions are not optional. Random recombination and the
 # no-reflection arm are what distinguish "the meta agent is designing" from
@@ -32,7 +33,7 @@ source "$SLURM_SUBMIT_DIR/experiments/slurm/_common.sh"
 load_gpu_modules
 activate_env
 
-STAGE="${STAGE:-2}"
+STAGE="${1:-2}"
 load_cell "stage_index=${STAGE}:${SLURM_ARRAY_TASK_ID}"
 export ADAS_SELF_SCRIPT="experiments/slurm/stage2_main.slurm"
 

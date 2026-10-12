@@ -30,7 +30,7 @@ cd "$REPO_ROOT"
 # with 52 empty directories.
 SANITY_RESULTS="$(mktemp -d)"
 trap 'rm -rf "$SANITY_RESULTS"' EXIT
-export RESULTS_ROOT="$SANITY_RESULTS"
+export ADAS_RESULTS_ROOT="$SANITY_RESULTS"
 
 source experiments/slurm/_common.sh
 activate_env

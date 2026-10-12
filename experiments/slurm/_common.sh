@@ -13,7 +13,9 @@ export REPO_ROOT
 export PYTHONPATH="$REPO_ROOT${PYTHONPATH:+:$PYTHONPATH}"
 
 CONFIG_DIR="$REPO_ROOT/experiments/config"
-RESULTS_ROOT="${RESULTS_ROOT:-$REPO_ROOT/experiments/results}"
+# Namespaced on purpose: a bare RESULTS_ROOT exported by a throwaway command in
+# the submitting shell once leaked into jobs and sent their results to a temp dir.
+RESULTS_ROOT="${ADAS_RESULTS_ROOT:-$REPO_ROOT/experiments/results}"
 export RESULTS_ROOT
 mkdir -p "$RESULTS_ROOT/_slurm"
 
@@ -292,12 +294,10 @@ PY
         echo "$CELL_ID stopped on the walltime deadline but ADAS_SELF_SCRIPT is unset; resubmit by hand" >&2
         return 0
     fi
-    local exports="ALL"
-    [[ -n "${STAGE:-}" ]] && exports="$exports,STAGE=$STAGE"
-    local opts=(--export="$exports" --chdir="$REPO_ROOT")
+    local opts=(--chdir="$REPO_ROOT")
     [[ -n "${SLURM_ARRAY_TASK_ID:-}" ]] && opts+=(--array="$SLURM_ARRAY_TASK_ID")
     echo "$CELL_ID hit the walltime deadline; resubmitting to continue"
-    sbatch "${opts[@]}" "$script"
+    sbatch "${opts[@]}" "$script" ${STAGE:+"$STAGE"}
 }
 
 run_search() {

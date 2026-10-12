@@ -10,9 +10,9 @@
 # not say so. They are created here.
 #
 # Jobs are chained with --dependency=afterok so a failure stops the chain rather
-# than burning GPU hours on a configuration already known to be broken. Snellius
-# does not inherit login-shell variables into jobs, so anything a job needs is
-# passed explicitly through --export.
+# than burning GPU hours on a configuration already known to be broken. Nothing
+# is passed through --export: every job configures itself, and --export=ALL once
+# copied a stray RESULTS_ROOT from this shell into a whole batch.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
@@ -23,12 +23,9 @@ mkdir -p experiments/results/_slurm experiments/results/_sanity
 WITH_120B=0
 [[ "${1:-}" == "--with-120b" ]] && WITH_120B=1
 
-EXPORTS="ALL"
-[[ -n "${ADAS_PYTHON:-}" ]] && EXPORTS="$EXPORTS,ADAS_PYTHON=$ADAS_PYTHON"
-
 submit() {
     local script="$1" dep="${2:-}"
-    local args=(--export="$EXPORTS" --chdir="$REPO_ROOT")
+    local args=(--chdir="$REPO_ROOT")
     [[ -n "$dep" ]] && args+=(--dependency=afterok:"$dep")
     sbatch "${args[@]}" "$script" | awk '{print $NF}'
 }

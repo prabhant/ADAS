@@ -138,12 +138,14 @@ worker_gpus="$(seq -s, 0 $((WORKER_TP - 1)))"
 serve worker "$WORKER_MODEL" "$WORKER_PORT" "$WORKER_TP" "$WORKER_MAX_LEN" "$worker_gpus" \
     "${WORKER_MODEL_PATH:-}" "${WORKER_REASONING_PARSER:-}"
 
-health_args=(--worker-url "http://127.0.0.1:${WORKER_PORT}/v1" --expect-worker-model "$WORKER_MODEL")
+health_args=(--worker-url "http://127.0.0.1:${WORKER_PORT}/v1" --expect-worker-model "$WORKER_MODEL"
+             --worker-pid "${VLLM_PIDS[0]}")
 if [[ -n "$META_MODEL" ]]; then
     meta_gpus="$(seq -s, "$WORKER_TP" $((WORKER_TP + META_TP - 1)))"
     serve meta "$META_MODEL" "$META_PORT" "$META_TP" "$META_MAX_LEN" "$meta_gpus" \
         "${META_MODEL_PATH:-}" "${META_REASONING_PARSER:-}"
-    health_args+=(--meta-url "http://127.0.0.1:${META_PORT}/v1" --expect-meta-model "$META_MODEL")
+    health_args+=(--meta-url "http://127.0.0.1:${META_PORT}/v1" --expect-meta-model "$META_MODEL"
+                  --meta-pid "${VLLM_PIDS[1]}")
 fi
 
 # The client only ever sees a health timeout, so the actual cause -- OOM, a bad

@@ -52,9 +52,16 @@ module load CUDA/12.9.1
 > "On Snellius we are not exporting environment variables which are set by the
 > user within the bash session."
 
-`VAR=x sbatch job.sh` **silently does nothing**. Use `sbatch --export=ALL,VAR=x`,
-or a positional argument. Every variable a job needs must be exported inside the
-job script.
+`VAR=x sbatch job.sh` **silently does nothing**. Pass parameters as positional
+script arguments (`sbatch job.slurm 0.5s` -> `$1`). Every variable a job needs
+must be exported inside the job script.
+
+**Never use `--export=ALL`.** It copies the *whole* submitting shell into the job.
+Here, a `RESULTS_ROOT=$(mktemp -d)` left by an earlier verification command in
+the same terminal sent a whole batch's results to a temp dir that existed only
+on the compute nodes. Default submission (no `--export`) is clean; use
+namespaced variables (`ADAS_RESULTS_ROOT`) for anything a script reads from the
+environment.
 
 Also: `--output`/`--error` directories must exist *before* submission, and the
 `#SBATCH` block must directly follow `#!/bin/bash` with no interruption.
@@ -167,3 +174,34 @@ in, long after the model looks healthy. Prefer torch-native backends. If JIT is
 unavoidable, point `CUDA_HOME` at the *wheel-bundled* toolkit rather than a system
 module, and note that pip splits CUDA across per-library wheels, so headers need
 `CPATH` and libraries need `LIBRARY_PATH`.
+
+## Serving specific models with this env (vLLM 0.28, transformers 5.16, Python 3.11)
+
+Measured in batch 1 (2026-10-12):
+
+| Model | Status |
+|---|---|
+| gpt-oss-20b, qwen3-14b, qwen3-30b-a3b, nemotron-3-nano-30b | serve at tp=1; design 5-6/6 |
+| qwen3.5-27b as designer | serves; health JSON probe needs >=4096 tokens (thinks first with `--reasoning-parser qwen3`) |
+| any tp>=2 model | died at startup until `experiments/env/patch_env.sh`: `flashinfer/comm/fd_exchange.py` uses `array.array[int]`, a Python 3.12-only annotation, imported by vLLM whenever tp>1 |
+| mistral-7b-v0.3 | fails: transformers 5.x cannot build its fast tokenizer |
+| phi-3-mini/medium-128k | fail: transformers 5.x longrope config wants `original_max_position_embeddings` in `rope_parameters` |
+| mixtral-8x7b | managed cache `refs/main` points at a weightless snapshot; serve the explicit snapshot path |
+| gemma-3-12b-it, Llama-3.2-3B | cache dirs empty to this account (license-gated) |
+| qwen3-14b as WORKER | returns empty `answer` fields under JSON grammar without a reasoning parser; unusable as a worker |
+
+Containers: the vendored `snellius-vllm-core` skill serves via the official
+`vllm/vllm-openai` image under Apptainer, which sidesteps these Python-env issues.
+A colleague reported Apptainer failing cluster-wide ("maximum number of user
+namespaces exceeded"), which is why this project serves natively. If the native
+env keeps accumulating patches, retest the container route.
+
+**A server is only proven by a real request.** `/health` passes long before
+lazily-JIT-compiled kernels (sampling, all-reduce) are first exercised.
+
+## Fail fast on a dead server
+
+The health gate must watch the server *process*, not only poll its URL: a server
+that dies at startup otherwise burns the whole health timeout (40 min here,
+on every failed task). A dead child stays a zombie until the job shell reaps it,
+so `os.kill(pid, 0)` reports it alive -- check `/proc/<pid>/stat` state instead.
