@@ -192,3 +192,19 @@ Two failures:
 - mixtral-8x7b: its chat template rejects a system message (HTTP 400). The
   newer `main` snapshot's tokenizer template handles one; serve weights from
   the old snapshot with the tokenizer from the new one.
+
+### 2026-10-12 18:51 - batch1c submitted at commit efcb48b
+
+```
+designers_2gpu	27963412
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-13 - batch1c complete; batch 1 done; writeup in findings.md
+
+- batch1c: nemotron-3-super-120b (29 min, incl. ~14 min load) and mixtral-8x7b
+  (with newer tokenizer) both completed. All 9 designers screened.
+- Findings written up in `findings.md` (workers, designers, fixed bugs, cost,
+  implications). Next batch not submitted - awaiting user decision on worker
+  (recommend mistral-7b on MMLU), designer panel, and the judge if Mixtral stays.
