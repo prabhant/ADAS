@@ -28,6 +28,7 @@
 # as a single array.
 #
 #   sbatch --array=0-7 experiments/slurm/stage05_baselines.slurm
+#   sbatch --export=ALL,STAGE=0.5s --array=0-14 experiments/slurm/stage05_baselines.slurm
 
 set -euo pipefail
 
@@ -35,7 +36,8 @@ source "$SLURM_SUBMIT_DIR/experiments/slurm/_common.sh"
 load_gpu_modules
 activate_env
 
-load_cell "stage_index=0.5:${SLURM_ARRAY_TASK_ID}"
+STAGE="${STAGE:-0.5}"
+load_cell "stage_index=${STAGE}:${SLURM_ARRAY_TASK_ID}"
 
 if [[ -z "${CELL_CONDITION:-}" || ( "$CELL_CONDITION" != "bare_model" && "$CELL_CONDITION" != "solo_cot" ) ]]; then
     echo "cell $CELL_ID has condition '${CELL_CONDITION:-none}', expected bare_model or solo_cot" >&2

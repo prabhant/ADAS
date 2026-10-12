@@ -25,6 +25,9 @@
 #
 # Three GPUs are requested rather than two so the run survives either outcome
 # and reports which one happened.
+#
+# Superseded for batch 1 by screen_designers.slurm (2gpu group), which serves
+# gpt-oss-120b at tp=2 through the production launcher.
 
 set -euo pipefail
 
@@ -40,7 +43,7 @@ module load CUDA/12.9.1 2>/dev/null || true
 export LD_LIBRARY_PATH="$(dirname "$(dirname "$PY")")/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
 export HF_HUB_CACHE=/projects/2/managed_datasets/hf_cache_dir
-export HF_HOME="/scratch-shared/$USER/hf"
+export HF_HOME="$HOME/.cache/huggingface"
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 export VLLM_LOGGING_LEVEL=INFO       # want the memory-profiling lines
@@ -100,7 +103,7 @@ for effort in ("low", "high"):
     client = RoleClient(
         role="meta", model="$MODEL",
         base_url="http://127.0.0.1:$PORT/v1", api_key="local-vllm",
-        temperature=0.8, max_tokens=2048, reasoning_effort=effort,
+        temperature=0.8, max_tokens=8192, reasoning_effort=effort,
     )
     reply = client.chat_json([
         {"role": "user", "content":

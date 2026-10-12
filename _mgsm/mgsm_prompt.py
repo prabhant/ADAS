@@ -577,8 +577,18 @@ def set_worker_documentation(worker_model, worker_cot_accuracy=None,
     return _WORKER_DOC
 
 
+# Exactly what stock ADAS shows the designer. Archive entries also carry analysis
+# fields (per-question vectors, reasoning traces, worker identity); serialising
+# those would change the method, break the blind condition and overflow context.
+PROMPT_FIELDS = ("thought", "name", "code", "fitness", "generation")
+
+
+def _for_prompt(sol):
+    return {k: sol[k] for k in PROMPT_FIELDS if k in sol}
+
+
 def get_prompt(current_archive, adaptive=False):
-    archive_str = ",\n".join([json.dumps(sol) for sol in current_archive])
+    archive_str = ",\n".join([json.dumps(_for_prompt(sol)) for sol in current_archive])
     archive_str = f"[{archive_str}]"
     prompt = base.replace("[ARCHIVE]", archive_str)
     prompt = prompt.replace("[EXAMPLE]", json.dumps(EXAMPLE))
@@ -589,6 +599,6 @@ def get_prompt(current_archive, adaptive=False):
 
 
 def get_reflexion_prompt(prev_example):
-    prev_example_str = "Here is the previous agent you tried:\n" + json.dumps(prev_example) + "\n\n"
+    prev_example_str = "Here is the previous agent you tried:\n" + json.dumps(_for_prompt(prev_example)) + "\n\n"
     r1 = Reflexion_prompt_1.replace("[EXAMPLE]", prev_example_str) if prev_example else Reflexion_prompt_1.replace("[EXAMPLE]", "")
     return r1, Reflexion_prompt_2

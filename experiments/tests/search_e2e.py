@@ -67,10 +67,12 @@ class Stub:
         self.lock = threading.Lock()
         self.chains = 0
         self.meta_calls = 0
+        self.meta_prompts = []
 
     def meta(self, messages):
         with self.lock:
             self.meta_calls += 1
+            self.meta_prompts.append("\n".join(str(m["content"]) for m in messages))
             if len(messages) == 2:
                 self.chains += 1
             chain = self.chains - 1
@@ -241,6 +243,13 @@ def main() -> int:
     check(budget.get("stopped_on_deadline") is False, "did not stop on deadline")
     check(os.path.getsize(os.path.join(run_dir, f"{a_id}_call_log.jsonl")) > 0, "call log written")
     check(os.path.exists(os.path.join(run_dir, f"{a_id}_token_usage.json")), "token usage written")
+    # Analysis fields once leaked into the designer's prompt: reasoning traces,
+    # per-question vectors and the worker's identity, which also broke blind mode.
+    leaked = sorted({f for p in stub.meta_prompts for f in
+                     ("valid_per_question", "meta_reasoning", STUB_REASONING, "archive_context",
+                      "\"worker_model\"", "\"meta_model\"", "\"resource\"", "failure_trace")
+                     if f in p})
+    check(stub.meta_prompts and not leaked, f"no analysis fields reach the designer (leaked: {leaked})")
 
     print("\n=== D: rerunning a finished cell resumes and does no new work ===")
     before = stub.meta_calls

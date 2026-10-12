@@ -19,6 +19,12 @@ stage_defaults:
     test_size: 0
     n_repreat: 5
     domain: mgsm
+  "0.5s":
+    n_generation: 0          # worker screen: looking for headroom, not a final anchor
+    valid_size: 128
+    test_size: 0
+    n_repreat: 3
+    domain: mgsm
   "1":
     n_generation: 10
     valid_size: 64
@@ -99,6 +105,27 @@ cells:
   - {id: s05_cot_qwen3.5-27b,  stage: "0.5", meta: null, worker: qwen3.5-27b,  seed: a, condition: solo_cot}
   - {id: s05_cot_gpt-oss-20b_low,  stage: "0.5", meta: null, worker: gpt-oss-20b, seed: a, condition: solo_cot, worker_reasoning_effort: low}
   - {id: s05_cot_gpt-oss-20b_high, stage: "0.5", meta: null, worker: gpt-oss-20b, seed: a, condition: solo_cot, worker_reasoning_effort: high}
+
+  # -------------------------------------------------------------------------
+  # Stage 0.5s -- worker screen (batch 1). Three of four current workers sit at
+  # 81-91% on MGSM, so look for one with headroom, and check whether MMLU spreads
+  # the ladder better. Named s05s_* so worker_cot_baseline never reads them.
+  # -------------------------------------------------------------------------
+  - {id: s05s_cot_mgsm_mistral-7b-v0.3,     stage: "0.5s", meta: null, worker: mistral-7b-v0.3,     seed: a, condition: solo_cot}
+  - {id: s05s_cot_mgsm_phi-3-mini-128k,     stage: "0.5s", meta: null, worker: phi-3-mini-128k,     seed: a, condition: solo_cot}
+  - {id: s05s_cot_mgsm_phi-3-medium-128k,   stage: "0.5s", meta: null, worker: phi-3-medium-128k,   seed: a, condition: solo_cot}
+  - {id: s05s_cot_mgsm_qwen3-14b,           stage: "0.5s", meta: null, worker: qwen3-14b,           seed: a, condition: solo_cot}
+  - {id: s05s_cot_mgsm_qwen3-30b-a3b,       stage: "0.5s", meta: null, worker: qwen3-30b-a3b,       seed: a, condition: solo_cot}
+  - {id: s05s_cot_mgsm_nemotron-3-nano-30b, stage: "0.5s", meta: null, worker: nemotron-3-nano-30b, seed: a, condition: solo_cot}
+  - {id: s05s_cot_mmlu_mistral-7b,          stage: "0.5s", meta: null, worker: mistral-7b,          seed: a, condition: solo_cot, domain: mmlu}
+  - {id: s05s_cot_mmlu_phi-4,               stage: "0.5s", meta: null, worker: phi-4,               seed: a, condition: solo_cot, domain: mmlu}
+  - {id: s05s_cot_mmlu_qwen3.5-27b,         stage: "0.5s", meta: null, worker: qwen3.5-27b,         seed: a, condition: solo_cot, domain: mmlu}
+  - {id: s05s_cot_mmlu_mistral-7b-v0.3,     stage: "0.5s", meta: null, worker: mistral-7b-v0.3,     seed: a, condition: solo_cot, domain: mmlu}
+  - {id: s05s_cot_mmlu_phi-3-mini-128k,     stage: "0.5s", meta: null, worker: phi-3-mini-128k,     seed: a, condition: solo_cot, domain: mmlu}
+  - {id: s05s_cot_mmlu_phi-3-medium-128k,   stage: "0.5s", meta: null, worker: phi-3-medium-128k,   seed: a, condition: solo_cot, domain: mmlu}
+  - {id: s05s_cot_mmlu_qwen3-14b,           stage: "0.5s", meta: null, worker: qwen3-14b,           seed: a, condition: solo_cot, domain: mmlu}
+  - {id: s05s_cot_mmlu_qwen3-30b-a3b,       stage: "0.5s", meta: null, worker: qwen3-30b-a3b,       seed: a, condition: solo_cot, domain: mmlu}
+  - {id: s05s_cot_mmlu_nemotron-3-nano-30b, stage: "0.5s", meta: null, worker: nemotron-3-nano-30b, seed: a, condition: solo_cot, domain: mmlu}
 
   # -------------------------------------------------------------------------
   # Stage 1 -- full 3x3 grid, one seed. Array indices 0-8.

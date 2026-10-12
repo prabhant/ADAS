@@ -70,6 +70,7 @@ models:
     gpus: 1
     max_model_len: 65536
     max_output_tokens: 4096
+    meta_reasoning_parser: qwen3   # meta only: lets it think before the JSON grammar applies
     emits_reasoning: false
     supports_reasoning_effort: false
     ladder: [meta_mid, worker_large]
@@ -85,7 +86,7 @@ models:
     context: 131072
     license: Apache-2.0
     checkpoint_gb: 183             # repo total: bf16 AND mxfp4 copies
-    vram_gb: 75                    # mxfp4 weights ~61GB, plus KV cache
+    vram_gb: 75                    # served weights are mxfp4, 65GB (checked in config.json)
     roles: [meta]
     tensor_parallel_size: 2
     gpus: 2
@@ -96,10 +97,6 @@ models:
     reasoning_efforts: [low, medium, high]
     stage_to_node_nvme: true       # $TMPDIR with --constraint=scratch-node
     ladder: meta_top
-    # The 183GB disk figure is the whole repo, not the serving footprint. If
-    # vLLM picks bf16 over mxfp4 this needs 3 GPUs and pairing it with a 2-GPU
-    # worker becomes infeasible. Sanity job 02 settles it.
-    verify: true
     fallback: nemotron-3-super-120b
 
   nemotron-3-super-120b:
@@ -118,6 +115,7 @@ models:
     gpus: 2
     max_model_len: 65536
     max_output_tokens: 8192
+    meta_reasoning_parser: nemotron_v3
     emits_reasoning: true
     supports_reasoning_effort: false
     ladder: meta_top_alternate
@@ -167,47 +165,96 @@ models:
     supports_reasoning_effort: false
     ladder: worker_mid
 
-# ---------------------------------------------------------------------------
-# Present in the managed cache and correctly sized, but not on the ladder. Kept
-# so an arm can be added without re-deriving the sizing.
-# ---------------------------------------------------------------------------
-eligible_alternates:
+  # --- screen candidates (batch 1). Sizes from config.json in the managed cache.
+
+  mistral-7b-v0.3:
+    hf_id: mistralai/Mistral-7B-Instruct-v0.3
+    source: managed
+    family: mistral
+    roles: [meta, worker]
+    tensor_parallel_size: 1
+    gpus: 1
+    max_model_len: 32768
+    max_output_tokens: 4096
+
+  mixtral-8x7b:
+    hf_id: mistralai/Mixtral-8x7B-Instruct-v0.1
+    # refs/main points at a snapshot with no weights; serve this one by path.
+    model_path: /projects/2/managed_datasets/hf_cache_dir/models--mistralai--Mixtral-8x7B-Instruct-v0.1/snapshots/1e637f2d7cb0a9d6fb1922f305cb784995190a83
+    source: managed
+    family: mistral
+    roles: [meta]
+    tensor_parallel_size: 2
+    gpus: 2
+    max_model_len: 32768
+    max_output_tokens: 4096
+
   phi-3-mini-128k:
     hf_id: microsoft/Phi-3-mini-128k-instruct
-    params_total: 3.8B
-    context: 131072
-    checkpoint_gb: 7.2
-    roles: [worker]
+    source: managed
+    family: microsoft
+    roles: [meta, worker]
     tensor_parallel_size: 1
-    note: smallest usable worker; shares a training recipe with phi-4
+    gpus: 1
+    max_model_len: 32768
+    max_output_tokens: 4096
 
   phi-3-medium-128k:
     hf_id: microsoft/Phi-3-medium-128k-instruct
-    params_total: 14B
-    context: 131072
-    checkpoint_gb: 27
-    roles: [worker]
+    source: managed
+    family: microsoft
+    roles: [meta, worker]
     tensor_parallel_size: 1
-    note: phi-4 with 128k context; swap in if 16k proves binding for scaffolds
+    gpus: 1
+    max_model_len: 32768
+    max_output_tokens: 4096
 
   qwen3-14b:
     hf_id: Qwen/Qwen3-14B
-    params_total: 14B
-    context: 131072
-    checkpoint_gb: 28
-    roles: [worker]
+    source: managed
+    family: qwen
+    roles: [meta, worker]
     tensor_parallel_size: 1
-    note: same-family 14B counterpart to qwen3.5-27b
+    gpus: 1
+    max_model_len: 40960
+    max_output_tokens: 4096
+    meta_reasoning_parser: qwen3
+
+  qwen3-30b-a3b:
+    hf_id: Qwen/Qwen3-30B-A3B
+    source: managed
+    family: qwen
+    architecture: moe
+    roles: [meta, worker]
+    tensor_parallel_size: 1
+    gpus: 1
+    max_model_len: 40960
+    max_output_tokens: 4096
+    meta_reasoning_parser: qwen3
+
+  qwen3.5-35b-a3b:
+    hf_id: Qwen/Qwen3.5-35B-A3B
+    source: managed
+    family: qwen
+    architecture: moe
+    roles: [meta]
+    tensor_parallel_size: 2          # 72GB weights leave too little KV room on one GPU
+    gpus: 2
+    max_model_len: 65536
+    max_output_tokens: 4096
+    meta_reasoning_parser: qwen3
 
   nemotron-3-nano-30b:
     hf_id: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
-    params_total: 30B
-    params_active: 3B
+    source: managed
+    family: nvidia
     architecture: moe
-    checkpoint_gb: 60
     roles: [meta, worker]
     tensor_parallel_size: 1
-    note: 3B active at 30B total; a sparse counterpart to qwen3.5-27b
+    gpus: 1
+    max_model_len: 65536
+    max_output_tokens: 4096
+    meta_reasoning_parser: nemotron_v3
 
 # Held-out models. Never used as meta or worker, so that judging and embedding
 # cannot correlate with the axis under study.

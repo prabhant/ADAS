@@ -108,11 +108,15 @@ trap cleanup EXIT INT TERM
 
 serve() {
     local role="$1" model="$2" port="$3" tp="$4" max_len="$5" gpus="$6"
-    echo "launching $role: $model on GPUs [$gpus], tp=$tp, port=$port"
+    local path="${7:-}" parser="${8:-}"
+    local extra=()
+    [[ -n "$parser" ]] && extra+=(--reasoning-parser "$parser")
+    echo "launching $role: $model on GPUs [$gpus], tp=$tp, port=$port${parser:+, reasoning parser $parser}"
     # vLLM 0.28 replaced --guided-decoding-backend with --structured-outputs-config,
     # which takes JSON. Passing the old flag aborts the server at startup.
+    # A path is served under the canonical name, so the identity check still matches.
     CUDA_VISIBLE_DEVICES="$gpus" \
-    "$VLLM_BIN" serve "$model" \
+    "$VLLM_BIN" serve "${path:-$model}" \
         --served-model-name "$model" \
         --host 127.0.0.1 \
         --port "$port" \
@@ -124,18 +128,21 @@ serve() {
         --enable-prefix-caching \
         --structured-outputs-config "{\"backend\": \"${GUIDED_BACKEND:-xgrammar}\"}" \
         --generation-config vllm \
+        "${extra[@]}" \
         > "$LOG_DIR/${role}_${port}.log" 2>&1 &
     VLLM_PIDS+=("$!")
 }
 
 # Worker takes the low-numbered GPUs, meta the rest.
 worker_gpus="$(seq -s, 0 $((WORKER_TP - 1)))"
-serve worker "$WORKER_MODEL" "$WORKER_PORT" "$WORKER_TP" "$WORKER_MAX_LEN" "$worker_gpus"
+serve worker "$WORKER_MODEL" "$WORKER_PORT" "$WORKER_TP" "$WORKER_MAX_LEN" "$worker_gpus" \
+    "${WORKER_MODEL_PATH:-}" "${WORKER_REASONING_PARSER:-}"
 
 health_args=(--worker-url "http://127.0.0.1:${WORKER_PORT}/v1" --expect-worker-model "$WORKER_MODEL")
 if [[ -n "$META_MODEL" ]]; then
     meta_gpus="$(seq -s, "$WORKER_TP" $((WORKER_TP + META_TP - 1)))"
-    serve meta "$META_MODEL" "$META_PORT" "$META_TP" "$META_MAX_LEN" "$meta_gpus"
+    serve meta "$META_MODEL" "$META_PORT" "$META_TP" "$META_MAX_LEN" "$meta_gpus" \
+        "${META_MODEL_PATH:-}" "${META_REASONING_PARSER:-}"
     health_args+=(--meta-url "http://127.0.0.1:${META_PORT}/v1" --expect-meta-model "$META_MODEL")
 fi
 

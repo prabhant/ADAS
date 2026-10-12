@@ -142,9 +142,13 @@ for name, prefix in (("meta", "META"), ("worker", "WORKER")):
     spec = registry["models"][key]
     emit(f"{prefix}_KEY", key)
     emit(f"{prefix}_MODEL", spec["hf_id"])
+    emit(f"{prefix}_MODEL_PATH", spec.get("model_path", ""))
     emit(f"{prefix}_TP", spec["tensor_parallel_size"])
     emit(f"{prefix}_MAX_LEN", spec["max_model_len"])
     emit(f"{prefix}_MAX_TOKENS", spec["max_output_tokens"])
+    # Workers keep the setup their Stage 0.5 baselines were measured under.
+    emit(f"{prefix}_REASONING_PARSER",
+         spec.get("meta_reasoning_parser", "") if prefix == "META" else "")
     if spec.get("stage_to_node_nvme"):
         emit("STAGE_TO_NVME", 1)
 

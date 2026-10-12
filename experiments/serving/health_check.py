@@ -165,7 +165,7 @@ def check_reasoning_effort(base_url: str, model: str) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--worker-url", required=True)
+    parser.add_argument("--worker-url", default=None)
     parser.add_argument("--meta-url", default=None)
     parser.add_argument("--expect-worker-model", default=None,
                         help="Reject a port that is serving something else, e.g. another job's server.")
@@ -175,8 +175,12 @@ def main() -> int:
     parser.add_argument("--check-reasoning-effort", action="store_true")
     parser.add_argument("--report", default=None, help="Write the report as JSON here.")
     args = parser.parse_args()
+    if not (args.worker_url or args.meta_url):
+        parser.error("give at least one of --worker-url / --meta-url")
 
-    endpoints = {"worker": (args.worker_url, args.expect_worker_model)}
+    endpoints = {}
+    if args.worker_url:
+        endpoints["worker"] = (args.worker_url, args.expect_worker_model)
     if args.meta_url:
         endpoints["meta"] = (args.meta_url, args.expect_meta_model)
 
