@@ -208,3 +208,11 @@ Inspect with: bash experiments/slurm/status.sh
 - Findings written up in `findings.md` (workers, designers, fixed bugs, cost,
   implications). Next batch not submitted - awaiting user decision on worker
   (recommend mistral-7b on MMLU), designer panel, and the judge if Mixtral stays.
+- findings.md verified line by line against data. Corrections vs first draft:
+  CIs clustered by question (phi-4 vs qwen3.5-27b +1.4 [-3.6, +6.6]); English-
+  translation designs 8/47 from 5 designers (checked in code); batch 1's lost
+  designer run is a valid replicate (same probe/prompt) and shows large
+  run-to-run noise (qwen3-14b 3.8 -> 5.5 agents). Q8: active, not total,
+  parameters may track design size - hypothesis only.
+- Bookkeeping bug noticed: Stage 0.5 cot_baseline.json records `repeats: 1`
+  though it holds 128 x 5 = 640 attempts. Not fixed yet.
