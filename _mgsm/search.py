@@ -526,6 +526,8 @@ def run_baseline(args):
         "valid_size": args.valid_size,
         "shuffle_seed": args.shuffle_seed,
         "repeats": len(medians),
+        # per_question is laid out as valid_size questions x n_repreat passes.
+        "n_repreat": args.n_repreat,
         # Mean across repeats: this single number is what the meta prompt quotes.
         "accuracy": sum(medians) / len(medians),
         "accuracy_per_repeat": medians,

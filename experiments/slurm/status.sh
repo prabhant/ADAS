@@ -50,9 +50,9 @@ summary = "experiments/results/s0_smoke/s0_smoke/budget_summary.json"
 if os.path.exists(summary):
     print("  budget:", json.load(open(summary)))
 
-print("\n=== worker screen (CoT accuracy) ===")
+print("\n=== worker baselines and screen (CoT accuracy) ===")
 rows = []
-for path in sorted(glob.glob("experiments/results/s05s_*/cot_baseline.json")):
+for path in sorted(glob.glob("experiments/results/s05*_*/cot_baseline.json")):
     d = json.load(open(path))
     rows.append((os.path.basename(os.path.dirname(path)), d["accuracy"], d.get("fitness", "")))
 for cell, acc, fit in rows:
@@ -74,7 +74,7 @@ if not reports:
     print("  no results yet")
 
 failed = []
-for label in ("worker_screen", "designers_1gpu", "designers_2gpu"):
+for label in ("worker_screen", "designers_1gpu", "designers_2gpu", "mmlu_baseline"):
     for err in glob.glob(f"{slurm}/*_{batch.get(label, 'x')}_*.err"):
         text = open(err, errors="replace").read()
         if re.search(r"Traceback|Error|error:", text):

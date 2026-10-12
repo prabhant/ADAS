@@ -52,19 +52,26 @@ def load_campaign(results_root: str, cells_config: Optional[dict] = None) -> Dic
     # models by registry key. Resolve keys to HF ids so a cell's seeds and its
     # generated designs share one identifier and group into the same meta tier.
     hf_id = {}
+    sizes = {}
     registry_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                                  "config", "models.yaml")
     if os.path.exists(registry_path):
         import yaml
         with open(registry_path) as handle:
-            hf_id = {k: v["hf_id"] for k, v in (yaml.safe_load(handle).get("models") or {}).items()}
+            models = yaml.safe_load(handle).get("models") or {}
+        hf_id = {k: v["hf_id"] for k, v in models.items()}
+        sizes = {k: (v.get("params_total"), v.get("params_active")) for k, v in models.items()}
 
     campaign: Dict[str, List[dict]] = {}
     for cell_id, archive in iter_cell_archives(results_root):
         config = by_cell_config.get(cell_id, {})
+        meta_total, meta_active = sizes.get(config.get("meta"), (None, None))
         for entry in archive:
             entry.setdefault("cell_id", cell_id)
             entry.setdefault("meta_model", hf_id.get(config.get("meta"), config.get("meta")))
+            # Both, because total and active size are separate axes for MoE designers.
+            entry.setdefault("meta_params_total", meta_total)
+            entry.setdefault("meta_params_active", meta_active)
             entry.setdefault("worker_model", hf_id.get(config.get("worker"), config.get("worker")))
             entry.setdefault("stage", config.get("stage"))
         campaign[cell_id] = archive
@@ -192,6 +199,8 @@ def cell_row(cell_id: str, archive: Sequence[dict], seed_codes: Sequence[str],
     row = {
         "cell_id": cell_id,
         "meta_model": meta_source.get("meta_model"),
+        "meta_params_total": meta_source.get("meta_params_total"),
+        "meta_params_active": meta_source.get("meta_params_active"),
         "worker_model": meta_source.get("worker_model"),
         "stage": meta_source.get("stage"),
         "n_designs": len(designs),

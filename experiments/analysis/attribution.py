@@ -51,6 +51,8 @@ def build_design_table(entries: Sequence[dict]) -> List[dict]:
         row = {
             "cell_id": entry.get("cell_id"),
             "meta_model": entry.get("meta_model"),
+            "meta_params_total": entry.get("meta_params_total"),
+            "meta_params_active": entry.get("meta_params_active"),
             "worker_model": entry.get("worker_model"),
             "generation": entry.get("generation"),
             "name": entry.get("name"),

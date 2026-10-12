@@ -50,6 +50,10 @@ case "$NAME" in
         submit designers_2gpu --gpus=2 --cpus-per-task=32 --time=01:30:00 --array=1,3 \
                               experiments/slurm/screen_designers.slurm 2gpu
         ;;
+    batch2)
+        # Production Stage 0.5 baseline for the campaign worker on MMLU (cell index 8).
+        submit mmlu_baseline  --array=8 experiments/slurm/stage05_baselines.slurm 0.5
+        ;;
     *)
         echo "unknown batch '$NAME'" >&2; rm -f "$BATCH"; exit 1 ;;
 esac

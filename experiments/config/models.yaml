@@ -14,6 +14,10 @@
 # carries `verify: true` and must be confirmed by the Stage 0 sanity jobs.
 #
 # `roles` restricts which side of the experiment a model may be used on.
+# `params_total` / `params_active`: billions of language-model parameters,
+# embeddings included, vision towers and MTP heads excluded, counted from the
+# checkpoint headers so all models share one convention. Vendor figures do not
+# (OpenAI's 3.6B / 5.1B active for gpt-oss leave out the embeddings).
 # `max_output_tokens` is the *usable* completion budget and is calibrated per
 # model so that reasoning-trace emitters are not silently starved relative to
 # non-reasoning models (see "Fairness controls" in followinstructions.md).
@@ -39,8 +43,8 @@ models:
   gpt-oss-20b:
     hf_id: openai/gpt-oss-20b
     source: managed
-    params_total: 21B
-    params_active: 3.6B
+    params_total: 20.91
+    params_active: 4.19
     architecture: moe
     context: 131072
     license: Apache-2.0
@@ -58,8 +62,8 @@ models:
     hf_id: Qwen/Qwen3.5-27B
     source: managed
     family: qwen
-    params_total: 27B
-    params_active: 27B
+    params_total: 26.9
+    params_active: 26.9
     architecture: dense
     context: 131072
     license: Apache-2.0
@@ -80,8 +84,8 @@ models:
     hf_id: openai/gpt-oss-120b
     source: managed
     family: openai
-    params_total: 117B
-    params_active: 5.1B
+    params_total: 116.83
+    params_active: 5.71
     architecture: moe
     context: 131072
     license: Apache-2.0
@@ -103,8 +107,8 @@ models:
     hf_id: nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8
     source: managed
     family: nvidia
-    params_total: 120B
-    params_active: 12B
+    params_total: 120.67
+    params_active: 12.77
     architecture: moe
     context: 131072
     license: nvidia-open-model
@@ -125,8 +129,8 @@ models:
     hf_id: mistralai/Mistral-7B-Instruct-v0.2
     source: managed
     family: mistral
-    params_total: 7B
-    params_active: 7B
+    params_total: 7.24
+    params_active: 7.24
     architecture: dense
     context: 32768
     license: Apache-2.0
@@ -149,8 +153,8 @@ models:
     hf_id: microsoft/phi-4
     source: managed
     family: microsoft
-    params_total: 14B
-    params_active: 14B
+    params_total: 14.66
+    params_active: 14.66
     architecture: dense
     context: 16384
     license: MIT
@@ -186,7 +190,7 @@ models:
     serve_args: --tokenizer /projects/2/managed_datasets/hf_cache_dir/models--mistralai--Mixtral-8x7B-Instruct-v0.1/snapshots/bbae113847402a22031211225b5ee45c005de7dd
     source: managed
     family: mistral
-    roles: [meta]
+    roles: [judge]                 # the held-out judge (decided 2026-10-13), so never a designer
     tensor_parallel_size: 2
     gpus: 2
     max_model_len: 32768
@@ -216,7 +220,10 @@ models:
     hf_id: Qwen/Qwen3-14B
     source: managed
     family: qwen
-    roles: [meta, worker]
+    architecture: dense
+    params_total: 14.77
+    params_active: 14.77
+    roles: [meta]                  # returns empty answers as a worker
     tensor_parallel_size: 1
     gpus: 1
     max_model_len: 40960
@@ -228,6 +235,8 @@ models:
     source: managed
     family: qwen
     architecture: moe
+    params_total: 30.53
+    params_active: 3.35
     roles: [meta, worker]
     tensor_parallel_size: 1
     gpus: 1
@@ -240,6 +249,8 @@ models:
     source: managed
     family: qwen
     architecture: moe
+    params_total: 34.66
+    params_active: 3.45
     roles: [meta]
     tensor_parallel_size: 2          # 72GB weights leave too little KV room on one GPU
     gpus: 2
@@ -252,6 +263,8 @@ models:
     source: managed
     family: nvidia
     architecture: moe
+    params_total: 31.58
+    params_active: 3.58
     roles: [meta, worker]
     tensor_parallel_size: 1
     gpus: 1
@@ -268,6 +281,8 @@ held_out:
     used_by: [analysis/prompt_semantics.py, analysis/lineage.py]
   judge:
     hf_id: mistralai/Mixtral-8x7B-Instruct-v0.1
+    # Serve with models.mixtral-8x7b's model_path and serve_args: refs/main has
+    # no weights, and that snapshot's chat template rejects a system message.
     source: managed
     checkpoint_gb: 87
     tensor_parallel_size: 2

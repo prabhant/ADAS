@@ -188,15 +188,22 @@ load_cell() {
 # effort are different workers and have different baselines, so the effort-
 # specific directory is preferred when one exists.
 worker_cot_baseline() {
-    local candidates=()
+    # MGSM cells predate other domains and carry no domain in their id.
+    local tag="" candidates=()
+    [[ "${DOMAIN:-mgsm}" != "mgsm" ]] && tag="${DOMAIN}_"
     [[ -n "${WORKER_REASONING_EFFORT:-}" ]] \
-        && candidates+=("$RESULTS_ROOT/s05_cot_${WORKER_KEY}_${WORKER_REASONING_EFFORT}/cot_baseline.json")
-    candidates+=("$RESULTS_ROOT/s05_cot_${WORKER_KEY}/cot_baseline.json")
+        && candidates+=("$RESULTS_ROOT/s05_cot_${tag}${WORKER_KEY}_${WORKER_REASONING_EFFORT}/cot_baseline.json")
+    candidates+=("$RESULTS_ROOT/s05_cot_${tag}${WORKER_KEY}/cot_baseline.json")
     local path
     for path in "${candidates[@]}"; do
         if [[ -f "$path" ]]; then
-            python -c "import json,sys; print(json.load(open(sys.argv[1]))['accuracy'])" "$path"
-            return 0
+            python -c "
+import json, sys
+d = json.load(open(sys.argv[1]))
+if d.get('domain') != sys.argv[2]:
+    sys.exit(f\"{sys.argv[1]} is a {d.get('domain')} baseline; refusing it for {sys.argv[2]}\")
+print(d['accuracy'])" "$path" "${DOMAIN:-mgsm}"
+            return
         fi
     done
     return 0
