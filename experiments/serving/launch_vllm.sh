@@ -25,8 +25,43 @@ META_MODEL="${META_MODEL:-}"
 WORKER_MODEL="${WORKER_MODEL:?WORKER_MODEL must be set}"
 META_TP="${META_TP:-1}"
 WORKER_TP="${WORKER_TP:-1}"
-META_PORT="${META_PORT:-8001}"
-WORKER_PORT="${WORKER_PORT:-8000}"
+
+# gpu_h100 nodes are shared by up to four jobs, so two array tasks of the same
+# stage can land on one node. With fixed ports the second server fails to bind,
+# its health check then finds the FIRST task's server on localhost, and the whole
+# cell runs against another cell's models -- silently, and attributed to the wrong
+# pair. Derive the ports from the job id instead, and step past anything already
+# listening.
+_port_free() {
+    "$ADAS_PYTHON" - "$1" <<'PY'
+import socket, sys
+s = socket.socket()
+try:
+    s.bind(("127.0.0.1", int(sys.argv[1])))
+except OSError:
+    sys.exit(1)
+finally:
+    s.close()
+PY
+}
+_pick_port_pair() {
+    local base=$(( 8000 + ( ${SLURM_JOB_ID:-$$} % 1800 ) * 2 ))
+    local tries=0
+    while (( tries < 50 )); do
+        if _port_free "$base" && _port_free "$((base + 1))"; then
+            echo "$base"
+            return 0
+        fi
+        base=$(( base + 2 ))
+        (( base > 11998 )) && base=8000
+        tries=$(( tries + 1 ))
+    done
+    echo "could not find a free port pair" >&2
+    return 1
+}
+_PORT_BASE="$(_pick_port_pair)"
+WORKER_PORT="${WORKER_PORT:-$_PORT_BASE}"
+META_PORT="${META_PORT:-$((_PORT_BASE + 1))}"
 MAX_NUM_SEQS="${MAX_NUM_SEQS:-256}"
 META_MAX_LEN="${META_MAX_LEN:-131072}"
 WORKER_MAX_LEN="${WORKER_MAX_LEN:-32768}"
@@ -38,11 +73,18 @@ mkdir -p "$LOG_DIR"
 # Compute nodes have no internet, and login-shell variables are not inherited
 # into Snellius jobs, so the cache is pinned here rather than assumed.
 export HF_HUB_CACHE="${HF_HUB_CACHE:-/projects/2/managed_datasets/hf_cache_dir}"
-export HF_HOME="${HF_HOME:-/scratch-shared/$USER/hf}"
+export HF_HOME="${HF_HOME:-$HOME/.cache/huggingface}"
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 export VLLM_LOGGING_LEVEL="${VLLM_LOGGING_LEVEL:-WARNING}"
 mkdir -p "$HF_HOME"
+
+# flashinfer JIT-compiles its sampling kernels on first use. torch here is built
+# against CUDA 13.0 while the newest module on the system is 12.9.1, so there is
+# no matched toolchain to compile them with. With none at all the server loads
+# the model, captures CUDA graphs, and only then dies on the first sampled token.
+# The PyTorch sampler is numerically equivalent and marginally slower.
+export VLLM_USE_FLASHINFER_SAMPLER=0
 
 # Model load from the shared filesystem is slow for large checkpoints. $TMPDIR is
 # node-local scratch on nodes requested with --constraint=scratch-node, and is
@@ -90,18 +132,27 @@ serve() {
 worker_gpus="$(seq -s, 0 $((WORKER_TP - 1)))"
 serve worker "$WORKER_MODEL" "$WORKER_PORT" "$WORKER_TP" "$WORKER_MAX_LEN" "$worker_gpus"
 
-health_args=(--worker-url "http://127.0.0.1:${WORKER_PORT}/v1")
+health_args=(--worker-url "http://127.0.0.1:${WORKER_PORT}/v1" --expect-worker-model "$WORKER_MODEL")
 if [[ -n "$META_MODEL" ]]; then
     meta_gpus="$(seq -s, "$WORKER_TP" $((WORKER_TP + META_TP - 1)))"
     serve meta "$META_MODEL" "$META_PORT" "$META_TP" "$META_MAX_LEN" "$meta_gpus"
-    health_args+=(--meta-url "http://127.0.0.1:${META_PORT}/v1")
+    health_args+=(--meta-url "http://127.0.0.1:${META_PORT}/v1" --expect-meta-model "$META_MODEL")
 fi
 
-"$ADAS_PYTHON" "$REPO_ROOT/experiments/serving/health_check.py" \
-    "${health_args[@]}" \
-    --timeout "${HEALTH_TIMEOUT:-2400}" \
-    --check-json \
-    ${CHECK_REASONING_EFFORT:+--check-reasoning-effort}
+# The client only ever sees a health timeout, so the actual cause -- OOM, a bad
+# flag, a JIT compile failure -- is only in the server's own log.
+if ! "$ADAS_PYTHON" "$REPO_ROOT/experiments/serving/health_check.py" \
+        "${health_args[@]}" \
+        --timeout "${HEALTH_TIMEOUT:-2400}" \
+        --check-json \
+        ${CHECK_REASONING_EFFORT:+--check-reasoning-effort}; then
+    for log in "$LOG_DIR"/worker_"$WORKER_PORT".log "$LOG_DIR"/meta_"$META_PORT".log; do
+        [[ -f "$log" ]] || continue
+        echo "--- tail of $log ---" >&2
+        tail -60 "$log" >&2
+    done
+    exit 1
+fi
 
 echo "servers ready"
 export ADAS_WORKER_BASE_URL="http://127.0.0.1:${WORKER_PORT}/v1"

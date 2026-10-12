@@ -187,8 +187,14 @@ class AgentSystem():
         pass
 
 
-def _median(acc_list):
-    return float(np.median(acc_list)) if len(acc_list) else 0.0
+def _point_accuracy(acc_list):
+    """Point estimate of accuracy: the value the bootstrap median converges to.
+
+    Not the median of acc_list. That vector is per-question 0/1, so its median is
+    a step function -- 0 below 50% correct and 1 above -- which reported 22.3% as
+    0.0 and 86.7% as 100.0.
+    """
+    return float(np.mean(acc_list)) if len(acc_list) else 0.0
 
 
 def _meta_reasoning():
@@ -233,7 +239,7 @@ def _attach_fitness(args, solution, result, generation):
     """Write fitness plus every instrumented field onto an archive entry."""
     acc_list = result["acc_list"]
     solution['fitness'] = bootstrap_confidence_interval(acc_list)
-    solution['raw_median_accuracy'] = _median(acc_list)
+    solution['raw_median_accuracy'] = _point_accuracy(acc_list)
     # The raw per-question binary vector powers the whole behavioural layer.
     solution['valid_per_question'] = acc_list
 
@@ -343,7 +349,15 @@ def search(args):
     # the stock `for n in range(...)` with `n -= 1` silently skips failed
     # generations, making search budget correlate with meta-agent capability.
     budget = BudgetController(args.target_generations, args.max_attempts, completed=start)
+    stopped_on_deadline = False
     while budget.should_continue():
+        # Stop between generations rather than being SIGKILLed inside one. The
+        # archive is written after every success, so a clean stop resumes.
+        if args.deadline_epoch and time.time() >= args.deadline_epoch:
+            print(f"stopping before generation {budget.successes + 1}: within "
+                  f"the walltime safety margin")
+            stopped_on_deadline = True
+            break
         generation, attempt = budget.begin_attempt()
         print(f"============Generation {generation + 1} (attempt {attempt}/{budget.max_attempts})=================")
         instrumentation.set_context(generation=generation + 1, attempt=attempt, phase="search")
@@ -376,7 +390,8 @@ def search(args):
         result = None
         debug_attempts = 0
         terminal_failure = None
-        for _ in range(args.debug_max):
+        failed_solution = None
+        for debug_round in range(args.debug_max):
             try:
                 result = run_evaluation(args, next_solution["code"])
                 if np.mean(result["acc_list"]) < 0.01 and SEARCHING_MODE:
@@ -386,6 +401,10 @@ def search(args):
                 result = None
                 debug_attempts += 1
                 terminal_failure = classify_failure(e)
+                # Keep the source that actually failed. next_solution is about to
+                # be replaced by a revision, and pairing a failure category with
+                # code that was never run would corrupt Q6 and Q9.
+                failed_solution = copy.deepcopy(next_solution)
                 print(f"During evaluation [{terminal_failure}]:")
                 print(e)
                 instrumentation.record_failure(terminal_failure, str(e), stage="evaluate")
@@ -394,6 +413,8 @@ def search(args):
                 msg_list.append({"role": "user", "content": f"Error during evaluation:\n{e}\nCarefully consider where you went wrong in your latest implementation. Using insights from previous attempts, try to debug the current code to implement the same thought. Repeat your previous thought in 'thought', and put your thinking for debugging in 'debug_thought'"})
                 if args.search_mode == "random":
                     break
+                if debug_round == args.debug_max - 1:
+                    break  # nothing would evaluate the revision
                 try:
                     next_solution = get_json_response_from_gpt_reflect(msg_list, args.model)
                 except Exception as e:
@@ -410,7 +431,8 @@ def search(args):
             # metric toward the subset each model could successfully produce.
             instrumentation.record_abandoned(generation + 1, attempt,
                                              terminal_failure or "runtime_exception",
-                                             debug_attempts, next_solution, failure_trace,
+                                             debug_attempts,
+                                             failed_solution or next_solution, failure_trace,
                                              design_id=design_id,
                                              archive_context=archive_context,
                                              meta_reasoning=_meta_reasoning())
@@ -442,6 +464,7 @@ def search(args):
         instrumentation.write(os.path.join(args.save_dir, args.run_id))
 
     summary = budget.summary()
+    summary["stopped_on_deadline"] = stopped_on_deadline
     print(f"search budget summary: {json.dumps(summary)}")
     os.makedirs(os.path.join(args.save_dir, args.run_id), exist_ok=True)
     with open(os.path.join(args.save_dir, args.run_id, "budget_summary.json"), 'w') as handle:
@@ -475,17 +498,23 @@ def run_baseline(args):
         code, name = BARE_FORWARD, "Bare Model"
 
     medians, per_question, resources = [], [], []
+    samples = []
     for rep in range(max(1, args.baseline_repeats)):
         instrumentation.set_context(phase="baseline",
                                     generation=f"{args.baseline}:rep{rep + 1}",
                                     attempt=rep + 1)
         result = run_evaluation(args, code)
         acc_list = result["acc_list"]
-        medians.append(_median(acc_list))
+        medians.append(_point_accuracy(acc_list))
         per_question.append(acc_list)
         resources.append(result.get("usage", {}).get("worker", {}))
+        if rep == 0:
+            samples = result.get("samples") or []
+            for s in samples[:5]:
+                print(f"    target={s['target']!r} prediction={str(s.get('prediction'))[:70]!r} "
+                      f"correct={s['correct']}")
         print(f"  {args.baseline} rep {rep + 1}/{args.baseline_repeats}: "
-              f"median accuracy {medians[-1]:.4f}")
+              f"accuracy {medians[-1]:.4f}")
 
     pooled = [outcome for rep in per_question for outcome in rep]
     payload = {
@@ -503,6 +532,7 @@ def run_baseline(args):
         "fitness": bootstrap_confidence_interval(pooled),
         "per_question": per_question,
         "resource": resources,
+        "samples": samples,
         "code": code,
     }
 
@@ -520,6 +550,13 @@ def evaluate(args):
     instrumentation.set_context(phase="test")
     file_path = os.path.join(args.save_dir, f"{args.expr_name}_run_archive.json")
     eval_file_path = str(os.path.join(args.save_dir, f"{args.expr_name}_run_archive.json")).strip(".json") + "_evaluate.json"
+    if not os.path.exists(file_path):
+        # Otherwise a search that produced nothing ends in a bare FileNotFoundError
+        # here, hiding whatever actually went wrong upstream.
+        raise SystemExit(
+            f"no archive at {file_path}: the search produced no designs. "
+            f"Check {os.path.join(args.save_dir, args.run_id)} for the failure taxonomy."
+        )
     with open(file_path, 'r') as json_file:
         archive = json.load(json_file)
     eval_archive = []
@@ -546,7 +583,7 @@ def evaluate(args):
             continue
         acc_list = result["acc_list"]
         sol['test_fitness'] = bootstrap_confidence_interval(acc_list)
-        sol['test_median_accuracy'] = _median(acc_list)
+        sol['test_median_accuracy'] = _point_accuracy(acc_list)
         sol['test_per_question'] = acc_list
         if 'raw_median_accuracy' in sol:
             sol['generalization_gap'] = sol['raw_median_accuracy'] - sol['test_median_accuracy']
@@ -597,9 +634,10 @@ def _sandboxed_evaluate(args, forward_str, worker_config, searching_mode, run_id
     configure_clients(worker=role_client_from_config(worker_config))
 
     started = time.time()
-    acc_list = evaluate_forward_fn(args, forward_str)
+    acc_list, samples = evaluate_forward_fn(args, forward_str)
     return {
         "acc_list": acc_list,
+        "samples": samples,
         "wallclock_s": time.time() - started,
         "usage": instrumentation.usage_for(generation, phase=phase),
         "instrumentation": instrumentation.snapshot(),
@@ -643,6 +681,9 @@ def evaluate_forward_fn(args, forward_str):
     agentSystem = AgentSystem()
 
     acc_list = []
+    # A handful of scored pairs, so a zero score can be attributed to the model
+    # being wrong rather than to the answer never being extracted.
+    samples = []
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         results = list(tqdm(executor.map(agentSystem.forward, task_queue), total=len(task_queue)))
 
@@ -656,14 +697,22 @@ def evaluate_forward_fn(args, forward_str):
             correct = score_mgsm(correct_answer, extracted_answer)
         except Exception as e:
             acc_list.append(0)
+            if len(samples) < 8:
+                samples.append({"target": answers[q_idx], "prediction": None,
+                                "error": f"{type(e).__name__}: {e}"[:200], "correct": 0})
             continue
 
+        if len(samples) < 8:
+            samples.append({"target": correct_answer,
+                            "prediction": str(extracted_answer)[:300],
+                            "correct": int(bool(correct))})
         acc_list.append(1 if correct else 0)
     print(f"acc: {bootstrap_confidence_interval(acc_list)}")
-    return acc_list
+    return acc_list, samples
 
 
-if __name__ == "__main__":
+def build_parser():
+    """Exposed so the SLURM config layer's generated argument list can be checked offline."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--valid_size', type=int, default=128)
     parser.add_argument('--test_size', type=int, default=800)
@@ -681,11 +730,14 @@ if __name__ == "__main__":
     parser.add_argument('--domain', type=str, default='mgsm')
 
     # --- model routing ---
+    # No hosted-API defaults: every model here is served locally, so falling back
+    # to a GPT name would produce a confusing 404 rather than a clear omission.
     parser.add_argument('--model', type=str,
-                        default=os.environ.get('ADAS_META_MODEL', os.environ.get('ADAS_MODEL', 'gpt-4o-2024-05-13')),
-                        help="Meta agent: writes, reflects on and debugs agent code.")
+                        default=os.environ.get('ADAS_META_MODEL', os.environ.get('ADAS_MODEL')),
+                        help="Meta agent: writes, reflects on and debugs agent code. "
+                             "Omitted for baseline and random-recombination cells.")
     parser.add_argument('--worker_model', type=str,
-                        default=os.environ.get('ADAS_WORKER_MODEL', 'gpt-3.5-turbo-0125'),
+                        default=os.environ.get('ADAS_WORKER_MODEL'),
                         help="Worker: executes inside the discovered agent.")
     parser.add_argument('--meta_base_url', type=str,
                         default=os.environ.get('ADAS_META_BASE_URL', 'http://127.0.0.1:8001/v1'))
@@ -727,6 +779,9 @@ if __name__ == "__main__":
 
     parser.add_argument('--search_only', action='store_true', default=False)
     parser.add_argument('--evaluate_only', action='store_true', default=False)
+    parser.add_argument('--deadline_epoch', type=float, default=None,
+                        help="Unix time to stop starting new generations, so the job "
+                             "hands off cleanly instead of being killed mid-generation.")
 
     # --- stage 0.5 ---
     parser.add_argument('--baseline', choices=['bare', 'cot'], default=None,
@@ -736,7 +791,11 @@ if __name__ == "__main__":
                         help="Independent re-evaluations. Stage 0.5 replicates via --n_repreat "
                              "instead, so raising both multiplies the cost.")
 
-    args = parser.parse_args()
+    return parser
+
+
+if __name__ == "__main__":
+    args = build_parser().parse_args()
     if args.run_id is None:
         args.run_id = args.expr_name
     if args.target_generations is None:

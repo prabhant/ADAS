@@ -1,3 +1,4 @@
+import os
 import random
 import string
 from collections import namedtuple
@@ -42,12 +43,24 @@ LANG_TO_INSTRUCTIONS = {
 {input}"""
 }
 
-LANG_TO_FPATH = lambda lang: f"dataset/mgsm/mgsm_{lang}.tsv"
+# Anchored to the repository root, not the caller's cwd: the SLURM layer runs
+# search.py from inside _mgsm/, where a relative dataset path does not resolve.
+_DATASET_ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dataset")
+LANG_TO_FPATH = lambda lang: os.path.join(_DATASET_ROOT, "mgsm", f"mgsm_{lang}.tsv")
 
 ALL_LANGUAGES = ["bn", "de", "en", "es", "fr", "ja", "ru", "sw", "te", "th", "zh"]
 
 
-def score_mgsm(target: str, prediction: str) -> bool:
+def score_mgsm(target: str, prediction) -> bool:
+    # Models routinely answer with a JSON number rather than a string, and the
+    # stock implementation assumed str: `"." in prediction` raises TypeError on
+    # an int, the caller scores it wrong, and the result reads as a capability
+    # gap rather than a serialisation difference.
+    if prediction is None:
+        return False
+    prediction = str(prediction).strip()
+    target = str(target).strip()
+
     if "." in prediction:
         prediction = prediction.rstrip("0").rstrip(".")
 

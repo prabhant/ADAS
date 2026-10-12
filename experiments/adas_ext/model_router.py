@@ -108,7 +108,18 @@ class RoleClient:
         }
         extra_body: Dict[str, Any] = {}
         if self.use_guided_json and schema is not None:
-            extra_body["guided_json"] = schema
+            # Constrain through response_format rather than the extra_body
+            # guided_json of older vLLM: 0.28 dropped that field and allows
+            # unknown keys, so the old form was accepted, ignored, and enforced
+            # nothing. json_object and json_schema are mutually exclusive.
+            kwargs["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "agent_design",
+                    "schema": schema,
+                    "strict": True,
+                },
+            }
         if self.reasoning_effort is not None:
             # gpt-oss exposes this both as a top-level field and via chat kwargs
             # depending on the vLLM version; sending it in extra_body works for
@@ -167,7 +178,9 @@ class RoleClient:
                 message = str(exc)
                 if _looks_like_overflow(message):
                     raise ContextOverflowError(message) from exc
-                if "guided_json" in message or "guided decoding" in message.lower():
+                if "structured_outputs" in message or "guided_json" in message \
+                        or "guided decoding" in message.lower() \
+                        or "structured output" in message.lower():
                     # Backend does not support schema-constrained decoding; fall
                     # back to plain JSON mode once and keep going.
                     self.use_guided_json = False

@@ -22,6 +22,7 @@
 set -euo pipefail
 
 source "$SLURM_SUBMIT_DIR/experiments/slurm/_common.sh"
+load_gpu_modules
 activate_env
 
 # Smoke runs before Stage 0.5 exists, so an absent baseline is expected here.

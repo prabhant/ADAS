@@ -48,13 +48,24 @@ def load_campaign(results_root: str, cells_config: Optional[dict] = None) -> Dic
     if cells_config:
         by_cell_config = {cell["id"]: cell for cell in cells_config.get("cells", [])}
 
+    # Generated entries carry the HF id search.py was given; cells.yaml names
+    # models by registry key. Resolve keys to HF ids so a cell's seeds and its
+    # generated designs share one identifier and group into the same meta tier.
+    hf_id = {}
+    registry_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                 "config", "models.yaml")
+    if os.path.exists(registry_path):
+        import yaml
+        with open(registry_path) as handle:
+            hf_id = {k: v["hf_id"] for k, v in (yaml.safe_load(handle).get("models") or {}).items()}
+
     campaign: Dict[str, List[dict]] = {}
     for cell_id, archive in iter_cell_archives(results_root):
         config = by_cell_config.get(cell_id, {})
         for entry in archive:
             entry.setdefault("cell_id", cell_id)
-            entry.setdefault("meta_model", config.get("meta"))
-            entry.setdefault("worker_model", config.get("worker"))
+            entry.setdefault("meta_model", hf_id.get(config.get("meta"), config.get("meta")))
+            entry.setdefault("worker_model", hf_id.get(config.get("worker"), config.get("worker")))
             entry.setdefault("stage", config.get("stage"))
         campaign[cell_id] = archive
     return campaign
@@ -149,8 +160,6 @@ def cell_row(cell_id: str, archive: Sequence[dict], seed_codes: Sequence[str],
     designs = [entry for entry in archive if entry.get("code")]
     validation = [entry.get("raw_median_accuracy") for entry in designs
                   if entry.get("raw_median_accuracy") is not None]
-    test = [entry.get("test_median_accuracy") for entry in designs
-            if entry.get("test_median_accuracy") is not None]
 
     novelty = novelty_table(designs, seed_codes, stats, layers=("structural",))
     novelty_values = [row["novelty_structural"] for row in novelty
@@ -159,21 +168,32 @@ def cell_row(cell_id: str, archive: Sequence[dict], seed_codes: Sequence[str],
     median_novelty = float(np.median(novelty_values)) if novelty_values else None
 
     # Best agent is chosen on validation fitness alone. Test scores are read out
-    # afterwards and never used for selection.
-    ranked = [{"index": i, "fitness": entry.get("raw_median_accuracy", 0.0),
-               "ci_low": (entry.get("fitness_ci") or [None, None])[0]}
-              for i, entry in enumerate(designs)]
+    # afterwards and never used for selection. The interval is recomputed from
+    # the per-question vector because search.py stores it only as a string.
+    ranked = []
+    for i, entry in enumerate(designs):
+        vector = entry.get("valid_per_question") or []
+        ci = behavioral.bootstrap_median_ci(vector, n_resamples=2000) if vector else None
+        point = entry.get("raw_median_accuracy", 0.0) or 0.0
+        ranked.append({"index": i, "mean": point, "median": point,
+                       "low": ci["low"] if ci else point,
+                       "high": ci["high"] if ci else point})
     tied = behavioral.tied_with_best(ranked) if ranked else []
     best_index = tied[0] if tied else None
     best = designs[best_index] if best_index is not None else None
 
     lineage = build_lineage(designs, lambda a, b: _safe_structural(a, b, stats))
 
+    # Seeds carry no meta model, and designs[0] is always a seed, so take cell
+    # metadata from the first entry the search actually generated.
+    generated = [e for e in designs if isinstance(e.get("generation"), int)]
+    meta_source = generated[0] if generated else (designs[0] if designs else {})
+
     row = {
         "cell_id": cell_id,
-        "meta_model": designs[0].get("meta_model") if designs else None,
-        "worker_model": designs[0].get("worker_model") if designs else None,
-        "stage": designs[0].get("stage") if designs else None,
+        "meta_model": meta_source.get("meta_model"),
+        "worker_model": meta_source.get("worker_model"),
+        "stage": meta_source.get("stage"),
         "n_designs": len(designs),
         "n_abandoned": len(abandoned),
         "validation_median": float(np.median(validation)) if validation else None,

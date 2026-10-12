@@ -23,9 +23,11 @@
 set -euo pipefail
 
 source "$SLURM_SUBMIT_DIR/experiments/slurm/_common.sh"
+load_gpu_modules
 activate_env
 
 load_cell "stage_index=3:${SLURM_ARRAY_TASK_ID}"
+export ADAS_SELF_SCRIPT="experiments/slurm/stage3_transfer.slurm"
 
 if [[ "$DOMAIN" != "mmlu" ]]; then
     echo "stage 3 expects domain mmlu, got $DOMAIN" >&2
@@ -34,5 +36,6 @@ fi
 
 source "$REPO_ROOT/experiments/serving/launch_vllm.sh"
 run_search
+maybe_resubmit
 
 echo "stage 3 cell $CELL_ID complete"

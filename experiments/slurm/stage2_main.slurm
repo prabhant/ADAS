@@ -29,10 +29,12 @@
 set -euo pipefail
 
 source "$SLURM_SUBMIT_DIR/experiments/slurm/_common.sh"
+load_gpu_modules
 activate_env
 
 STAGE="${STAGE:-2}"
 load_cell "stage_index=${STAGE}:${SLURM_ARRAY_TASK_ID}"
+export ADAS_SELF_SCRIPT="experiments/slurm/stage2_main.slurm"
 
 # 20 generations at 128 validation questions will not always fit in one 20h
 # block. --requeue plus the existing resume logic chunks it against the 120h
@@ -50,5 +52,6 @@ else
 fi
 
 run_search
+maybe_resubmit
 
 echo "stage $STAGE cell $CELL_ID complete"

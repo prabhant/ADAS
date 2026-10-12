@@ -69,7 +69,9 @@ def bootstrap_median_ci(vector: Sequence[int], n_resamples: int = 10000,
     medians.sort()
     low = medians[int(alpha / 2 * n_resamples)]
     high = medians[int((1 - alpha / 2) * n_resamples) - 1]
-    return {"median": float(np.median(data)), "mean": float(np.mean(data)),
+    # "median" is the median of the bootstrap means, as in ADAS's own helper --
+    # never np.median of the raw 0/1 vector, which is a 0-or-1 step function.
+    return {"median": float(np.median(medians)), "mean": float(np.mean(data)),
             "low": low, "high": high, "n": n}
 
 

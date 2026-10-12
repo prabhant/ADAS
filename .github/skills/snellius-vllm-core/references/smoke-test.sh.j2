@@ -1,0 +1,10 @@
+#!/bin/bash
+# Usage: ./smoke_test.sh [host:port]
+ENDPOINT="${1:-localhost:{{port}}}"
+curl -s "http://${ENDPOINT}/v1/chat/completions" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "model": "{{model_id}}",
+        "messages": [{"role": "user", "content": "Say OK if you can read this."}],
+        "max_tokens": 16
+      }' | python3 -m json.tool

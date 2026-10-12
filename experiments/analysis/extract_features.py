@@ -319,6 +319,36 @@ def load_archive(path: str) -> List[dict]:
         return json.load(handle)
 
 
+_EVALUATED_FIELDS = ("test_fitness", "test_median_accuracy", "test_per_question",
+                     "generalization_gap", "test_resource")
+
+
+def _merge_evaluation(archive: List[dict], archive_path: str) -> List[dict]:
+    """Fold the separate *_evaluate.json test scores onto the search archive.
+
+    search.py writes test results to a sibling file rather than back into the
+    archive; reading the archive alone would leave every test score empty.
+    """
+    eval_path = archive_path[: -len(".json")] + "_evaluate.json"
+    if not os.path.exists(eval_path):
+        return archive
+    with open(eval_path) as handle:
+        evaluated = json.load(handle)
+
+    def key(entry):
+        return entry.get("design_id") or (entry.get("name"), str(entry.get("generation")))
+
+    by_key = {key(e): e for e in evaluated}
+    for entry in archive:
+        match = by_key.get(key(entry))
+        if match is None:
+            continue
+        for field in _EVALUATED_FIELDS:
+            if field in match:
+                entry.setdefault(field, match[field])
+    return archive
+
+
 def iter_cell_archives(results_root: str) -> Iterator[tuple]:
     """Yield ``(cell_id, archive)`` for every ``*_run_archive.json`` found."""
     for dirpath, _dirnames, filenames in os.walk(results_root):
@@ -328,7 +358,8 @@ def iter_cell_archives(results_root: str) -> Iterator[tuple]:
             cell_id = os.path.basename(dirpath) or filename[: -len("_run_archive.json")]
             if cell_id in ("results", os.path.basename(results_root)):
                 cell_id = filename[: -len("_run_archive.json")]
-            yield cell_id, load_archive(os.path.join(dirpath, filename))
+            path = os.path.join(dirpath, filename)
+            yield cell_id, _merge_evaluation(load_archive(path), path)
 
 
 def load_abandoned(results_root: str) -> List[dict]:

@@ -3,8 +3,8 @@
 #SBATCH --partition=gpu_h100
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=32
-#SBATCH --gpus=2
+#SBATCH --cpus-per-task=16
+#SBATCH --gpus=1
 #SBATCH --time=04:00:00
 #SBATCH --array=0-7
 #SBATCH --output=experiments/results/_slurm/s05_baseline_%A_%a.out
@@ -23,14 +23,16 @@
 #      Pareto front. A searched agent that does not beat it is not evidence of
 #      anything.
 #
-# No search and no meta model: only the worker is served, so this is a two-GPU
-# job at most and the eight cells run as one array.
+# No search and no meta model: only the worker is served, and every Stage 0.5
+# worker is tensor-parallel 1, so this is a one-GPU job and the eight cells run
+# as a single array.
 #
 #   sbatch --array=0-7 experiments/slurm/stage05_baselines.slurm
 
 set -euo pipefail
 
 source "$SLURM_SUBMIT_DIR/experiments/slurm/_common.sh"
+load_gpu_modules
 activate_env
 
 load_cell "stage_index=0.5:${SLURM_ARRAY_TASK_ID}"

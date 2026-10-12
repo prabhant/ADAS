@@ -28,6 +28,14 @@ REPO_ROOT="${SLURM_SUBMIT_DIR:-$PWD}"
 PY="${ADAS_PYTHON:-$HOME/.conda/envs/adas-snellius/bin/python}"
 VLLM="$(dirname "$PY")/vllm"
 export PYTHONPATH="$REPO_ROOT"
+
+# Default modules are disabled on Snellius; load by full version, and do it
+# before setting LD_LIBRARY_PATH so the conda env stays in front of Lmod's paths.
+command -v module >/dev/null 2>&1 || source /etc/profile.d/lmod.sh 2>/dev/null || true
+module load 2025 2>/dev/null || true
+module load CUDA/12.9.1 2>/dev/null || true
+echo "nvcc: $(command -v nvcc || echo 'not available')"
+
 # System libstdc++ provides CXXABI_1.3.13; the conda env's ICU wants 1.3.15, so
 # sqlite3 and hence the xgrammar backend fail to import without this.
 export LD_LIBRARY_PATH="$(dirname "$(dirname "$PY")")/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
@@ -41,6 +49,11 @@ export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 export VLLM_LOGGING_LEVEL=WARNING
 export OPENAI_API_KEY=local-vllm
+# flashinfer JIT-compiles its sampler against torch, which is built here for CUDA
+# 13.0 while the newest module is 12.9.1. With no toolchain it died after loading
+# the model; with a mismatched one it would be worse. The PyTorch sampler is
+# numerically equivalent and marginally slower.
+export VLLM_USE_FLASHINFER_SAMPLER=0
 mkdir -p "$HF_HOME"
 
 MODEL="${SANITY_WORKER_MODEL:-mistralai/Mistral-7B-Instruct-v0.2}"

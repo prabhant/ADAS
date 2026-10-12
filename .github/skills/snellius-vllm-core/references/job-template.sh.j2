@@ -1,0 +1,27 @@
+#!/bin/bash
+#SBATCH --job-name={{job_name}}
+#SBATCH --partition={{partition}}
+#SBATCH --gpus-per-node={{gpu_count}}
+#SBATCH --cpus-per-task={{cpus}}
+#SBATCH --mem={{mem}}
+#SBATCH --time={{walltime}}
+#SBATCH --output=%j.out
+#SBATCH --error=%j.err
+
+export SINGULARITY_CACHEDIR="/scratch/$USER/singularity_cache"
+export HF_HOME="/scratch/$USER/hf_cache"
+mkdir -p "$SINGULARITY_CACHEDIR" "$HF_HOME"
+
+IMAGE="/home/$USER/images/vllm-openai.sif"
+if [ ! -f "$IMAGE" ]; then
+  mkdir -p "$(dirname "$IMAGE")"
+  singularity pull "$IMAGE" docker://vllm/vllm-openai:{{vllm_tag}}
+fi
+
+singularity exec --nv \
+  --bind /scratch:/scratch \
+  "$IMAGE" \
+  vllm serve {{model_id}} \
+    --port {{port}} \
+    --tensor-parallel-size {{tensor_parallel_size}} \
+    {{extra_flags}}

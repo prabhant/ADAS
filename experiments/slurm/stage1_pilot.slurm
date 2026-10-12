@@ -25,9 +25,11 @@
 set -euo pipefail
 
 source "$SLURM_SUBMIT_DIR/experiments/slurm/_common.sh"
+load_gpu_modules
 activate_env
 
 load_cell "array_index=${SLURM_ARRAY_TASK_ID}"
+export ADAS_SELF_SCRIPT="experiments/slurm/stage1_pilot.slurm"
 
 # search() resumes from archive[-1]['generation'] and evaluate() resumes through
 # eval_archive, so a requeued task picks up where it stopped with no extra code.
@@ -37,5 +39,6 @@ fi
 
 source "$REPO_ROOT/experiments/serving/launch_vllm.sh"
 run_search
+maybe_resubmit
 
 echo "stage 1 cell $CELL_ID complete"

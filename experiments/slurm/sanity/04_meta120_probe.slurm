@@ -32,6 +32,11 @@ REPO_ROOT="${SLURM_SUBMIT_DIR:-$PWD}"
 PY="${ADAS_PYTHON:-$HOME/.conda/envs/adas-snellius/bin/python}"
 VLLM="$(dirname "$PY")/vllm"
 export PYTHONPATH="$REPO_ROOT"
+
+command -v module >/dev/null 2>&1 || source /etc/profile.d/lmod.sh 2>/dev/null || true
+module load 2025 2>/dev/null || true
+module load CUDA/12.9.1 2>/dev/null || true
+
 export LD_LIBRARY_PATH="$(dirname "$(dirname "$PY")")/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
 export HF_HUB_CACHE=/projects/2/managed_datasets/hf_cache_dir
@@ -40,6 +45,7 @@ export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 export VLLM_LOGGING_LEVEL=INFO       # want the memory-profiling lines
 export OPENAI_API_KEY=local-vllm
+export VLLM_USE_FLASHINFER_SAMPLER=0
 mkdir -p "$HF_HOME"
 
 MODEL="${SANITY_META_MODEL:-openai/gpt-oss-120b}"

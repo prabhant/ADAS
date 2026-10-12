@@ -18,6 +18,7 @@ import argparse
 import json
 import sys
 import time
+from typing import Optional
 import urllib.error
 import urllib.request
 
@@ -37,7 +38,16 @@ def _post(url: str, payload: dict, timeout: float = 240.0):
         return json.loads(response.read())
 
 
-def wait_for_health(base_url: str, timeout: float, poll: float = 5.0) -> str:
+def wait_for_health(base_url: str, timeout: float, poll: float = 5.0,
+                    expect_model: Optional[str] = None) -> str:
+    """Block until the endpoint serves ``expect_model``.
+
+    A 200 from /health only proves something is listening on the port, not that
+    it is ours. Compute nodes are shared by up to four jobs and SLURM does not
+    always reap a previous job's server, so cross-checking /v1/models is what
+    stops a whole cell running against another cell's models and being recorded
+    under the wrong pair.
+    """
     root = base_url.rstrip("/")
     if root.endswith("/v1"):
         root = root[: -len("/v1")]
@@ -49,9 +59,14 @@ def wait_for_health(base_url: str, timeout: float, poll: float = 5.0) -> str:
             if status == 200:
                 status, body = _get(f"{root}/v1/models")
                 models = json.loads(body).get("data", [])
-                if models:
-                    return models[0]["id"]
-                last_error = "/v1/models returned an empty list"
+                served = [m["id"] for m in models]
+                if not served:
+                    last_error = "/v1/models returned an empty list"
+                elif expect_model is None or expect_model in served:
+                    return served[0]
+                else:
+                    last_error = (f"port is serving {served}, not {expect_model!r} "
+                                  f"-- likely another job's server; still waiting for ours")
         except (urllib.error.URLError, OSError, json.JSONDecodeError, KeyError) as exc:
             last_error = f"{type(exc).__name__}: {exc}"
         time.sleep(poll)
@@ -85,17 +100,25 @@ def check_json_mode(base_url: str, model: str) -> dict:
 
 
 def check_guided_json(base_url: str, model: str) -> bool:
-    """Schema-constrained decoding is preferred over plain JSON mode."""
+    """Schema-constrained decoding is preferred over plain JSON mode.
+
+    Probes with a schema the model would not satisfy by chance, so a pass means
+    the constraint was enforced rather than merely tolerated: vLLM's request
+    model allows unknown fields, so a wrong key name reports success while
+    enforcing nothing.
+    """
     payload = {
         "model": model,
         "messages": [{"role": "user", "content": "Return a design named probe."}],
         "temperature": 0.0,
         "max_tokens": 256,
-        "guided_json": {
-            "type": "object",
-            "properties": {"thought": {"type": "string"}, "name": {"type": "string"},
-                           "code": {"type": "string"}},
-            "required": ["thought", "name", "code"],
+        "structured_outputs": {
+            "json": {
+                "type": "object",
+                "properties": {"thought": {"type": "string"}, "name": {"type": "string"},
+                               "code": {"type": "string"}},
+                "required": ["thought", "name", "code"],
+            }
         },
     }
     try:
@@ -144,21 +167,24 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--worker-url", required=True)
     parser.add_argument("--meta-url", default=None)
+    parser.add_argument("--expect-worker-model", default=None,
+                        help="Reject a port that is serving something else, e.g. another job's server.")
+    parser.add_argument("--expect-meta-model", default=None)
     parser.add_argument("--timeout", type=float, default=2400.0)
     parser.add_argument("--check-json", action="store_true")
     parser.add_argument("--check-reasoning-effort", action="store_true")
     parser.add_argument("--report", default=None, help="Write the report as JSON here.")
     args = parser.parse_args()
 
-    endpoints = {"worker": args.worker_url}
+    endpoints = {"worker": (args.worker_url, args.expect_worker_model)}
     if args.meta_url:
-        endpoints["meta"] = args.meta_url
+        endpoints["meta"] = (args.meta_url, args.expect_meta_model)
 
     report = {}
     ok = True
-    for role, url in endpoints.items():
-        model = wait_for_health(url, args.timeout)
-        entry = {"url": url, "model": model, "healthy": True}
+    for role, (url, expected) in endpoints.items():
+        model = wait_for_health(url, args.timeout, expect_model=expected)
+        entry = {"url": url, "model": model, "expected": expected, "healthy": True}
         print(f"[{role}] ready: {model} @ {url}")
 
         if args.check_json:

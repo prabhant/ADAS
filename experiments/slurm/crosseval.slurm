@@ -30,6 +30,7 @@ set -euo pipefail
 
 source "$SLURM_SUBMIT_DIR/experiments/slurm/_common.sh"
 mkdir -p "$RESULTS_ROOT/crosseval"
+load_gpu_modules
 activate_env
 
 TASK="${SLURM_ARRAY_TASK_ID:-0}"
