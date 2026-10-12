@@ -49,8 +49,27 @@ def _process_alive(pid: int) -> bool:
         return False
 
 
+# Specific on purpose: vLLM also logs harmless tracebacks as warnings.
+_FATAL_MARKERS = (
+    "Engine core initialization failed",
+    "Timed out waiting for engine core",
+    "CUDA out of memory",
+    "OutOfMemoryError",
+)
+
+
+def _fatal_in_log(path: Optional[str]) -> Optional[str]:
+    if not path or not os.path.exists(path):
+        return None
+    with open(path, "rb") as handle:
+        handle.seek(max(0, os.path.getsize(path) - 262144))
+        tail = handle.read().decode(errors="replace")
+    return next((m for m in _FATAL_MARKERS if m in tail), None)
+
+
 def wait_for_health(base_url: str, timeout: float, poll: float = 5.0,
-                    expect_model: Optional[str] = None, pid: Optional[int] = None) -> str:
+                    expect_model: Optional[str] = None, pid: Optional[int] = None,
+                    log: Optional[str] = None) -> str:
     """Block until the endpoint serves ``expect_model``.
 
     A 200 from /health only proves something is listening on the port, not that
@@ -68,6 +87,11 @@ def wait_for_health(base_url: str, timeout: float, poll: float = 5.0,
         if pid is not None and not _process_alive(pid):
             raise RuntimeError(f"{base_url}: server process {pid} exited before becoming ready "
                                f"(last: {last_error}); see its log")
+        # A server can fail and still leave its process alive, e.g. hung in
+        # shutdown waiting on engine workers; its log says so long before timeout.
+        fatal = _fatal_in_log(log)
+        if fatal:
+            raise RuntimeError(f"{base_url}: server log reports '{fatal}' ({log})")
         try:
             status, _ = _get(f"{root}/health")
             if status == 200:
@@ -195,6 +219,8 @@ def main() -> int:
     parser.add_argument("--worker-pid", type=int, default=None,
                         help="Fail as soon as this server process dies, instead of polling to timeout.")
     parser.add_argument("--meta-pid", type=int, default=None)
+    parser.add_argument("--worker-log", default=None, help="Server log to watch for fatal errors.")
+    parser.add_argument("--meta-log", default=None)
     parser.add_argument("--timeout", type=float, default=2400.0)
     parser.add_argument("--check-json", action="store_true")
     parser.add_argument("--check-reasoning-effort", action="store_true")
@@ -205,14 +231,14 @@ def main() -> int:
 
     endpoints = {}
     if args.worker_url:
-        endpoints["worker"] = (args.worker_url, args.expect_worker_model, args.worker_pid)
+        endpoints["worker"] = (args.worker_url, args.expect_worker_model, args.worker_pid, args.worker_log)
     if args.meta_url:
-        endpoints["meta"] = (args.meta_url, args.expect_meta_model, args.meta_pid)
+        endpoints["meta"] = (args.meta_url, args.expect_meta_model, args.meta_pid, args.meta_log)
 
     report = {}
     ok = True
-    for role, (url, expected, pid) in endpoints.items():
-        model = wait_for_health(url, args.timeout, expect_model=expected, pid=pid)
+    for role, (url, expected, pid, log) in endpoints.items():
+        model = wait_for_health(url, args.timeout, expect_model=expected, pid=pid, log=log)
         entry = {"url": url, "model": model, "expected": expected, "healthy": True}
         print(f"[{role}] ready: {model} @ {url}")
 

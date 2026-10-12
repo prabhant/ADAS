@@ -42,6 +42,7 @@ import os, shlex, sys, yaml
 spec = yaml.safe_load(open(os.path.join(os.environ["REPO_ROOT"], "experiments/config/models.yaml")))["models"][sys.argv[1]]
 for k, v in {"HF": spec["hf_id"], "TP": spec["tensor_parallel_size"], "NGPU": spec["gpus"],
              "MPATH": spec.get("model_path", ""), "PARSER": spec.get("meta_reasoning_parser", ""),
+             "SARGS": spec.get("serve_args", ""),
              "CTX": min(int(spec["max_model_len"]), 32768)}.items():
     print(f"{k}={shlex.quote(str(v))}")
 PY
@@ -58,7 +59,7 @@ echo "=== designer $KEY ($HF) tp=$TP ctx=$CTX parser=${PARSER:-none} on $(hostna
 # Served in launch_vllm.sh's single "worker" slot; the parser is the designer's,
 # since in this job the model is being asked to design.
 export WORKER_MODEL="$HF" WORKER_TP="$TP" WORKER_MAX_LEN="$CTX"
-export WORKER_MODEL_PATH="$MPATH" WORKER_REASONING_PARSER="$PARSER"
+export WORKER_MODEL_PATH="$MPATH" WORKER_REASONING_PARSER="$PARSER" WORKER_SERVE_ARGS="$SARGS"
 export META_MODEL="" MAX_NUM_SEQS=16
 source "$REPO_ROOT/experiments/serving/launch_vllm.sh"
 

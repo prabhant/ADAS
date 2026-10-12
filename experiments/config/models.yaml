@@ -181,6 +181,9 @@ models:
     hf_id: mistralai/Mixtral-8x7B-Instruct-v0.1
     # refs/main points at a snapshot with no weights; serve this one by path.
     model_path: /projects/2/managed_datasets/hf_cache_dir/models--mistralai--Mixtral-8x7B-Instruct-v0.1/snapshots/1e637f2d7cb0a9d6fb1922f305cb784995190a83
+    # That snapshot's chat template rejects a system message (HTTP 400); the
+    # newer snapshot's tokenizer accepts one.
+    serve_args: --tokenizer /projects/2/managed_datasets/hf_cache_dir/models--mistralai--Mixtral-8x7B-Instruct-v0.1/snapshots/bbae113847402a22031211225b5ee45c005de7dd
     source: managed
     family: mistral
     roles: [meta]

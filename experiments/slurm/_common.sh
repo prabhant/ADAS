@@ -145,6 +145,7 @@ for name, prefix in (("meta", "META"), ("worker", "WORKER")):
     emit(f"{prefix}_KEY", key)
     emit(f"{prefix}_MODEL", spec["hf_id"])
     emit(f"{prefix}_MODEL_PATH", spec.get("model_path", ""))
+    emit(f"{prefix}_SERVE_ARGS", spec.get("serve_args", ""))
     emit(f"{prefix}_TP", spec["tensor_parallel_size"])
     emit(f"{prefix}_MAX_LEN", spec["max_model_len"])
     emit(f"{prefix}_MAX_TOKENS", spec["max_output_tokens"])

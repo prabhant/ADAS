@@ -149,3 +149,46 @@ worker with headroom on either domain is mistral-7b on MMLU (46.4% CoT).
 
 Next: batch1b = e2e, stage0_smoke, 1gpu designers (0-4, to recover the actual
 designs), 2gpu designers (0-3). Same scope as batch 1, not new work.
+
+### 2026-10-12 17:09 - batch1b submitted at commit 2be863d
+
+```
+e2e_cpu	27952332
+stage0_smoke	27952334
+designers_1gpu	27952339
+designers_2gpu	27952342
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-12 - batch1b inspected: 9 of 11 tasks passed
+
+- e2e PASSED, including "no analysis fields reach the designer".
+- stage0_smoke COMPLETED: 2/2 generations succeeded first try; the full
+  production path works. Cost signal: ~7.5k designer tokens and 10-43 s of
+  worker evaluation per generation at 8 questions, ~6-7 worker calls/question.
+- gpt-oss-120b serves at tp=2 (8 min incl. load) -> top designer is feasible.
+- flashinfer patch confirmed: tp=2 models now start.
+
+| Designer | usable | agents | dominant motifs |
+|---|---|---|---|
+| gpt-oss-120b | 5/6 | 3.2 | ensembling, critic loop |
+| gpt-oss-20b | 4/6 | 3.5 | early exit, routing, verification, role specialisation |
+| nemotron-3-nano-30b | 6/6 | 2.2 | critic loop, ensembling, early exit |
+| qwen3-14b | 6/6 | 5.5 | majority voting, critic loop, decomposition |
+| qwen3-30b-a3b | 6/6 | 2.8 | ensembling, verification |
+| qwen3.5-27b | 5/6 | 4.4 | verification, ensembling, critic loop |
+| qwen3.5-35b-a3b | 6/6 | 3.3 | critic loop, ensembling, routing, verification |
+
+Unusable proposals are all real Python syntax errors (unterminated strings,
+unmatched brace) - designer behaviour (Q6 data), which the search's debug loop
+is there to repair. Not infrastructure.
+
+Two failures:
+- nemotron-3-super-120b: 128 GB loaded at ~34 s/shard (13m50s) from the shared
+  filesystem; vLLM's engine-ready timeout is 600 s, so the API server gave up
+  while loading. Its process stayed alive after the error, so the fail-fast
+  PID check never fired and the job ran 50 min.
+- mixtral-8x7b: its chat template rejects a system message (HTTP 400). The
+  newer `main` snapshot's tokenizer template handles one; serve weights from
+  the old snapshot with the tokenizer from the new one.

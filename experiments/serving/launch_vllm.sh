@@ -86,6 +86,10 @@ mkdir -p "$HF_HOME"
 # The PyTorch sampler is numerically equivalent and marginally slower.
 export VLLM_USE_FLASHINFER_SAMPLER=0
 
+# vLLM's API server stops waiting for its engine after 600 s by default; a 128 GB
+# checkpoint took ~14 min just to read from the shared filesystem.
+export VLLM_ENGINE_READY_TIMEOUT_S="${VLLM_ENGINE_READY_TIMEOUT_S:-${HEALTH_TIMEOUT:-2400}}"
+
 # Model load from the shared filesystem is slow for large checkpoints. $TMPDIR is
 # node-local scratch on nodes requested with --constraint=scratch-node, and is
 # wiped at job end, so it holds the compile cache only, never results.
@@ -108,9 +112,14 @@ trap cleanup EXIT INT TERM
 
 serve() {
     local role="$1" model="$2" port="$3" tp="$4" max_len="$5" gpus="$6"
-    local path="${7:-}" parser="${8:-}"
+    local path="${7:-}" parser="${8:-}" serve_args="${9:-}"
     local extra=()
     [[ -n "$parser" ]] && extra+=(--reasoning-parser "$parser")
+    if [[ -n "$serve_args" ]]; then
+        local more=()
+        read -ra more <<< "$serve_args"
+        extra+=("${more[@]}")
+    fi
     echo "launching $role: $model on GPUs [$gpus], tp=$tp, port=$port${parser:+, reasoning parser $parser}"
     # vLLM 0.28 replaced --guided-decoding-backend with --structured-outputs-config,
     # which takes JSON. Passing the old flag aborts the server at startup.
@@ -136,16 +145,16 @@ serve() {
 # Worker takes the low-numbered GPUs, meta the rest.
 worker_gpus="$(seq -s, 0 $((WORKER_TP - 1)))"
 serve worker "$WORKER_MODEL" "$WORKER_PORT" "$WORKER_TP" "$WORKER_MAX_LEN" "$worker_gpus" \
-    "${WORKER_MODEL_PATH:-}" "${WORKER_REASONING_PARSER:-}"
+    "${WORKER_MODEL_PATH:-}" "${WORKER_REASONING_PARSER:-}" "${WORKER_SERVE_ARGS:-}"
 
 health_args=(--worker-url "http://127.0.0.1:${WORKER_PORT}/v1" --expect-worker-model "$WORKER_MODEL"
-             --worker-pid "${VLLM_PIDS[0]}")
+             --worker-pid "${VLLM_PIDS[0]}" --worker-log "$LOG_DIR/worker_${WORKER_PORT}.log")
 if [[ -n "$META_MODEL" ]]; then
     meta_gpus="$(seq -s, "$WORKER_TP" $((WORKER_TP + META_TP - 1)))"
     serve meta "$META_MODEL" "$META_PORT" "$META_TP" "$META_MAX_LEN" "$meta_gpus" \
-        "${META_MODEL_PATH:-}" "${META_REASONING_PARSER:-}"
+        "${META_MODEL_PATH:-}" "${META_REASONING_PARSER:-}" "${META_SERVE_ARGS:-}"
     health_args+=(--meta-url "http://127.0.0.1:${META_PORT}/v1" --expect-meta-model "$META_MODEL"
-                  --meta-pid "${VLLM_PIDS[1]}")
+                  --meta-pid "${VLLM_PIDS[1]}" --meta-log "$LOG_DIR/meta_${META_PORT}.log")
 fi
 
 # The client only ever sees a health timeout, so the actual cause -- OOM, a bad
