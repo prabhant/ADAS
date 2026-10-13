@@ -335,3 +335,34 @@ Inspect with: bash experiments/slurm/status.sh
 - NEXT: when 28003131 (baseline) and 28004677 (seeds) finish, inspect both, then
   `bash experiments/slurm/submit_batch.sh batch5` (8 designers; refuses to
   submit if the baseline or the shared seed archive is missing).
+
+### 2026-10-13 22:56 - batch6 submitted at commit 5d9f1c2
+
+```
+e2e_cpu	28049888
+mmlu_baseline	28049889
+panel_seeds	28049890
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-13 22:50 - batch3/4 inspected; seed job failed; batch6
+
+- 28003131 baseline (extractor v2): 54.7% (CI 50.8-58.6). 79/640 unreadable:
+  75 free text incl. "D, Mass and acceleration" (letter + comma, not handled),
+  4 empty. Moved to _superseded/s05_cot_mmlu_mistral-7b_extractor_v2_28003131.
+- 28004675 e2e PASSED incl. section G (evaluation deadline/resume).
+- 28004677 seeds FAILED after 6/7 seeds: "Dynamic Assignment of Roles" raised
+  `'dict' object has no attribute 'lower'`. Mistral sometimes returns a nested
+  JSON object for a field; the seed calls .lower() on it. Stock ADAS never hit
+  this (GPT-3.5 returned strings). One crashing question fails the whole agent.
+- FIX (5d9f1c2): LLMAgentBase converts every worker field to text (dict/list ->
+  JSON text, null -> ""), applied identically to all designs. MMLU extractor
+  also reads "D, text" and refuses multi-letter answers ("A, B or D", "A or B",
+  "B/C"); 39/39 unit cases. Offline re-score of the saved misses: 56.6%; the
+  43 left are "None of the above", refusals and multi-letter answers.
+- Stale partial seed cache and its archive moved to _superseded/ so nothing
+  computed under the old handling is reused. batch5 guard now requires all 7
+  seeds in the cache, not just the file.
+- batch6 at 5d9f1c2: e2e 28049888, mmlu_baseline 28049889, panel_seeds 28049890.
+- NEXT: inspect all three, then `bash experiments/slurm/submit_batch.sh batch5`.
