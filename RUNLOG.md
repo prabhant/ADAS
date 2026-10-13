@@ -264,3 +264,39 @@ s05_cot_mmlu_mistral-7b accuracy; expect ~46% (screen value 46.4%, 128 x 3).
 - Consequence: the search's fitness rewards format fixing as well as reasoning.
   Needs a user decision before the panel search: keep stock extractor
   (faithful ADAS) or accept "X." / "(X)" / "answer is X" and re-measure.
+
+### 2026-10-13 13:55 - batch3 submitted at commit 9a043be
+
+```
+e2e_cpu	28003128
+mmlu_baseline	28003131
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-13 - batch3 contents (user decisions on batch2 findings)
+
+User decisions: accept more MMLU answer formats and re-measure; raise designer
+output caps for qwen3.5-35b, qwen3.5-27b, nemotron-nano; all designers start
+from the same evaluated seed archive.
+
+Code at 9a043be:
+- _mmlu/utils.extract_choice: bare letter, "(D)", "D.", "D) text", "D: text",
+  "the answer is D", exact option text; stock "X)" rule last. Uppercase only,
+  so "a"/"Apple" are never read as choices (29/29 unit cases incl. traps).
+  Every miss (up to 200) is now saved in the baseline's samples for auditing.
+- Old stock-extractor baseline moved to
+  experiments/results/_superseded/s05_cot_mmlu_mistral-7b_stock_extractor_27980629.
+- meta_max_output_tokens 12288 for the three designers (worker caps stay 4096).
+- Shared seed cache at $RESULTS_ROOT/_seed_cache (all cells). New flags:
+  --require_seed_cache (cell field require_seed_cache) refuses to evaluate seeds
+  itself; --seeds_only (cell condition seed_eval) evaluates seeds then stops.
+  Cache writes are atomic. e2e section F tests all three.
+  The panel needs: one seed_eval cell first, then designer cells with
+  require_seed_cache, chained by --dependency=afterok.
+
+ADAS protocol (paper arXiv 2408.08435 + original code), for choosing ours:
+30 iterations (ARC 25); ONE search run per domain, no repeated searches;
+valid 128 / test 800 for MMLU, evaluated once (GPQA and ARC: 5 times);
+debug up to 5 rounds in the paper (code default debug_max 3); seeds are 7
+hand-designed agents; ~$300 per reasoning-domain run.
