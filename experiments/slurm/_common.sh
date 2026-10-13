@@ -145,9 +145,12 @@ for name, prefix in (("meta", "META"), ("worker", "WORKER")):
     emit(f"{prefix}_KEY", key)
     emit(f"{prefix}_MODEL", spec["hf_id"])
     emit(f"{prefix}_MODEL_PATH", spec.get("model_path", ""))
-    emit(f"{prefix}_SERVE_ARGS", spec.get("serve_args", ""))
+    is_meta = prefix == "META"
+    emit(f"{prefix}_SERVE_ARGS", spec.get("meta_serve_args", spec.get("serve_args", ""))
+         if is_meta else spec.get("serve_args", ""))
     emit(f"{prefix}_TP", spec["tensor_parallel_size"])
-    emit(f"{prefix}_MAX_LEN", spec["max_model_len"])
+    emit(f"{prefix}_MAX_LEN", spec.get("meta_max_model_len", spec["max_model_len"])
+         if is_meta else spec["max_model_len"])
     # A designer may need a larger budget than the same model as a worker.
     emit(f"{prefix}_MAX_TOKENS", spec.get("meta_max_output_tokens", spec["max_output_tokens"])
          if prefix == "META" else spec["max_output_tokens"])
@@ -301,9 +304,14 @@ _search_deadline_epoch() {
 maybe_resubmit() {
     local summary="$RESULTS_ROOT/$CELL_ID/$CELL_ID/budget_summary.json"
     [[ -f "$summary" ]] || return 0
-    python - "$summary" <<'PY' || return 0
-import json, sys
-sys.exit(0 if json.load(open(sys.argv[1])).get("stopped_on_deadline") else 1)
+    python - "$summary" "$RESULTS_ROOT/$CELL_ID/${CELL_ID}_run_archive" <<'PY' || return 0
+import json, os, sys
+if json.load(open(sys.argv[1])).get("stopped_on_deadline"):
+    sys.exit(0)
+# Test evaluation also stops at the deadline; resubmit until every design has a test record.
+archive, evaluated = sys.argv[2] + ".json", sys.argv[2] + "_evaluate.json"
+n_eval = len(json.load(open(evaluated))) if os.path.exists(evaluated) else 0
+sys.exit(0 if os.path.exists(archive) and n_eval < len(json.load(open(archive))) else 1)
 PY
     local script="${ADAS_SELF_SCRIPT:-}"
     if [[ -z "$script" ]]; then
@@ -312,6 +320,9 @@ PY
     fi
     local opts=(--chdir="$REPO_ROOT")
     [[ -n "${SLURM_ARRAY_TASK_ID:-}" ]] && opts+=(--array="$SLURM_ARRAY_TASK_ID")
+    # Keep the original request; the script header asks for a whole node.
+    [[ -n "${SLURM_GPUS:-}" ]] && opts+=(--gpus="$SLURM_GPUS")
+    [[ -n "${SLURM_CPUS_PER_TASK:-}" ]] && opts+=(--cpus-per-task="$SLURM_CPUS_PER_TASK")
     echo "$CELL_ID hit the walltime deadline; resubmitting to continue"
     sbatch "${opts[@]}" "$script" ${STAGE:+"$STAGE"}
 }

@@ -74,6 +74,17 @@ stage_defaults:
     domain: mmlu
     max_attempts: 60
     debug_max: 3
+  # Designer panel, ADAS protocol (arXiv 2408.08435 + released code): 30 generations,
+  # one run per designer, MMLU 128 validation / 800 test questions, each answered once.
+  "panel":
+    n_generation: 30
+    valid_size: 128
+    test_size: 800
+    n_repreat: 1
+    domain: mmlu
+    max_attempts: 90
+    debug_max: 3
+    require_seed_cache: true
 
 common:
   shuffle_seed: 0
@@ -200,6 +211,21 @@ cells:
   - {id: s3_m20_w27b,  stage: "3", meta: gpt-oss-20b,  worker: qwen3.5-27b, seed: a}
   - {id: s3_m120_w7b,  stage: "3", meta: gpt-oss-120b, worker: mistral-7b,  seed: a}
   - {id: s3_m120_w27b, stage: "3", meta: gpt-oss-120b, worker: qwen3.5-27b, seed: a}
+
+  # -------------------------------------------------------------------------
+  # Designer panel on Mistral-7B / MMLU. Index 0 evaluates the seed archive once
+  # (stage05_baselines.slurm); 1-5 are 1-GPU designers, 6-8 are 2-GPU designers
+  # (stage2_main.slurm). Same stage, so every cell shares one seed-cache key.
+  # -------------------------------------------------------------------------
+  - {id: pan_seeds_mistral-7b,       stage: "panel", meta: null,                  worker: mistral-7b, seed: a, condition: seed_eval, require_seed_cache: false}
+  - {id: pan_gpt-oss-20b_a,          stage: "panel", meta: gpt-oss-20b,           worker: mistral-7b, seed: a}
+  - {id: pan_qwen3-14b_a,            stage: "panel", meta: qwen3-14b,             worker: mistral-7b, seed: a}
+  - {id: pan_qwen3-30b-a3b_a,        stage: "panel", meta: qwen3-30b-a3b,         worker: mistral-7b, seed: a}
+  - {id: pan_qwen3.5-27b_a,          stage: "panel", meta: qwen3.5-27b,           worker: mistral-7b, seed: a}
+  - {id: pan_nemotron-3-nano-30b_a,  stage: "panel", meta: nemotron-3-nano-30b,   worker: mistral-7b, seed: a}
+  - {id: pan_gpt-oss-120b_a,         stage: "panel", meta: gpt-oss-120b,          worker: mistral-7b, seed: a}
+  - {id: pan_nemotron-3-super-120b_a, stage: "panel", meta: nemotron-3-super-120b, worker: mistral-7b, seed: a}
+  - {id: pan_qwen3.5-35b-a3b_a,      stage: "panel", meta: qwen3.5-35b-a3b,       worker: mistral-7b, seed: a}
 
 # ---------------------------------------------------------------------------
 # Stage X -- cross-evaluation. Best validation agent from each source cell is

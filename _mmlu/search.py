@@ -588,6 +588,9 @@ def evaluate(args):
             current_idx += 1
             continue
         sol = archive[current_idx]
+        if args.deadline_epoch and time.time() >= args.deadline_epoch:
+            print(f"stopping test evaluation before design {current_idx}: within the walltime safety margin")
+            return
         print(f"current_gen: {sol['generation']}, current_idx: {current_idx}")
         instrumentation.set_context(generation=sol['generation'], phase="test")
         current_idx += 1
@@ -596,14 +599,17 @@ def evaluate(args):
         except Exception as e:
             print(e)
             instrumentation.record_failure(classify_failure(e), str(e), stage="test")
-            continue
-        acc_list = result["acc_list"]
-        sol['test_fitness'] = bootstrap_confidence_interval(acc_list)
-        sol['test_median_accuracy'] = _point_accuracy(acc_list)
-        sol['test_per_question'] = acc_list
-        if 'raw_median_accuracy' in sol:
-            sol['generalization_gap'] = sol['raw_median_accuracy'] - sol['test_median_accuracy']
-        sol['test_resource'] = result.get("usage", {}).get("worker", {})
+            # Recorded, not skipped: on resume, results are matched to designs by position.
+            sol['test_error'] = f"{type(e).__name__}: {e}"[:500]
+            result = None
+        if result is not None:
+            acc_list = result["acc_list"]
+            sol['test_fitness'] = bootstrap_confidence_interval(acc_list)
+            sol['test_median_accuracy'] = _point_accuracy(acc_list)
+            sol['test_per_question'] = acc_list
+            if 'raw_median_accuracy' in sol:
+                sol['generalization_gap'] = sol['raw_median_accuracy'] - sol['test_median_accuracy']
+            sol['test_resource'] = result.get("usage", {}).get("worker", {})
         eval_archive.append(sol)
 
         # save results

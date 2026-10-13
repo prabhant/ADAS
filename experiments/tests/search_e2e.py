@@ -278,6 +278,17 @@ def main() -> int:
     check(run_search(url, b_dir, b_id, target=1, extra=["--search_only"]) == 0, "exit 0")
     archive = load(os.path.join(b_dir, f"{b_id}_run_archive.json"))
     check(len(archive) == 8, f"seeds kept, one generation added (got {len(archive)})")
+
+    print("\n=== G: test evaluation stops at the deadline and resumes aligned ===")
+    eval_path = os.path.join(b_dir, f"{b_id}_run_archive_evaluate.json")
+    check(run_search(url, b_dir, b_id, target=1,
+                     extra=["--evaluate_only", "--deadline_epoch", str(time.time() - 1)]) == 0,
+          "exit 0 when the deadline has passed")
+    check(not os.path.exists(eval_path) or not load(eval_path), "no design evaluated past the deadline")
+    check(run_search(url, b_dir, b_id, target=1, extra=["--evaluate_only"]) == 0, "resumed evaluation exit 0")
+    evaluated = load(eval_path)
+    check(len(evaluated) == 8 and all(e["test_per_question"] == expected_test for e in evaluated),
+          "all 8 designs evaluated, each with the ground-truth test vector")
     server.shutdown()
 
     print("\n=== F: designers share one evaluated seed archive ===")

@@ -41,8 +41,8 @@ activate_env
 STAGE="${1:-0.5}"
 load_cell "stage_index=${STAGE}:${SLURM_ARRAY_TASK_ID}"
 
-if [[ -z "${CELL_CONDITION:-}" || ( "$CELL_CONDITION" != "bare_model" && "$CELL_CONDITION" != "solo_cot" ) ]]; then
-    echo "cell $CELL_ID has condition '${CELL_CONDITION:-none}', expected bare_model or solo_cot" >&2
+if [[ -z "${CELL_CONDITION:-}" || ( "$CELL_CONDITION" != "bare_model" && "$CELL_CONDITION" != "solo_cot" && "$CELL_CONDITION" != "seed_eval" ) ]]; then
+    echo "cell $CELL_ID has condition '${CELL_CONDITION:-none}', expected bare_model, solo_cot or seed_eval" >&2
     exit 1
 fi
 

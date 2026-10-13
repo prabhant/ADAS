@@ -229,6 +229,9 @@ models:
     gpus: 1
     max_model_len: 40960
     max_output_tokens: 4096
+    # The archive prompt reaches ~30-41k tokens by generation 30; YaRN x2 is Qwen's documented extension.
+    meta_max_model_len: 65536
+    meta_serve_args: '--hf-overrides {"rope_parameters":{"rope_type":"yarn","factor":2.0,"original_max_position_embeddings":32768,"rope_theta":1000000}}'
     meta_reasoning_parser: qwen3
 
   qwen3-30b-a3b:
@@ -243,6 +246,8 @@ models:
     gpus: 1
     max_model_len: 40960
     max_output_tokens: 4096
+    meta_max_model_len: 65536
+    meta_serve_args: '--hf-overrides {"rope_parameters":{"rope_type":"yarn","factor":2.0,"original_max_position_embeddings":32768,"rope_theta":1000000.0}}'
     meta_reasoning_parser: qwen3
 
   qwen3.5-35b-a3b:

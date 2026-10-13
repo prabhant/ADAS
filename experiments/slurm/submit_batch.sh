@@ -59,6 +59,22 @@ case "$NAME" in
         submit e2e_cpu        experiments/slurm/sanity/07_e2e_cpu.slurm
         submit mmlu_baseline  --array=8 experiments/slurm/stage05_baselines.slurm 0.5
         ;;
+    batch4)
+        # Panel prerequisites: e2e (evaluation deadline/resume) and the shared seed archive.
+        submit e2e_cpu        experiments/slurm/sanity/07_e2e_cpu.slurm
+        submit panel_seeds    --array=0 experiments/slurm/stage05_baselines.slurm panel
+        ;;
+    batch5)
+        # The designer panel. Refuses to start without what every cell needs.
+        [[ -f experiments/results/s05_cot_mmlu_mistral-7b/cot_baseline.json ]] \
+            || { echo "MMLU baseline missing: inspect batch3 first" >&2; rm -f "$BATCH"; exit 1; }
+        compgen -G "experiments/results/_seed_cache/*__mmlu__valid128__shuffle0__rep1__*.json" >/dev/null \
+            || { echo "shared seed archive missing: inspect batch4 first" >&2; rm -f "$BATCH"; exit 1; }
+        submit designers_1gpu --array=1-5 --gpus=2 --cpus-per-task=32 \
+                              experiments/slurm/stage2_main.slurm panel
+        submit designers_2gpu --array=6-8 --gpus=3 --cpus-per-task=48 \
+                              experiments/slurm/stage2_main.slurm panel
+        ;;
     *)
         echo "unknown batch '$NAME'" >&2; rm -f "$BATCH"; exit 1 ;;
 esac
