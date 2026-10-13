@@ -366,3 +366,29 @@ Inspect with: bash experiments/slurm/status.sh
   seeds in the cache, not just the file.
 - batch6 at 5d9f1c2: e2e 28049888, mmlu_baseline 28049889, panel_seeds 28049890.
 - NEXT: inspect all three, then `bash experiments/slurm/submit_batch.sh batch5`.
+
+### 2026-10-14 01:23 - batch5 submitted at commit ec88ae3
+
+```
+designers_1gpu	28056328
+designers_2gpu	28056329
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-14 01:25 - batch6 inspected (all OK); designer panel (batch5) submitted
+
+- 28049889 baseline: s05_cot_mmlu_mistral-7b = 55.6% (CI 51.7-59.5), 53/640
+  unreadable (was 172 with the stock extractor). This is the number the
+  informed designers are told.
+- 28049890 seeds: all 7 in the shared cache (valid 128, 1 pass):
+  CoT 52.3, CoT-SC 58.6, Self-Refine 53.9, LLM Debate 58.6, Step-back 60.2,
+  Quality-Diversity 55.5, Role Assignment 56.2. Unreadable 6-13 of 128 each.
+- 28049888 e2e PASSED.
+- batch5 at ec88ae3: designers_1gpu 28056328 (array 1-5: gpt-oss-20b,
+  qwen3-14b, qwen3-30b-a3b, qwen3.5-27b, nemotron-nano; 2 GPU, 32 CPU) and
+  designers_2gpu 28056329 (array 6-8: gpt-oss-120b, nemotron-super,
+  qwen3.5-35b; 3 GPU, 48 CPU). 20 h each; resubmit themselves at the deadline.
+- What to watch first: each task's .out shows "Initial Archive (cached)" x7
+  (shared seeds used), then generation 1. The Qwen3 designers' server log must
+  show max_model_len 65536 (YaRN); nemotron-super loads ~14 min.
