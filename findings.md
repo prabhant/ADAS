@@ -38,19 +38,21 @@ gpt-oss-20b use 5 repeats; the rest use 3.
 
 Each designer got the identical real ADAS prompt (seed archive; worker
 documented as Mistral-7B at 14.2% on MGSM) and made 6 proposals at
-temperature 0.8. Sorted by active parameters.
+temperature 0.8. Sorted by active parameters. Sizes are language-model
+parameters counted from the checkpoints, embeddings included, so they differ
+slightly from vendor figures (e.g. gpt-oss-20b is 3.6B active per OpenAI).
 
 | Designer | Params total / active | Usable | Agents per design | Output tokens (incl. reasoning) | Unusable because |
 |---|---|---|---|---|---|
-| Qwen3-30B-A3B | 30B / 3B | 6/6 | 2.8 | 2,800 | — |
-| Qwen3.5-35B-A3B | 35B / 3B | 6/6 | 3.3 | 3,900 | — |
-| Nemotron-3-Nano-30B | 30B / 3B | 6/6 | 2.2 | 3,700 | — |
-| gpt-oss-20b | 21B / 3.6B | 4/6 | 3.5 | 3,600 | syntax ×2 |
-| gpt-oss-120b | 117B / 5.1B | 5/6 | 3.2 | 1,500 | syntax |
-| Nemotron-3-Super-120B | 120B / 12B | 6/6 | 4.2 | 2,400 | — |
-| Mixtral-8x7B (2023, no reasoning) | 47B / 13B | 3/6 | 2.7 | 600 | syntax ×2, wrong shape |
-| Qwen3-14B | 14B / 14B | 6/6 | 5.5 | 1,900 | — |
-| Qwen3.5-27B | 27B / 27B | 5/6 | 4.4 | 2,600 | syntax |
+| Qwen3-30B-A3B | 30.5B / 3.4B | 6/6 | 2.8 | 2,800 | — |
+| Qwen3.5-35B-A3B | 34.7B / 3.5B | 6/6 | 3.3 | 3,900 | — |
+| Nemotron-3-Nano-30B | 31.6B / 3.6B | 6/6 | 2.2 | 3,700 | — |
+| gpt-oss-20b | 20.9B / 4.2B | 4/6 | 3.5 | 3,600 | syntax ×2 |
+| gpt-oss-120b | 116.8B / 5.7B | 5/6 | 3.2 | 1,500 | syntax |
+| Nemotron-3-Super-120B | 120.7B / 12.8B | 6/6 | 4.2 | 2,400 | — |
+| Mixtral-8x7B (2023, no reasoning) | 46.7B / 12.9B | 3/6 | 2.7 | 600 | syntax ×2, wrong shape |
+| Qwen3-14B | 14.8B / 14.8B | 6/6 | 5.5 | 1,900 | — |
+| Qwen3.5-27B | 26.9B / 26.9B | 5/6 | 4.4 | 2,600 | syntax |
 
 **Run-to-run noise is large.** The first (lost) batch ran four of these
 designers with identical settings. From its logs: gpt-oss-20b was 6/6 usable
@@ -78,7 +80,7 @@ called novel.
 parameters there is no pattern: gpt-oss-120b's designs are no bigger than
 gpt-oss-20b's (3.2 vs 3.5 agents), and it writes fewer than half the tokens.
 By active parameters, the three reasoning designers with ≥12B active propose
-the most agents (4.2–5.5) and the five with ≤5B the fewest (2.2–3.5). Treat
+the most agents (4.2–5.5) and the five with under 6B the fewest (2.2–3.5). Treat
 this as a hypothesis, not a finding:
 
 - the split was spotted after seeing the data;
@@ -122,20 +124,19 @@ generation used ~7.5k designer tokens and 10–43 s of worker evaluation, at
 5.6–7.4 worker calls per question. A full Stage 1 cell (64 questions, 10
 generations) has not been timed.
 
-## 5. Implications for the next batch
+## 5. Decisions for the next batch (2026-10-13)
 
-- **Worker:** Mistral-7B on MMLU, the only mid-range setting. Optionally
-  Qwen3.5-27B as a strong-worker contrast for transfer (Q5).
-- **Size axis:** decide whether designer "size" means total or active
-  parameters. The planned designer ladder (gpt-oss-20b → Qwen3.5-27B →
-  gpt-oss-120b) is ordered by total but not by active parameters (3.6B, 27B,
-  5.1B).
-- **Designers:** all nine qualify. Mixtral is the most distinct (old,
-  non-reasoning) but is also the planned held-out judge; keeping it as a
-  designer means choosing another judge.
-- **Before searching:** rerun the Mistral-7B MMLU baseline as a production
-  Stage 0.5 cell (the informed designer is told this number, and the screen's
-  per-question data was lost), and calibrate the motif detector, which has
+- **Worker:** Mistral-7B on MMLU, the only mid-range setting.
+- **Size axis:** the final analysis reports designer size as both total and
+  active parameters. Analysis rows now carry both. Across the eight reasoning
+  designers the two are uncorrelated (r = −0.01 on log scale), so their
+  effects can be told apart.
+- **Mixtral stays the held-out judge**, so it is not a designer. The panel is
+  the eight reasoning designers.
+- **Baseline rerun:** the Mistral-7B MMLU baseline is being re-measured as a
+  production Stage 0.5 cell (batch 2). The baseline lookup is now
+  domain-aware: it previously would have told an MMLU designer the MGSM number.
+- **Still open before searching:** calibrate the motif detector, which has
   tagged a voting ensemble as a critique loop.
 
 ## Caveats

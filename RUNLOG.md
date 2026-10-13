@@ -216,3 +216,38 @@ Inspect with: bash experiments/slurm/status.sh
   parameters may track design size - hypothesis only.
 - Bookkeeping bug noticed: Stage 0.5 cot_baseline.json records `repeats: 1`
   though it holds 128 x 5 = 640 attempts. Not fixed yet.
+
+### 2026-10-13 01:59 - batch2 submitted at commit 2113af9
+
+```
+mmlu_baseline	27980629
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-13 - decisions taken; batch2 contents
+
+User decisions: worker = mistral-7b on MMLU; report designer size as BOTH total
+and active params; Mixtral stays the held-out judge (not a designer; panel =
+the 8 reasoning designers); rerun the Mistral MMLU baseline first.
+
+Code changes at 2113af9 (before submitting batch2):
+- BUG FIXED: worker_cot_baseline ignored the domain, so an MMLU search would
+  have told the informed designer Mistral's MGSM number (14.2%). Lookup is now
+  `s05_cot_<domain>_<worker>` for non-MGSM domains and refuses a file whose
+  `domain` field does not match.
+- New cell s05_cot_mmlu_mistral-7b (stage 0.5 index 8; 128 q x 5).
+- Baseline JSONs now record `n_repreat` (fixes the misleading `repeats: 1`).
+- models.yaml params_total/params_active are numbers (billions), one convention
+  for all models: LM params incl. embeddings, excl. vision/MTP, counted from
+  checkpoint headers. gpt-oss-20b 20.91/4.19, gpt-oss-120b 116.83/5.71 (OpenAI's
+  3.6/5.1 exclude embeddings). Across the 8 designers log-total vs log-active
+  r = -0.01. aggregate/attribution rows carry meta_params_total/_active.
+- Mixtral roles -> [judge]; judge entry notes the model_path + tokenizer fix.
+
+Found for the panel search (not yet fixed): designers with a 4096-token output
+cap exceeded it in the screen - qwen3.5-35b 2/6 (up to 9.6k), nemotron-nano 2/6,
+qwen3.5-27b 1/6. Raise their caps before searching.
+
+When 27980629 finishes: `bash experiments/slurm/status.sh` shows the
+s05_cot_mmlu_mistral-7b accuracy; expect ~46% (screen value 46.4%, 128 x 3).
