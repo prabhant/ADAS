@@ -64,6 +64,21 @@ def configure_clients(worker=None, meta=None):
         META_CLIENT = meta
 
 
+def _as_text(value):
+    """Worker fields reach designs as text, as GPT-3.5 always returned them in stock ADAS.
+
+    Open workers sometimes nest objects or emit null, and the seed agents call
+    string methods on every field.
+    """
+    if isinstance(value, str):
+        return value
+    if value is None:
+        return ""
+    if isinstance(value, (dict, list)):
+        return json.dumps(value, ensure_ascii=False)
+    return str(value)
+
+
 def get_json_response_from_gpt(
         msg,
         model,
@@ -171,7 +186,7 @@ class LLMAgentBase():
         )
         output_infos = []
         for key, value in response_json.items():
-            info = Info(key, self.__repr__(), value, iteration_idx)
+            info = Info(key, self.__repr__(), _as_text(value), iteration_idx)
             output_infos.append(info)
         return output_infos
 

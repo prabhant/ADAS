@@ -9,7 +9,9 @@ Example = namedtuple('Example', ['question', 'choice1', 'choice2', 'choice3', 'c
 
 # Uppercase letters only, so an article ("a") or a word ("Apple") is never read as a choice.
 _BARE_CHOICE = re.compile(r"^[\s\"'*`(\[]*([A-D])[\s\"'*`)\].:]*$")
-_LEADING_CHOICE = re.compile(r"^[\s\"'*`]*[(\[]?([A-D])[)\].:]")
+_LEADING_CHOICE = re.compile(r"^[\s\"'*`]*[(\[]?([A-D])[)\].:,]")
+# "A, B or D" names several options, so it is not one choice.
+_SEVERAL_CHOICES = re.compile(r"^[\s\"'*`(\[]*[A-D][)\].:]?\s*(?:,|/|\bor\b|\band\b)\s*[(\[]?[A-D](?![A-Za-z])")
 _STATED_CHOICE = re.compile(r"(?i:\b(?:answer|option|choice)\b)\s*(?:is|:|=)?\s*"
                             r"(?i:(?:option|choice)\s+)?[(\[]?([A-D])(?![A-Za-z])")
 
@@ -25,6 +27,8 @@ def extract_choice(text, options=None):
     "D. Mass and acceleration", "(D)" or "The answer is D" as wrong.
     """
     text = str(text).strip()
+    if _SEVERAL_CHOICES.search(text):
+        return None
     for pattern in (_BARE_CHOICE, _LEADING_CHOICE, _STATED_CHOICE):
         match = pattern.search(text)
         if match:
