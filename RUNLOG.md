@@ -300,3 +300,38 @@ ADAS protocol (paper arXiv 2408.08435 + original code), for choosing ours:
 valid 128 / test 800 for MMLU, evaluated once (GPQA and ARC: 5 times);
 debug up to 5 rounds in the paper (code default debug_max 3); seeds are 7
 hand-designed agents; ~$300 per reasoning-domain run.
+
+### 2026-10-13 14:38 - batch4 submitted at commit 9757607
+
+```
+e2e_cpu	28004675
+panel_seeds	28004677
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-13 - batch3 e2e PASSED; user chose the ADAS protocol; batch4
+
+- batch3 e2e 28003128 PASSED (4m19s) incl. section F (shared seed archive).
+  Baseline re-measure 28003131 still PENDING at time of writing.
+- User: "Follow ADAS". Panel = stage "panel" in cells.yaml: 30 generations,
+  ONE run per designer, MMLU valid 128 / test 800, n_repreat 1, max_attempts 90,
+  debug_max 3 (released code default; the paper says up to 5).
+  Index 0 = pan_seeds_mistral-7b (seed_eval, 1 GPU); 1-5 = 1-GPU designers
+  (2 GPUs with worker); 6-8 = 2-GPU designers (3 GPUs). Mixtral excluded (judge).
+- Context: the archive prompt grows ~0.8-1.2k tokens per design -> ~30-41k by
+  generation 30. Qwen3-14B / Qwen3-30B-A3B were served at 40,960 and would have
+  overflowed (overflow = failed attempt, i.e. fewer generations). Designer role
+  only: --hf-overrides rope_parameters YaRN x2 -> 65,536 (Qwen's documented
+  method; vLLM config accepted offline; without it 65,536 is rejected, so a
+  silent no-op is impossible). Caveat: static YaRN may slightly change short-
+  context behaviour of these two designers. Others already >= 65,536.
+- BUG FIXED (stock ADAS): evaluate() skipped a design whose test run raised, so
+  on resume every later test result was matched to the wrong design. Now
+  recorded with `test_error`. Test evaluation also stops at the walltime margin
+  and maybe_resubmit resubmits until every design has a test record; it now
+  keeps the job's --gpus/--cpus-per-task. e2e section G covers this.
+- batch4 at 9757607: e2e 28004675, panel_seeds 28004677.
+- NEXT: when 28003131 (baseline) and 28004677 (seeds) finish, inspect both, then
+  `bash experiments/slurm/submit_batch.sh batch5` (8 designers; refuses to
+  submit if the baseline or the shared seed archive is missing).
