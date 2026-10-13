@@ -251,3 +251,16 @@ qwen3.5-27b 1/6. Raise their caps before searching.
 
 When 27980629 finishes: `bash experiments/slurm/status.sh` shows the
 s05_cot_mmlu_mistral-7b accuracy; expect ~46% (screen value 46.4%, 128 x 3).
+
+### 2026-10-13 - batch2 inspected: baseline valid; answer-format issue found
+
+- 27980629 COMPLETED in 2m44s. s05_cot_mmlu_mistral-7b = 47.2% (CI 43.3-51.1%),
+  128 q x 5 (per-pass 45.3-49.2%). Consistent with the screen's 46.4%.
+- 172/640 answers "error in q": no letter extracted, scored 0. Only 7 are failed
+  calls (6 missing field, 1 JSON). The rest are format misses by the STOCK ADAS
+  extractor (bare letter or "X)" only); example "D. Mass and acceleration".
+  Systematic: 9 questions unparsed in all 5 passes, 61/128 in at least one.
+  Accuracy among parsed answers 64.5%.
+- Consequence: the search's fitness rewards format fixing as well as reasoning.
+  Needs a user decision before the panel search: keep stock extractor
+  (faithful ADAS) or accept "X." / "(X)" / "answer is X" and re-measure.

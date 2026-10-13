@@ -133,9 +133,18 @@ generations) has not been timed.
   effects can be told apart.
 - **Mixtral stays the held-out judge**, so it is not a designer. The panel is
   the eight reasoning designers.
-- **Baseline rerun:** the Mistral-7B MMLU baseline is being re-measured as a
-  production Stage 0.5 cell (batch 2). The baseline lookup is now
-  domain-aware: it previously would have told an MMLU designer the MGSM number.
+- **Baseline rerun (done, job 27980629):** Mistral-7B CoT on MMLU is 47.2%
+  (95% CI 43.3–51.1%; 128 questions × 5), matching the screen's 46.4%. The
+  baseline lookup is now domain-aware: it previously would have told an MMLU
+  designer the MGSM number.
+- **Answer format is a quarter of the gap.** 172 of 640 answers (27%) had no
+  extractable letter and were scored wrong. Only 7 were failed calls; the rest
+  are answers in a format the stock ADAS extractor rejects (it accepts a bare
+  letter or `D)`; the saved example is `D. Mass and acceleration`). The
+  failures recur on the same questions: 9 questions fail in all 5 passes, and
+  61 of 128 fail at least once. Of the answers that were parsed, 64.5% are
+  correct. So 47% measures knowledge and format compliance together, and a
+  search can gain simply by fixing the output format.
 - **Still open before searching:** calibrate the motif detector, which has
   tagged a voting ensemble as a critique loop.
 
