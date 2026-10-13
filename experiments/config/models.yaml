@@ -74,6 +74,7 @@ models:
     gpus: 1
     max_model_len: 65536
     max_output_tokens: 4096
+    meta_max_output_tokens: 12288  # screen: up to 4.9k as a designer
     meta_reasoning_parser: qwen3   # meta only: lets it think before the JSON grammar applies
     emits_reasoning: false
     supports_reasoning_effort: false
@@ -256,6 +257,7 @@ models:
     gpus: 2
     max_model_len: 65536
     max_output_tokens: 4096
+    meta_max_output_tokens: 12288  # screen: up to 9.6k as a designer
     meta_reasoning_parser: qwen3
 
   nemotron-3-nano-30b:
@@ -270,6 +272,7 @@ models:
     gpus: 1
     max_model_len: 65536
     max_output_tokens: 4096
+    meta_max_output_tokens: 12288  # screen: up to 4.9k as a designer
     meta_reasoning_parser: nemotron_v3
 
 # Held-out models. Never used as meta or worker, so that judging and embedding

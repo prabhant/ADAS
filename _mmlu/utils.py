@@ -1,10 +1,43 @@
 import random
+import re
 import string
 from collections import namedtuple
 
 import numpy as np
 
 Example = namedtuple('Example', ['question', 'choice1', 'choice2', 'choice3', 'choice4', 'correct_index'])
+
+# Uppercase letters only, so an article ("a") or a word ("Apple") is never read as a choice.
+_BARE_CHOICE = re.compile(r"^[\s\"'*`(\[]*([A-D])[\s\"'*`)\].:]*$")
+_LEADING_CHOICE = re.compile(r"^[\s\"'*`]*[(\[]?([A-D])[)\].:]")
+_STATED_CHOICE = re.compile(r"(?i:\b(?:answer|option|choice)\b)\s*(?:is|:|=)?\s*"
+                            r"(?i:(?:option|choice)\s+)?[(\[]?([A-D])(?![A-Za-z])")
+
+
+def _normalise(text):
+    return re.sub(r"\W+", " ", str(text)).strip().lower()
+
+
+def extract_choice(text, options=None):
+    """Index 0-3 of the chosen option, or None when no single choice can be read.
+
+    Stock ADAS accepts only a bare letter or "X)", which scores answers such as
+    "D. Mass and acceleration", "(D)" or "The answer is D" as wrong.
+    """
+    text = str(text).strip()
+    for pattern in (_BARE_CHOICE, _LEADING_CHOICE, _STATED_CHOICE):
+        match = pattern.search(text)
+        if match:
+            return "ABCD".index(match.group(1))
+    if options:
+        hits = [i for i, option in enumerate(options)
+                if _normalise(option) and _normalise(option) == _normalise(text)]
+        if len(hits) == 1:
+            return hits[0]
+    for index, letter in enumerate("ABCD"):  # the stock ADAS rule, last
+        if f"{letter})" in text:
+            return index
+    return None
 
 QUERY_TEMPLATE_MULTICHOICE = """
 Answer the following multiple choice question.

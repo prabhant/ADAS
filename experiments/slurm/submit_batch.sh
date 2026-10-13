@@ -54,6 +54,11 @@ case "$NAME" in
         # Production Stage 0.5 baseline for the campaign worker on MMLU (cell index 8).
         submit mmlu_baseline  --array=8 experiments/slurm/stage05_baselines.slurm 0.5
         ;;
+    batch3)
+        # Re-measure with the broader MMLU answer extractor; e2e covers the shared seed cache.
+        submit e2e_cpu        experiments/slurm/sanity/07_e2e_cpu.slurm
+        submit mmlu_baseline  --array=8 experiments/slurm/stage05_baselines.slurm 0.5
+        ;;
     *)
         echo "unknown batch '$NAME'" >&2; rm -f "$BATCH"; exit 1 ;;
 esac

@@ -148,7 +148,9 @@ for name, prefix in (("meta", "META"), ("worker", "WORKER")):
     emit(f"{prefix}_SERVE_ARGS", spec.get("serve_args", ""))
     emit(f"{prefix}_TP", spec["tensor_parallel_size"])
     emit(f"{prefix}_MAX_LEN", spec["max_model_len"])
-    emit(f"{prefix}_MAX_TOKENS", spec["max_output_tokens"])
+    # A designer may need a larger budget than the same model as a worker.
+    emit(f"{prefix}_MAX_TOKENS", spec.get("meta_max_output_tokens", spec["max_output_tokens"])
+         if prefix == "META" else spec["max_output_tokens"])
     # Workers keep the setup their Stage 0.5 baselines were measured under.
     emit(f"{prefix}_REASONING_PARSER",
          spec.get("meta_reasoning_parser", "") if prefix == "META" else "")
@@ -167,6 +169,7 @@ emit("META_TEMPERATURE", merged.get("meta_temperature", 0.8))
 emit("WORKER_TEMPERATURE", merged.get("worker_temperature", 0.5))
 emit("INFORMED_META", merged.get("informed_meta", True))
 emit("COST_LAMBDA", merged.get("cost_lambda", 0.0))
+emit("REQUIRE_SEED_CACHE", merged.get("require_seed_cache", False))
 emit("WORKER_REASONING_EFFORT", cell.get("worker_reasoning_effort", ""))
 emit("META_REASONING_EFFORT", cell.get("meta_reasoning_effort", ""))
 PYTHON
@@ -235,6 +238,8 @@ search_args() {    local out_dir="$RESULTS_ROOT/$CELL_ID"
         --max_workers "$MAX_WORKERS"
         --shuffle_seed "$SHUFFLE_SEED"
         --cost_lambda "$COST_LAMBDA"
+        # Shared across cells, so designers on one worker start from one evaluated archive.
+        --seed_cache_dir "$RESULTS_ROOT/_seed_cache"
     )
 
     # Baseline and random-recombination cells have no meta model. Emitting an
@@ -258,9 +263,12 @@ search_args() {    local out_dir="$RESULTS_ROOT/$CELL_ID"
         exit 1
     fi
 
+    [[ "${REQUIRE_SEED_CACHE:-0}" == "1" ]] && args+=(--require_seed_cache)
+
     case "${CELL_CONDITION:-}" in
         bare_model)           args+=(--baseline bare) ;;
         solo_cot)             args+=(--baseline cot) ;;
+        seed_eval)            args+=(--seeds_only) ;;
         random_recombination) args+=(--search_mode random) ;;
         no_reflection)        args+=(--no_reflection) ;;
         empty_archive)        args+=(--init_archive empty) ;;

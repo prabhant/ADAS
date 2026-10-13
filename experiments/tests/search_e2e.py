@@ -280,6 +280,35 @@ def main() -> int:
     check(len(archive) == 8, f"seeds kept, one generation added (got {len(archive)})")
     server.shutdown()
 
+    print("\n=== F: designers share one evaluated seed archive ===")
+    stub = Stub()
+    server = serve(stub)
+    url = f"http://127.0.0.1:{server.server_address[1]}/v1"
+    shared = os.path.join(workdir, "shared_seeds")
+    shared_args = ["--seed_cache_dir", shared, "--require_seed_cache"]
+    check(run_search(url, os.path.join(workdir, "F0"), "e2eF0", target=1,
+                     extra=["--search_only", *shared_args]) != 0,
+          "a cell requiring the shared cache refuses to start without it")
+    check(stub.meta_calls == 0, "and makes no meta call")
+    check(run_search(url, os.path.join(workdir, "S"), "e2eS", target=1,
+                     extra=["--seeds_only", "--seed_cache_dir", shared]) == 0, "seeds-only cell exit 0")
+    cache_files = os.listdir(shared) if os.path.isdir(shared) else []
+    check(len(cache_files) == 1 and len(load(os.path.join(shared, cache_files[0]))) == 7,
+          "seeds-only writes all 7 seeds to the shared cache")
+    check(stub.meta_calls == 0, "seeds-only makes no meta call")
+    check(not os.path.exists(os.path.join(workdir, "S", "e2eS_run_archive_evaluate.json")),
+          "seeds-only skips test evaluation")
+    seeds = []
+    for name in ("F1", "F2"):
+        check(run_search(url, os.path.join(workdir, name), f"e2e{name}", target=1,
+                         extra=["--search_only", *shared_args]) == 0, f"cell {name} exit 0")
+        archive = load(os.path.join(workdir, name, f"e2e{name}_run_archive.json"))
+        seeds.append([{k: e.get(k) for k in ("name", "valid_per_question", "resource")}
+                      for e in archive if e.get("generation") == "initial"])
+    check(len(seeds[0]) == 7 and seeds[0] == seeds[1],
+          "both cells start from the identical cached seed archive (same wallclock: not re-evaluated)")
+    server.shutdown()
+
     print(f"\n{'PASSED' if not check.failed else f'{check.failed} CHECK(S) FAILED'}  (artifacts in {workdir})")
     return 1 if check.failed else 0
 

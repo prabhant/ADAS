@@ -37,7 +37,7 @@ from experiments.adas_ext.recombination import random_recombination
 
 from mmlu_prompt import get_init_archive, get_prompt, get_reflexion_prompt, set_worker_documentation
 
-from utils import format_multichoice_question, random_id, bootstrap_confidence_interval
+from utils import format_multichoice_question, random_id, bootstrap_confidence_interval, extract_choice
 
 Info = namedtuple('Info', ['name', 'author', 'content', 'iteration_idx'])
 
@@ -217,7 +217,7 @@ def _seed_cache_path(args):
         f"rep{args.n_repreat}",
         str(getattr(args, "worker_reasoning_effort", None)),
     ])
-    return os.path.join(args.save_dir, "seed_cache", f"{key}.json")
+    return os.path.join(args.seed_cache_dir or os.path.join(args.save_dir, "seed_cache"), f"{key}.json")
 
 
 def _load_seed_cache(args):
@@ -231,8 +231,11 @@ def _load_seed_cache(args):
 def _save_seed_cache(args, cache):
     path = _seed_cache_path(args)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, 'w') as handle:
+    # Atomic, because cells sharing a cache directory may read it while it is written.
+    tmp = f"{path}.{os.getpid()}.tmp"
+    with open(tmp, 'w') as handle:
         json.dump(cache, handle, indent=2)
+    os.replace(tmp, path)
 
 
 def _attach_fitness(args, solution, result, generation):
@@ -323,6 +326,10 @@ def search(args):
             print(f"============Initial Archive (cached): {solution['name']}=================")
             solution.update(copy.deepcopy(cached))
             continue
+        if args.require_seed_cache:
+            # Designers compared side by side must start from one evaluated archive.
+            raise SystemExit(f"seed '{solution['name']}' is not in {_seed_cache_path(args)}; "
+                             f"run the seed-evaluation cell first")
 
         print(f"============Initial Archive: {solution['name']}=================")
         instrumentation.set_context(generation=f"initial:{solution['name']}")
@@ -344,6 +351,13 @@ def search(args):
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, 'w') as json_file:
             json.dump(archive, json_file, indent=4)
+
+    if args.seeds_only:
+        missing = [s['name'] for s in archive if 'fitness' not in s]
+        if missing:
+            raise SystemExit(f"seed evaluation failed for {missing}")
+        print(f"seed archive evaluated -> {_seed_cache_path(args)}")
+        return
 
     # Equal successes, not equal attempts. See experiments/adas_ext/budget.py --
     # the stock `for n in range(...)` with `n -= 1` silently skips failed
@@ -688,6 +702,8 @@ def evaluate_forward_fn(args, forward_str):
     # A handful of scored pairs, so a zero score can be attributed to the model
     # being wrong rather than to the answer never being extracted.
     samples = []
+    # Every unreadable answer (up to 200), so the extractor can be audited.
+    misses = []
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         results = list(tqdm(executor.map(agentSystem.forward, task_queue), total=len(task_queue)))
 
@@ -695,32 +711,20 @@ def evaluate_forward_fn(args, forward_str):
         try:
             if isinstance(res, list):
                 res = res[1]
-            # str() before any membership test: a model answering with a bare
-            # number makes `'A)' in res` raise, which the except below would
-            # record as a wrong answer rather than a parsing failure.
             text = str(getattr(res, "content", res)).strip()
-            if text in LETTER_TO_INDEX:
-                predicted_idx = LETTER_TO_INDEX[text]
-            elif 'A)' in text:
-                predicted_idx = 0
-            elif 'B)' in text:
-                predicted_idx = 1
-            elif 'C)' in text:
-                predicted_idx = 2
-            elif 'D)' in text:
-                predicted_idx = 3
-            else:
+            predicted_idx = extract_choice(text, [examples[q_idx][k] for k in "ABCD"])
+            if predicted_idx is None:
                 print(f"error in q {q_idx}")
                 acc_list.append(0)
-                if len(samples) < 8:
-                    samples.append({"target": answers[q_idx], "prediction": text[:300],
-                                    "error": "no letter extracted", "correct": 0})
+                if len(misses) < 200:
+                    misses.append({"target": answers[q_idx], "prediction": text[:300],
+                                   "error": "no choice extracted", "correct": 0})
                 continue
         except Exception as e:
             acc_list.append(0)
-            if len(samples) < 8:
-                samples.append({"target": answers[q_idx], "prediction": None,
-                                "error": f"{type(e).__name__}: {e}"[:200], "correct": 0})
+            if len(misses) < 200:
+                misses.append({"target": answers[q_idx], "prediction": None,
+                               "error": f"{type(e).__name__}: {e}"[:200], "correct": 0})
             continue
 
         correct = int(predicted_idx == answers[q_idx])
@@ -729,7 +733,9 @@ def evaluate_forward_fn(args, forward_str):
                             "correct": correct})
         acc_list.append(correct)
     print(f"acc: {bootstrap_confidence_interval(acc_list)}")
-    return acc_list, samples
+    print(f"unreadable answers: {sum(1 for m in misses if m['prediction'] is not None)}, "
+          f"failed calls: {sum(1 for m in misses if m['prediction'] is None)} of {len(acc_list)}")
+    return acc_list, samples + misses
 
 
 def build_parser():
@@ -803,6 +809,11 @@ def build_parser():
 
     parser.add_argument('--search_only', action='store_true', default=False)
     parser.add_argument('--evaluate_only', action='store_true', default=False)
+    parser.add_argument('--seed_cache_dir', type=str, default=None,
+                        help="Shared seed-fitness cache; default is per cell under --save_dir.")
+    parser.add_argument('--require_seed_cache', action='store_true', default=False)
+    parser.add_argument('--seeds_only', action='store_true', default=False,
+                        help="Evaluate the seed archive into the cache, then stop.")
     parser.add_argument('--deadline_epoch', type=float, default=None,
                         help="Unix time to stop starting new generations, so the job "
                              "hands off cleanly instead of being killed mid-generation.")
@@ -824,6 +835,8 @@ if __name__ == "__main__":
         args.run_id = args.expr_name
     if args.target_generations is None:
         args.target_generations = args.n_generation
+    if args.seeds_only:
+        args.search_only = True
 
     clients = build_role_clients(args)
     configure_clients(worker=clients.worker, meta=clients.meta)
