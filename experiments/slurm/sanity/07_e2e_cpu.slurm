@@ -17,4 +17,5 @@ set -euo pipefail
 source "$SLURM_SUBMIT_DIR/experiments/slurm/_common.sh"
 activate_env
 
-python "$REPO_ROOT/experiments/tests/search_e2e.py"
+python "$REPO_ROOT/experiments/tests/search_e2e.py" mgsm
+python "$REPO_ROOT/experiments/tests/search_e2e.py" drop

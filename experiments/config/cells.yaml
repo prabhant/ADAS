@@ -93,6 +93,13 @@ stage_defaults:
     test_size: 800
     n_repreat: 1
     domain: mgsm
+  # DROP worker screen, ADAS's DROP settings (128 validation / 800 test, one pass).
+  "drop_screen":
+    n_generation: 0
+    valid_size: 128
+    test_size: 800
+    n_repreat: 1
+    domain: drop
   # Same protocol as "panel", on MGSM with Qwen3-30B-A3B as worker, where five of six
   # seed agents beat CoT by >= 5 points. The seed archive comes from the MGSM screen.
   "panel_mgsm":
@@ -269,6 +276,15 @@ cells:
   - {id: pmg_gpt-oss-120b_a,          stage: "panel_mgsm", meta: gpt-oss-120b,          worker: qwen3-30b-a3b, seed: a}
   - {id: pmg_nemotron-3-super-120b_a, stage: "panel_mgsm", meta: nemotron-3-super-120b, worker: qwen3-30b-a3b, seed: a}
   - {id: pmg_qwen3.5-35b-a3b_a,       stage: "panel_mgsm", meta: qwen3.5-35b-a3b,       worker: qwen3-30b-a3b, seed: a}
+
+  # -------------------------------------------------------------------------
+  # DROP worker screen (batch 9): seed agents only, ADAS's DROP settings.
+  # -------------------------------------------------------------------------
+  - {id: dscr_seeds_mistral-7b,          stage: "drop_screen", meta: null, worker: mistral-7b,          seed: a, condition: seed_eval}
+  - {id: dscr_seeds_phi-4,               stage: "drop_screen", meta: null, worker: phi-4,               seed: a, condition: seed_eval}
+  - {id: dscr_seeds_qwen3-30b-a3b,       stage: "drop_screen", meta: null, worker: qwen3-30b-a3b,       seed: a, condition: seed_eval}
+  - {id: dscr_seeds_nemotron-3-nano-30b, stage: "drop_screen", meta: null, worker: nemotron-3-nano-30b, seed: a, condition: seed_eval}
+  - {id: dscr_seeds_qwen3.5-27b,         stage: "drop_screen", meta: null, worker: qwen3.5-27b,         seed: a, condition: seed_eval}
 
 # ---------------------------------------------------------------------------
 # Stage X -- cross-evaluation. Best validation agent from each source cell is

@@ -233,7 +233,7 @@ Non-nationals make up more than half of the population of Bahrain, with immigran
 Answer [Not Given]:
 Pakistanis and Filipinos 
 
-
+[WORKER_INFO]
 # The utility code:
 
 ```python
@@ -305,7 +305,7 @@ class LLMAgentBase:
         self.output_fields = output_fields
         self.agent_name = agent_name
         self.role = role
-        self.model = model or os.environ.get('ADAS_MODEL', 'gpt-3.5-turbo-0125')
+        self.model = model or WORKER_MODEL  # the execution model named above
         self.temperature = temperature
         self.id = random_id()
     
@@ -530,16 +530,75 @@ def get_init_archive():
     return [COT, COT_SC, Reflexion, LLM_debate, Take_a_step_back, QD, Role_Assignment]
 
 
+# The meta agent is told which model will execute its designs. Stock ADAS leaves
+# it blind, so it can only adapt through fitness feedback. The blind variant is
+# retained as an ablation.
+_WORKER_DOC = {"informed": True, "text": "", "model_expr": "DEFAULT_MODEL"}
+
+_INFORMED_TEMPLATE = """# The model that will execute your design
+
+Every `LLMAgentBase` instance you create runs on **{worker_model}**, not on the model
+writing this design. Sampling temperature defaults to 0.5.{effort}
+
+{baseline}
+Design for this model's actual capability. Scaffolding that compensates for weak
+single-pass reasoning is wasted on a model that already reasons well, and a model
+that reasons poorly will not be rescued by a longer pipeline alone.
+
+"""
+
+_BLIND_TEXT = ""
+
+
+def set_worker_documentation(worker_model, worker_cot_accuracy=None,
+                             worker_reasoning_effort=None, informed=True):
+    """Configure the worker-model statement injected into the meta prompt."""
+    if not informed:
+        _WORKER_DOC.update(informed=False, text=_BLIND_TEXT, model_expr="DEFAULT_MODEL")
+        return _WORKER_DOC
+
+    if worker_cot_accuracy is None:
+        baseline = ("Its measured solo Chain-of-Thought F1 score on this benchmark's "
+                    "validation split has not been recorded for this run.")
+    else:
+        baseline = (f"Its measured solo Chain-of-Thought F1 score on this benchmark's "
+                    f"validation split is {worker_cot_accuracy:.1%}. Any design you propose "
+                    f"has to earn its extra calls against that number.")
+    effort = ""
+    if worker_reasoning_effort:
+        effort = (f" It is running with reasoning effort set to '{worker_reasoning_effort}', "
+                  f"so it deliberates internally before answering.")
+
+    _WORKER_DOC.update(
+        informed=True,
+        model_expr=repr(worker_model),
+        text=_INFORMED_TEMPLATE.format(worker_model=worker_model, baseline=baseline, effort=effort),
+    )
+    return _WORKER_DOC
+
+
+# Exactly what stock ADAS shows the designer; analysis fields would change the
+# method, break the blind condition and overflow context.
+PROMPT_FIELDS = ("thought", "name", "code", "fitness", "generation")
+
+
+def _for_prompt(sol):
+    return {k: sol[k] for k in PROMPT_FIELDS if k in sol}
+
+
 def get_prompt(current_archive, adaptive=False):
-    archive_str = ",\n".join([json.dumps(sol) for sol in current_archive])
+    archive_str = ",\n".join([json.dumps(_for_prompt(sol)) for sol in current_archive])
     archive_str = f"[{archive_str}]"
     prompt = base.replace("[ARCHIVE]", archive_str)
     prompt = prompt.replace("[EXAMPLE]", json.dumps(EXAMPLE))
+    prompt = prompt.replace("[WORKER_INFO]", _WORKER_DOC["text"])
+    prompt = prompt.replace("WORKER_MODEL", _WORKER_DOC["model_expr"])
 
     return system_prompt, prompt
 
 
 def get_reflexion_prompt(prev_example):
-    prev_example_str = "Here is the previous agent you tried:\n" + json.dumps(prev_example) + "\n\n"
-    r1 = Reflexion_prompt_1.replace("[EXAMPLE]", prev_example_str) if prev_example else Reflexion_prompt_1.replace("[EXAMPLE]", "")
-    return r1, Reflexion_prompt_2
+    if not prev_example:
+        return Reflexion_prompt_1.replace("[EXAMPLE]", ""), Reflexion_prompt_2
+    prev_example_str = "Here is the previous agent you tried:\n" + json.dumps(_for_prompt(prev_example)) + "\n\n"
+    return Reflexion_prompt_1.replace("[EXAMPLE]", prev_example_str), Reflexion_prompt_2

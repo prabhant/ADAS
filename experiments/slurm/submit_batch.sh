@@ -96,6 +96,12 @@ sys.exit(0 if paths and len(json.load(open(paths[0]))) == 7 else 1)" \
         submit designers_2gpu   "$after" --array=5-7 --gpus=3 --cpus-per-task=48 \
                                 experiments/slurm/stage2_main.slurm panel_mgsm
         ;;
+    batch9)
+        # DROP ported: e2e now runs for MGSM and DROP; the DROP worker screen waits for it.
+        submit e2e_cpu          experiments/slurm/sanity/07_e2e_cpu.slurm
+        after="--dependency=afterok:$(awk -F'\t' '$1 == "e2e_cpu" {print $2}' "$BATCH")"
+        submit drop_screen      "$after" --array=0-4 experiments/slurm/stage05_baselines.slurm drop_screen
+        ;;
     batch5)
         # The designer panel. Refuses to start without what every cell needs.
         [[ -f experiments/results/s05_cot_mmlu_mistral-7b/cot_baseline.json ]] \

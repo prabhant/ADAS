@@ -30,8 +30,18 @@ import threading
 import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, os.path.join(ROOT, "_mgsm"))
-from utils import get_all_examples  # noqa: E402
+DOMAIN = sys.argv[1] if len(sys.argv) > 1 else "mgsm"
+sys.path.insert(0, os.path.join(ROOT, f"_{DOMAIN}"))
+if DOMAIN == "drop":
+    from utils import load_drop  # noqa: E402
+
+    def load_examples():
+        return load_drop(os.path.join(ROOT, "dataset", "drop_v0_dev.jsonl.gz"))[1:-1]
+else:
+    from utils import get_all_examples  # noqa: E402
+
+    def load_examples():
+        return get_all_examples()
 
 VALID, TEST, SEED = 12, 12, 0
 STUB_REASONING = "stub reasoning trace"
@@ -57,7 +67,7 @@ def answered_correctly(question: str) -> bool:
 
 def split():
     """Replicates evaluate_forward_fn's selection exactly."""
-    examples = get_all_examples()
+    examples = load_examples()
     random.seed(SEED)
     random.shuffle(examples)
     return examples[:VALID], examples[VALID:VALID + TEST]
@@ -108,6 +118,11 @@ class Stub:
             if "answer" in field:
                 if example is None:
                     body[field] = 0
+                    continue
+                if DOMAIN == "drop":
+                    # The gold span scores F1 1.0; a token sharing nothing with any answer scores 0.
+                    gold = next(t for t in example["targets"] if t.strip())
+                    body[field] = gold if answered_correctly(example["inputs"]) else "zzqx"
                     continue
                 target = int(example["targets"].replace(",", ""))
                 # A JSON number, not a string: the exact shape that once made
@@ -160,7 +175,7 @@ def serve(stub: Stub):
 
 def run_search(url, save_dir, run_id, target, extra=()):
     argv = [
-        sys.executable, "search.py", "--domain", "mgsm",
+        sys.executable, "search.py", "--domain", DOMAIN,
         "--save_dir", save_dir, "--expr_name", run_id, "--run_id", run_id,
         "--model", "stub-meta", "--worker_model", "stub-worker",
         "--meta_base_url", url, "--worker_base_url", url,
@@ -173,7 +188,7 @@ def run_search(url, save_dir, run_id, target, extra=()):
         *extra,
     ]
     env = dict(os.environ, PYTHONPATH=ROOT, OPENAI_API_KEY="local-vllm")
-    proc = subprocess.run(argv, cwd=os.path.join(ROOT, "_mgsm"), env=env,
+    proc = subprocess.run(argv, cwd=os.path.join(ROOT, f"_{DOMAIN}"), env=env,
                           capture_output=True, text=True, timeout=1200)
     if proc.returncode != 0:
         sys.stderr.write(proc.stdout[-3000:] + "\n" + proc.stderr[-3000:])

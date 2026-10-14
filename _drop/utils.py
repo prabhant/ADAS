@@ -281,16 +281,17 @@ def bootstrap_confidence_interval(data, num_bootstrap_samples=100000, confidence
     # Compute the lower and upper percentiles for the confidence interval
     lower_percentile = (1.0 - confidence_level) / 2.0
     upper_percentile = 1.0 - lower_percentile
-    ci_lower = np.percentile(bootstrap_means, lower_percentile)
-    ci_upper = np.percentile(bootstrap_means, upper_percentile)
+    # np.percentile takes 0-100; stock ADAS DROP passed 0.025/0.975, i.e. the 0.025th-0.975th percentiles.
+    ci_lower = np.percentile(bootstrap_means, lower_percentile * 100)
+    ci_upper = np.percentile(bootstrap_means, upper_percentile * 100)
 
     # Compute the median of the bootstrap means
     median = np.median(bootstrap_means)
 
-    # Convert to percentages and format to one decimal place
-    ci_lower_percent = ci_lower
-    ci_upper_percent = ci_upper
-    median_percent = median
+    # Scores arrive as 0-1 (F1 / 100), like every other domain, so print as percentages.
+    ci_lower_percent = ci_lower * 100
+    ci_upper_percent = ci_upper * 100
+    median_percent = median * 100
 
     # Return the formatted string with confidence interval and median
     return f"95% Bootstrap Confidence Interval: ({ci_lower_percent:.1f}%, {ci_upper_percent:.1f}%), Median: {median_percent:.1f}%"
