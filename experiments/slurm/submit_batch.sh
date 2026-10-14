@@ -70,6 +70,18 @@ case "$NAME" in
         submit mmlu_baseline  --array=8 experiments/slurm/stage05_baselines.slurm 0.5
         submit panel_seeds    --array=0 experiments/slurm/stage05_baselines.slurm panel
         ;;
+    batch7)
+        # Finish the panel: four cells stopped early (context/output caps); gpt-oss-20b
+        # only retries one failed test. Plus the MGSM worker screen for the next task.
+        submit e2e_cpu          experiments/slurm/sanity/07_e2e_cpu.slurm
+        # Nothing below starts unless the e2e test of the new evaluation code passes.
+        after="--dependency=afterok:$(awk -F'\t' '$1 == "e2e_cpu" {print $2}' "$BATCH")"
+        submit resume_1gpu      "$after" --array=1,3,5 --gpus=2 --cpus-per-task=32 \
+                                experiments/slurm/stage2_main.slurm panel
+        submit resume_2gpu      "$after" --array=7,8 --gpus=3 --cpus-per-task=48 \
+                                experiments/slurm/stage2_main.slurm panel
+        submit mgsm_screen      "$after" --array=0-4 experiments/slurm/stage05_baselines.slurm mgsm_screen
+        ;;
     batch5)
         # The designer panel. Refuses to start without what every cell needs.
         [[ -f experiments/results/s05_cot_mmlu_mistral-7b/cot_baseline.json ]] \

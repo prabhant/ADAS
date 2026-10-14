@@ -42,6 +42,7 @@ export ADAS_SELF_SCRIPT="experiments/slurm/stage2_main.slurm"
 # ceiling without new code.
 if [[ -f "$RESULTS_ROOT/$CELL_ID/${CELL_ID}_run_archive.json" ]]; then
     echo "resuming $CELL_ID from existing archive"
+    preserve_run_logs
 fi
 
 # The random-recombination arm needs no meta server at all; skip loading it.

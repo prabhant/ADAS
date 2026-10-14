@@ -119,6 +119,7 @@ models:
     tensor_parallel_size: 2
     gpus: 2
     max_model_len: 65536
+    meta_max_model_len: 131072     # 65,536 overflowed from generation 25 in the panel
     max_output_tokens: 8192
     meta_reasoning_parser: nemotron_v3
     emits_reasoning: true
@@ -247,6 +248,7 @@ models:
     max_model_len: 40960
     max_output_tokens: 4096
     meta_max_model_len: 65536
+    meta_max_output_tokens: 12288  # 4096 truncated 42% of its designer calls in the panel
     meta_serve_args: '--hf-overrides {"rope_parameters":{"rope_type":"yarn","factor":2.0,"original_max_position_embeddings":32768,"rope_theta":1000000.0}}'
     meta_reasoning_parser: qwen3
 
@@ -261,6 +263,8 @@ models:
     tensor_parallel_size: 2          # 72GB weights leave too little KV room on one GPU
     gpus: 2
     max_model_len: 65536
+    # Archived designs add ~2k prompt tokens each; 65,536 overflowed from generation 24.
+    meta_max_model_len: 131072
     max_output_tokens: 4096
     meta_max_output_tokens: 12288  # screen: up to 9.6k as a designer
     meta_reasoning_parser: qwen3
@@ -276,6 +280,7 @@ models:
     tensor_parallel_size: 1
     gpus: 1
     max_model_len: 65536
+    meta_max_model_len: 131072     # 65,536 overflowed from generation 23 in the panel
     max_output_tokens: 4096
     meta_max_output_tokens: 12288  # screen: up to 4.9k as a designer
     meta_reasoning_parser: nemotron_v3

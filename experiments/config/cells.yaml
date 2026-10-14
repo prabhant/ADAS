@@ -85,6 +85,14 @@ stage_defaults:
     max_attempts: 90
     debug_max: 3
     require_seed_cache: true
+  # Which worker leaves scaffolds room on MGSM: the 7 seed agents on each candidate,
+  # with the panel's settings so the chosen worker's seed archive is reused as is.
+  "mgsm_screen":
+    n_generation: 0
+    valid_size: 128
+    test_size: 800
+    n_repreat: 1
+    domain: mgsm
 
 common:
   shuffle_seed: 0
@@ -226,6 +234,15 @@ cells:
   - {id: pan_gpt-oss-120b_a,         stage: "panel", meta: gpt-oss-120b,          worker: mistral-7b, seed: a}
   - {id: pan_nemotron-3-super-120b_a, stage: "panel", meta: nemotron-3-super-120b, worker: mistral-7b, seed: a}
   - {id: pan_qwen3.5-35b-a3b_a,      stage: "panel", meta: qwen3.5-35b-a3b,       worker: mistral-7b, seed: a}
+
+  # -------------------------------------------------------------------------
+  # MGSM worker screen (batch 7): seed agents only, one 1-GPU job per worker.
+  # -------------------------------------------------------------------------
+  - {id: mscr_seeds_mistral-7b,          stage: "mgsm_screen", meta: null, worker: mistral-7b,          seed: a, condition: seed_eval}
+  - {id: mscr_seeds_phi-4,               stage: "mgsm_screen", meta: null, worker: phi-4,               seed: a, condition: seed_eval}
+  - {id: mscr_seeds_qwen3-30b-a3b,       stage: "mgsm_screen", meta: null, worker: qwen3-30b-a3b,       seed: a, condition: seed_eval}
+  - {id: mscr_seeds_nemotron-3-nano-30b, stage: "mgsm_screen", meta: null, worker: nemotron-3-nano-30b, seed: a, condition: seed_eval}
+  - {id: mscr_seeds_qwen3.5-27b,         stage: "mgsm_screen", meta: null, worker: qwen3.5-27b,         seed: a, condition: seed_eval}
 
 # ---------------------------------------------------------------------------
 # Stage X -- cross-evaluation. Best validation agent from each source cell is

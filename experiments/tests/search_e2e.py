@@ -42,6 +42,13 @@ GOOD_CODE = '''def forward(self, taskInfo):
     return answer
 '''
 BROKEN_CODE = "def forward(self, taskInfo):\n    return (\n"
+CRASHY_CODE = '''def forward(self, taskInfo):
+    if len(str(taskInfo.content)) % 2:
+        raise ValueError("stub crash")
+    cot = LLMAgentBase(['thinking', 'answer'], 'Stub CoT Agent')
+    thinking, answer = cot([taskInfo], "Think step by step, then answer.")
+    return answer
+'''
 
 
 def answered_correctly(question: str) -> bool:
@@ -289,6 +296,27 @@ def main() -> int:
     evaluated = load(eval_path)
     check(len(evaluated) == 8 and all(e["test_per_question"] == expected_test for e in evaluated),
           "all 8 designs evaluated, each with the ground-truth test vector")
+
+    print("\n=== H: test crashes count as wrong answers; failed test runs are retried ===")
+    archive_path = os.path.join(b_dir, f"{b_id}_run_archive.json")
+    archive = load(archive_path)
+    archive.append({"thought": "crashes on odd-length questions", "name": "Crashy", "code": CRASHY_CODE,
+                    "generation": 2, "raw_median_accuracy": acc_valid})
+    with open(archive_path, "w") as handle:
+        json.dump(archive, handle)
+    evaluated[2] = {k: v for k, v in evaluated[2].items() if not k.startswith("test_")}
+    evaluated[2]["test_error"] = "stub failure"
+    with open(eval_path, "w") as handle:
+        json.dump(evaluated, handle)
+    check(run_search(url, b_dir, b_id, target=1, extra=["--evaluate_only"]) == 0, "exit 0")
+    evaluated = load(eval_path)
+    expected_crashy = [0 if len(e["inputs"]) % 2 else v for e, v in zip(TEST_SET, expected_test)]
+    check(len(evaluated) == 9, f"crashing design evaluated (got {len(evaluated)} records)")
+    check(evaluated[-1].get("test_per_question") == expected_crashy
+          and evaluated[-1].get("test_crashed_questions") == sum(len(e["inputs"]) % 2 for e in TEST_SET),
+          "crashing questions scored wrong and counted, the rest scored normally")
+    check("test_error" not in evaluated[2] and evaluated[2].get("test_per_question") == expected_test,
+          "a previously failed test run is retried in place")
     server.shutdown()
 
     print("\n=== F: designers share one evaluated seed archive ===")

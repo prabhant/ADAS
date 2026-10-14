@@ -331,3 +331,16 @@ run_search() {
     mapfile -t args < <(search_args)
     ( cd "$REPO_ROOT/_${DOMAIN}" && python search.py "${args[@]}" )
 }
+
+# A resumed job rewrites the per-run logs from scratch, so keep the earlier part
+# beside them; the analysis assigns files to a cell by directory.
+preserve_run_logs() {
+    local dir="$RESULTS_ROOT/$CELL_ID/$CELL_ID"
+    [[ -d "$dir" ]] || return 0
+    local n=1 f
+    while compgen -G "$dir/part${n}_*" >/dev/null; do n=$((n + 1)); done
+    for f in "$dir/${CELL_ID}"_* "$dir/budget_summary.json"; do
+        [[ -f "$f" ]] && cp -p "$f" "$dir/part${n}_$(basename "$f")"
+    done
+    echo "preserved earlier run logs as part${n}_* in $dir"
+}

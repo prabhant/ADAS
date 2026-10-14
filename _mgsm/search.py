@@ -599,7 +599,8 @@ def evaluate(args):
     while (current_idx < len(archive)):
         with open(file_path, 'r') as json_file:
             archive = json.load(json_file)
-        if current_idx < len(eval_archive):
+        # Designs whose test run failed are retried in place; results are matched by position.
+        if current_idx < len(eval_archive) and not eval_archive[current_idx].get('test_error'):
             current_idx += 1
             continue
         sol = archive[current_idx]
@@ -608,24 +609,29 @@ def evaluate(args):
             return
         print(f"current_gen: {sol['generation']}, current_idx: {current_idx}")
         instrumentation.set_context(generation=sol['generation'], phase="test")
+        idx = current_idx
         current_idx += 1
         try:
             result = run_evaluation(args, sol["code"])
         except Exception as e:
             print(e)
             instrumentation.record_failure(classify_failure(e), str(e), stage="test")
-            # Recorded, not skipped: on resume, results are matched to designs by position.
             sol['test_error'] = f"{type(e).__name__}: {e}"[:500]
             result = None
         if result is not None:
+            sol.pop('test_error', None)
             acc_list = result["acc_list"]
             sol['test_fitness'] = bootstrap_confidence_interval(acc_list)
             sol['test_median_accuracy'] = _point_accuracy(acc_list)
             sol['test_per_question'] = acc_list
+            sol['test_crashed_questions'] = result.get("n_crashed", 0)
             if 'raw_median_accuracy' in sol:
                 sol['generalization_gap'] = sol['raw_median_accuracy'] - sol['test_median_accuracy']
             sol['test_resource'] = result.get("usage", {}).get("worker", {})
-        eval_archive.append(sol)
+        if idx < len(eval_archive):
+            eval_archive[idx] = sol
+        else:
+            eval_archive.append(sol)
 
         # save results
         os.makedirs(os.path.dirname(eval_file_path), exist_ok=True)
@@ -671,14 +677,33 @@ def _sandboxed_evaluate(args, forward_str, worker_config, searching_mode, run_id
     configure_clients(worker=role_client_from_config(worker_config))
 
     started = time.time()
-    acc_list, samples = evaluate_forward_fn(args, forward_str)
+    acc_list, samples, n_crashed = evaluate_forward_fn(args, forward_str)
     return {
         "acc_list": acc_list,
         "samples": samples,
+        "n_crashed": n_crashed,
         "wallclock_s": time.time() - started,
         "usage": instrumentation.usage_for(generation, phase=phase),
         "instrumentation": instrumentation.snapshot(),
     }
+
+
+def _forward_for_mode(agent_system, crashes):
+    """During search a crash propagates, so the debug loop sees it, as in ADAS.
+
+    At test time the design is fixed: one crashing question is scored wrong
+    instead of voiding the design's whole test score.
+    """
+    if SEARCHING_MODE:
+        return agent_system.forward
+
+    def forward(task):
+        try:
+            return agent_system.forward(task)
+        except Exception as e:
+            crashes.append(f"{type(e).__name__}: {e}"[:200])
+            return None
+    return forward
 
 
 def evaluate_forward_fn(args, forward_str):
@@ -716,13 +741,14 @@ def evaluate_forward_fn(args, forward_str):
         task_queue.append(taskInfo)
 
     agentSystem = AgentSystem()
+    crashes = []
 
     acc_list = []
     # A handful of scored pairs, so a zero score can be attributed to the model
     # being wrong rather than to the answer never being extracted.
     samples = []
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        results = list(tqdm(executor.map(agentSystem.forward, task_queue), total=len(task_queue)))
+        results = list(tqdm(executor.map(_forward_for_mode(agentSystem, crashes), task_queue), total=len(task_queue)))
 
     for q_idx, res in enumerate(results):
         try:
@@ -745,7 +771,9 @@ def evaluate_forward_fn(args, forward_str):
                             "correct": int(bool(correct))})
         acc_list.append(1 if correct else 0)
     print(f"acc: {bootstrap_confidence_interval(acc_list)}")
-    return acc_list, samples
+    if crashes:
+        print(f"crashed questions: {len(crashes)}, e.g. {crashes[0]}")
+    return acc_list, samples, len(crashes)
 
 
 def build_parser():
