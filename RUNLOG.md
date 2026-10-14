@@ -450,3 +450,49 @@ The chosen worker's seed archive is then reused as is by an MGSM panel.
 
 batch7: e2e 28082598; resume_1gpu 28082599 (array 1,3,5), resume_2gpu
 28082600 (7,8), mgsm_screen 28082601 (0-4). All three afterok:e2e.
+
+### 2026-10-14 17:11 - batch8 submitted at commit 966ed78
+
+```
+mgsm_baseline	28086604
+designers_1gpu	28086605
+designers_2gpu	28086606
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-14 17:19 - batch9 submitted at commit a50f5fa
+
+```
+e2e_cpu	28086789
+drop_screen	28086790
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-14 - MGSM screen complete; MGSM panel (batch8); DROP ported (batch9)
+
+MGSM worker screen (7 seed agents, valid 128, 1 pass), seeds >= CoT+5 points:
+  qwen3-30b-a3b CoT 74.2 best 88.3 (5/6) | mistral-7b 10.9 / 28.1 (5/6) |
+  qwen3.5-27b 82.8 / 91.4 (2/6) | phi-4 83.6 / 86.7 (0/6) | nemotron-nano 78.9 / 82.0 (0/6).
+  -> worker for the MGSM panel: qwen3-30b-a3b (strongest broad scaffold gain).
+
+batch8 at 966ed78: mgsm_baseline 28086604 (s05_cot_qwen3-30b-a3b, stage 0.5 idx 9,
+  128 x 5) -> designers_1gpu 28086605 (panel_mgsm 0-4) + designers_2gpu 28086606
+  (5-7), both afterok on the baseline. Same 8 designers and ADAS protocol;
+  index 2 is the self-design cell (designer = worker = Qwen3-30B-A3B).
+  Qwen3.5-27B designer context raised to 131072 (native; 8.6 GB KV).
+
+batch9 at a50f5fa: DROP ported to the instrumented pipeline.
+- _drop/search.py started as a copy of the reviewed _mmlu/search.py; only the
+  data loading (load_drop()[1:-1], few-shot records excluded as in ADAS), the
+  answer instruction (ADAS's) and scoring changed. DROP F1 is stored as 0-1.
+- drop_prompt.py: worker documentation ("F1 score"), PROMPT_FIELDS leak fix,
+  first-generation reflexion fix, LLMAgentBase uses WORKER_MODEL.
+- BUG FIXED (stock ADAS DROP): bootstrap CI passed 0.025/0.975 to
+  np.percentile (expects 0-100), so DROP "95% CIs" were the 0.025th-0.975th
+  percentiles. Other domains were correct.
+- e2e now runs for mgsm and drop (stub answers the gold span or "zzqx").
+- e2e 28086789 -> drop_screen 28086790 (array 0-4, same 5 workers), afterok.
+- Analysis note: DROP per-question scores are continuous F1, not 0/1; the
+  behavioural layer's error-set (Jaccard) measures assume binary.
