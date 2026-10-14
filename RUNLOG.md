@@ -411,3 +411,42 @@ Inspect with: bash experiments/slurm/status.sh
 - NEXT (needs user decision): resume the 4 incomplete cells to 30 generations
   with max_model_len 131072 for nemotron-nano/super and qwen3.5-35b (native
   262k, no YaRN) and meta output cap 12288 for qwen3-30b-a3b; then CPU analysis.
+
+### 2026-10-14 15:55 - batch7 submitted at commit e64318e
+
+```
+e2e_cpu	28082598
+resume_1gpu	28082599
+resume_2gpu	28082600
+mgsm_screen	28082601
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-14 - user: "do step 1 and 3" -> batch7
+
+Step 1, finish the panel (commit e64318e):
+- meta_max_model_len 131072 for nemotron-nano, nemotron-super, qwen3.5-35b
+  (native 262k; no YaRN; hybrid models need <=2.7 GB KV at 131k).
+  meta_max_output_tokens 12288 for qwen3-30b-a3b (YaRN x2 at 65,536 kept, so its
+  model behaviour is unchanged mid-run). Worker-role settings unchanged.
+- Resumed cells keep their archive; preserve_run_logs copies the earlier
+  per-run logs to part<N>_* in the same directory before the new job rewrites
+  them (abandoned/overflow records of part 1 are kept). Analysis: token_usage
+  and budget_summary must be summed over parts.
+- Test evaluation: a crash on one question now scores that question wrong
+  (counted in test_crashed_questions) instead of voiding the design's whole
+  test score; search-time crashes still go to the debug loop as in ADAS.
+  test_error entries are retried in place. This recovers 3 designs, incl.
+  qwen3-30b's best. gpt-oss-20b (index 1) is re-run only for its test retry.
+  Consistent with earlier scores: every design scored before had 0 crashes.
+- e2e section H covers crash scoring and the retry.
+
+Step 3, choose the next task: DROP/GPQA/ARC are not ported to the instrumented
+pipeline, so screen workers on MGSM: the 7 seed agents on mistral-7b, phi-4,
+qwen3-30b-a3b, nemotron-nano, qwen3.5-27b (stage mgsm_screen, panel settings:
+valid 128, 1 pass), i.e. measure directly how much scaffolds add per worker.
+The chosen worker's seed archive is then reused as is by an MGSM panel.
+
+batch7: e2e 28082598; resume_1gpu 28082599 (array 1,3,5), resume_2gpu
+28082600 (7,8), mgsm_screen 28082601 (0-4). All three afterok:e2e.
