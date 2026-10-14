@@ -496,3 +496,16 @@ batch9 at a50f5fa: DROP ported to the instrumented pipeline.
 - e2e 28086789 -> drop_screen 28086790 (array 0-4, same 5 workers), afterok.
 - Analysis note: DROP per-question scores are continuous F1, not 0/1; the
   behavioural layer's error-set (Jaccard) measures assume binary.
+
+### 2026-10-14 23:10 - batch8 baseline + batch9 done; GPU jobs queued on priority
+
+- 28086604 MGSM baseline s05_cot_qwen3-30b-a3b: 78.8% (CI 75.6-81.9), 128 x 5.
+- 28086789 e2e PASSED for mgsm and drop.
+- 28086790 DROP screen (F1, 7 seeds, valid 128): seeds >= CoT+5 points:
+  qwen3-30b 0/6 (CoT 83.9 is the best), qwen3.5-27b 2/6 (CoT 83.2, CoT-SC 90.1),
+  phi-4 0/6 (80.9), nemotron-nano 0/6 (83.3), mistral 1/6 (44.6; Debate 49.9;
+  Step-back 25.1). Scaffolds barely help on DROP with modern workers (ADAS saw
+  its largest gain there with GPT-3.5). No DROP panel recommended.
+- Still PENDING (Priority): MMLU resume 28082599 (est. start 10-15 02:03),
+  28082600 (est. 10-15 09:49); MGSM panel 28086605/28086606 (no estimate).
+- findings.md: new section "Where do hand-designed scaffolds still help?".

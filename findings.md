@@ -208,3 +208,28 @@ baseline 55.6%; the seven seed agents score 53–56% on test.
 Caveats: one run per designer (the ADAS protocol), so designer differences are
 descriptive; unequal generation counts until the incomplete runs are finished;
 the motif detector still over-tags critique loops.
+
+# Where do hand-designed scaffolds still help? (seed screens, 2026-10-14)
+
+The seven ADAS seed agents, run on each worker (128 validation questions, one
+pass). Counted: seed agents scoring at least 5 points above chain-of-thought.
+
+| Worker | MGSM CoT | MGSM best seed | MGSM ≥ CoT+5 | DROP CoT (F1) | DROP best seed | DROP ≥ CoT+5 |
+|---|---|---|---|---|---|---|
+| Mistral-7B | 10.9% | 28.1% | 5/6 | 44.6% | 49.9% | 1/6 |
+| Qwen3-30B-A3B | 74.2% | 88.3% | 5/6 | 83.9% | 83.9% | 0/6 |
+| Qwen3.5-27B | 82.8% | 91.4% | 2/6 | 83.2% | 90.1% | 2/6 |
+| Phi-4 | 83.6% | 86.7% | 0/6 | 80.9% | 83.2% | 0/6 |
+| Nemotron-3-Nano | 78.9% | 82.0% | 0/6 | 83.3% | 86.4% | 0/6 |
+
+MMLU with Mistral-7B: 3/6 on validation, but no seed beat CoT on the 800 test
+questions.
+
+- **Scaffold value depends on task and worker, not on worker strength alone.**
+  Math with a mid-strength worker answering directly (Qwen3-30B-A3B) gains
+  broadly, as does the weak Mistral; reading comprehension gains for no worker.
+- **DROP has reversed since ADAS.** ADAS reported its largest gain there with
+  GPT-3.5 (+13.6 F1); for today's open models hand-designed scaffolds add
+  little, and Step-back costs Mistral 19.5 points.
+- Screening heuristic only: one pass on 128 questions gives roughly ±8 points
+  per agent. The MGSM production baseline for Qwen3-30B-A3B (128 × 5) is 78.8%.
