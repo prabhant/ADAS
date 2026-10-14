@@ -82,6 +82,20 @@ case "$NAME" in
                                 experiments/slurm/stage2_main.slurm panel
         submit mgsm_screen      "$after" --array=0-4 experiments/slurm/stage05_baselines.slurm mgsm_screen
         ;;
+    batch8)
+        # MGSM panel: production CoT baseline for the worker first, then the 8 designers.
+        python3 -c "
+import glob, json, sys
+paths = glob.glob('experiments/results/_seed_cache/Qwen_Qwen3-30B-A3B__mgsm__valid128__shuffle0__rep1__*.json')
+sys.exit(0 if paths and len(json.load(open(paths[0]))) == 7 else 1)" \
+            || { echo "MGSM seed archive for qwen3-30b-a3b missing or incomplete" >&2; rm -f "$BATCH"; exit 1; }
+        submit mgsm_baseline    --array=9 experiments/slurm/stage05_baselines.slurm 0.5
+        after="--dependency=afterok:$(awk -F'\t' '$1 == "mgsm_baseline" {print $2}' "$BATCH")"
+        submit designers_1gpu   "$after" --array=0-4 --gpus=2 --cpus-per-task=32 \
+                                experiments/slurm/stage2_main.slurm panel_mgsm
+        submit designers_2gpu   "$after" --array=5-7 --gpus=3 --cpus-per-task=48 \
+                                experiments/slurm/stage2_main.slurm panel_mgsm
+        ;;
     batch5)
         # The designer panel. Refuses to start without what every cell needs.
         [[ -f experiments/results/s05_cot_mmlu_mistral-7b/cot_baseline.json ]] \

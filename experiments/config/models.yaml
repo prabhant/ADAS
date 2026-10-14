@@ -73,6 +73,7 @@ models:
     tensor_parallel_size: 1
     gpus: 1
     max_model_len: 65536
+    meta_max_model_len: 131072     # native 262k; MMLU panel ended near 65,536
     max_output_tokens: 4096
     meta_max_output_tokens: 12288  # screen: up to 4.9k as a designer
     meta_reasoning_parser: qwen3   # meta only: lets it think before the JSON grammar applies

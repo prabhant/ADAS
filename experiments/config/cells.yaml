@@ -93,6 +93,17 @@ stage_defaults:
     test_size: 800
     n_repreat: 1
     domain: mgsm
+  # Same protocol as "panel", on MGSM with Qwen3-30B-A3B as worker, where five of six
+  # seed agents beat CoT by >= 5 points. The seed archive comes from the MGSM screen.
+  "panel_mgsm":
+    n_generation: 30
+    valid_size: 128
+    test_size: 800
+    n_repreat: 1
+    domain: mgsm
+    max_attempts: 90
+    debug_max: 3
+    require_seed_cache: true
 
 common:
   shuffle_seed: 0
@@ -126,6 +137,8 @@ cells:
   - {id: s05_cot_gpt-oss-20b_high, stage: "0.5", meta: null, worker: gpt-oss-20b, seed: a, condition: solo_cot, worker_reasoning_effort: high}
   # Batch 2: the campaign worker and domain. The informed designer quotes this number.
   - {id: s05_cot_mmlu_mistral-7b,  stage: "0.5", meta: null, worker: mistral-7b,   seed: a, condition: solo_cot, domain: mmlu}
+  # Batch 8: the MGSM panel's worker (chosen by the MGSM worker screen).
+  - {id: s05_cot_qwen3-30b-a3b,    stage: "0.5", meta: null, worker: qwen3-30b-a3b, seed: a, condition: solo_cot}
 
   # -------------------------------------------------------------------------
   # Stage 0.5s -- worker screen (batch 1). Three of four current workers sit at
@@ -243,6 +256,19 @@ cells:
   - {id: mscr_seeds_qwen3-30b-a3b,       stage: "mgsm_screen", meta: null, worker: qwen3-30b-a3b,       seed: a, condition: seed_eval}
   - {id: mscr_seeds_nemotron-3-nano-30b, stage: "mgsm_screen", meta: null, worker: nemotron-3-nano-30b, seed: a, condition: seed_eval}
   - {id: mscr_seeds_qwen3.5-27b,         stage: "mgsm_screen", meta: null, worker: qwen3.5-27b,         seed: a, condition: seed_eval}
+
+  # -------------------------------------------------------------------------
+  # MGSM designer panel (batch 8). 0-4 are 1-GPU designers, 5-7 are 2-GPU designers;
+  # index 2 is the self-design cell (designer = worker).
+  # -------------------------------------------------------------------------
+  - {id: pmg_gpt-oss-20b_a,           stage: "panel_mgsm", meta: gpt-oss-20b,           worker: qwen3-30b-a3b, seed: a}
+  - {id: pmg_qwen3-14b_a,             stage: "panel_mgsm", meta: qwen3-14b,             worker: qwen3-30b-a3b, seed: a}
+  - {id: pmg_qwen3-30b-a3b_a,         stage: "panel_mgsm", meta: qwen3-30b-a3b,         worker: qwen3-30b-a3b, seed: a}
+  - {id: pmg_qwen3.5-27b_a,           stage: "panel_mgsm", meta: qwen3.5-27b,           worker: qwen3-30b-a3b, seed: a}
+  - {id: pmg_nemotron-3-nano-30b_a,   stage: "panel_mgsm", meta: nemotron-3-nano-30b,   worker: qwen3-30b-a3b, seed: a}
+  - {id: pmg_gpt-oss-120b_a,          stage: "panel_mgsm", meta: gpt-oss-120b,          worker: qwen3-30b-a3b, seed: a}
+  - {id: pmg_nemotron-3-super-120b_a, stage: "panel_mgsm", meta: nemotron-3-super-120b, worker: qwen3-30b-a3b, seed: a}
+  - {id: pmg_qwen3.5-35b-a3b_a,       stage: "panel_mgsm", meta: qwen3.5-35b-a3b,       worker: qwen3-30b-a3b, seed: a}
 
 # ---------------------------------------------------------------------------
 # Stage X -- cross-evaluation. Best validation agent from each source cell is
