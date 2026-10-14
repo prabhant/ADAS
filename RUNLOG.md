@@ -392,3 +392,22 @@ Inspect with: bash experiments/slurm/status.sh
 - What to watch first: each task's .out shows "Initial Archive (cached)" x7
   (shared seeds used), then generation 1. The Qwen3 designers' server log must
   show max_model_len 65536 (YaRN); nemotron-super loads ~14 min.
+
+### 2026-10-14 15:40 - designer panel (batch5) inspected
+
+- All 8 tasks COMPLETED in 2-7 h (none hit the 20 h limit). Seeds loaded from
+  the shared cache in every cell.
+- Complete (30 generations): gpt-oss-20b, gpt-oss-120b, qwen3-14b, qwen3.5-27b.
+- Incomplete, budget exhausted at 90 attempts:
+  nemotron-nano 22, nemotron-super 24, qwen3.5-35b 23: context overflow every
+  attempt from generations 23-25 (prompt 53-57k + output cap > 65,536).
+  Archived designs add 1.7-2.6k tokens each, 2x the screen-based estimate.
+  qwen3-30b-a3b 19: 71/170 designer calls truncated at the 4,096 output cap
+  ("empty message body" 39, unterminated JSON 31).
+- Result: no designer's selected design beats CoT-SC on the 800 test questions
+  (-1.4 to +0.9, all CIs include 0). Best-validation 63-68% = best-of-30 noise
+  on 128 questions (sim median 64.1%). Among 172 working designs val~test
+  Spearman 0.59. Details in findings.md "Designer panel".
+- NEXT (needs user decision): resume the 4 incomplete cells to 30 generations
+  with max_model_len 131072 for nemotron-nano/super and qwen3.5-35b (native
+  262k, no YaRN) and meta output cap 12288 for qwen3-30b-a3b; then CPU analysis.

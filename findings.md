@@ -155,3 +155,56 @@ search converges to; given the run-to-run noise above, designer differences
 are descriptive only. The worker screen's per-question data was lost
 (accuracies survive in the logs). Mistral-7B-v0.3, both Phi-3 models, Gemma-3
 and Llama-3.2 could not be served in this environment.
+
+# Designer panel — batch 5 (2026-10-14)
+
+Eight designers, one ADAS search each (30 generations target, Mistral-7B worker,
+MMLU, 128 validation / 800 test questions, shared seed archive). Worker CoT
+baseline 55.6%; the seven seed agents score 53–56% on test.
+
+| Designer (total / active B) | Generations (attempts) | Stopped by | Best on validation | Its test score | Designs ≥ seed mean on test | Worker calls / question | Broken designs |
+|---|---|---|---|---|---|---|---|
+| Qwen3-30B-A3B (31 / 3.4) | 19 (90) | output cap: 42% of calls truncated | 63.3% | test failed | 11/17 | 23.2 | 3/19 |
+| Qwen3.5-35B-A3B (35 / 3.5) | 23 (90) | context overflow from gen 24 | 68.0% | 55.5% | 12/23 | 11.9 | 0/23 |
+| Nemotron-3-Nano (32 / 3.6) | 22 (90) | context overflow from gen 23 | 54.7% | 54.5% | 0/22 | 6.1 | 14/22 |
+| gpt-oss-20b (21 / 4.2) | 30 (31) | — | 64.8% | 56.4% | 14/29 | 9.8 | 6/30 |
+| gpt-oss-120b (117 / 5.7) | 30 (31) | — | 64.1% | 54.5% | 12/30 | 8.2 | 0/30 |
+| Nemotron-3-Super (121 / 12.8) | 24 (90) | context overflow from gen 25 | 65.6% | 56.5% | 24/24 | 31.4 | 0/24 |
+| Qwen3-14B (15 / 14.8) | 30 (51) | — | 64.1% | 54.4% | 15/30 | 15.2 | 0/30 |
+| Qwen3.5-27B (27 / 26.9) | 30 (34) | — | 65.6% | 55.9% | 19/30 | 7.0 | 0/30 |
+
+"Broken" = below 30% on validation (chance is 25%).
+
+1. **No designer beat the hand-designed agents.** Each designer's selected
+   design versus Self-Consistency on the 800 test questions: −1.4 to +0.9
+   points, every 95% CI includes zero. The best validation scores (63–68%)
+   are what picking the best of 30 equally good designs on 128 noisy
+   questions gives by chance (simulated median 64.1%, 90% range 61–68%).
+   With a weak worker on knowledge-heavy MMLU there is little for a scaffold
+   to add, consistent with ADAS reporting its smallest gains on MMLU.
+2. **Validation is informative, the differences are just small.** Among the
+   172 working designs, validation predicts test (Spearman 0.59), but true
+   test accuracy spans only ~52–59.5%. Spending buys a little: designs using
+   over 8k worker tokens per question average 55.8% on test, under 3k 54.0%.
+3. **Designers differ far more in character than in results (Q7, Q8).**
+   Worker cost per question varies 5× (6 to 31 calls). Nemotron-Super is the
+   most expensive and the only designer whose every design ended at or above
+   the seed average. The dense Qwen3-14B and Qwen3.5-27B build the largest
+   designs (6.9 agents vs 4.2–5.1), consistent with the screen's active-size
+   hypothesis; Nemotron-Super has the fewest agents but the most calls, so
+   "design size" depends on whether agents or calls are counted. All
+   designers converge on ensembling plus critique.
+4. **Silent failure is designer-specific (Q6).** 14 of Nemotron-Nano's 22
+   designs run without error yet score near chance: they wrap the worker's
+   answer in extra parsing and voting that falls back to a wrong answer.
+   gpt-oss-20b has 6 such designs; most designers have none.
+5. **The protocol did not fit three designers (Q6).** Archived designs add
+   1.7–2.6k prompt tokens each, twice the screen-based estimate, so three
+   designers hit their 65,536-token window at generations 23–25 and failed
+   every later attempt. Qwen3-30B-A3B's 4,096-token output cap truncated 42%
+   of its calls. Later generations changed little where they ran: the best
+   validation score was already reached by generation 19 for six of eight.
+
+Caveats: one run per designer (the ADAS protocol), so designer differences are
+descriptive; unequal generation counts until the incomplete runs are finished;
+the motif detector still over-tags critique loops.
