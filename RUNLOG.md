@@ -509,3 +509,114 @@ batch9 at a50f5fa: DROP ported to the instrumented pipeline.
 - Still PENDING (Priority): MMLU resume 28082599 (est. start 10-15 02:03),
   28082600 (est. 10-15 09:49); MGSM panel 28086605/28086606 (no estimate).
 - findings.md: new section "Where do hand-designed scaffolds still help?".
+
+### 2026-10-16 02:05 - batch7 + batch8 inspected; prompt files restored
+
+- WORKING TREE: at 01:41:25 `_mgsm/mgsm_prompt.py`, `_mmlu/mmlu_prompt.py`,
+  `_drop/drop_prompt.py` were overwritten (same 0.2 s, not by an agent in this
+  log) with near-stock ADAS (~d0acd49): no set_worker_documentation,
+  PROMPT_FIELDS or WORKER_MODEL. search.py imports set_worker_documentation, so
+  every new job would die at import; maybe_resubmit calls sbatch directly and
+  bypasses submit_batch.sh's dirty check. Restored to HEAD 43f5a53 at 01:54 (the
+  code the running jobs started from). Overwritten copies + diff kept in
+  ~/.copilot/session-state/b051b37d-35d0-4a6e-8863-387617810de7/files/reverted_prompts_0141/.
+  Note: submit_batch.sh's dirty check does not cover `_drop/`.
+- batch7 MMLU resume COMPLETED (28082599 1,3,5; 28082600 7,8): all 8 designers
+  30/30 generations, 37/37 test records, 0 test errors. Selected design vs CoT-SC
+  on 800 test: -1.4 to +1.5, every CI includes 0 (largest: nemotron-super gen 25,
+  val 66.4 -> test 57.1, +1.5 [-1.2, +4.2]). MMLU null result holds on full runs.
+- batch8 MGSM panel (worker qwen3-30b-a3b; 128 val / 800 test). Best seed is LLM
+  Debate (val 88.3; test 90.1-91.5 across the 8 per-cell re-evaluations; CoT
+  78.4-82.4). Paired bootstrap over test questions, design selected on val only:
+
+  | Designer | gens (att) | best val (gen) | test | vs Debate | vs CoT-SC | val<50% |
+  |---|---|---|---|---|---|---|
+  | gpt-oss-20b | 30 (31) | 83.6 (2) | 88.2 | -2.1 [-3.9,-0.4] | +0.6 [-1.2,+2.5] | 28/30 |
+  | qwen3-14b | 28 (90) exhausted | 86.7 (11) | 87.0 | -4.4 [-6.4,-2.4] | +0.0 [-2.4,+2.4] | 0/28 |
+  | qwen3-30b-a3b (self) | 30 (34) | 89.8 (10) | 89.0 | -1.4 [-3.2,+0.5] | +2.2 [+0.2,+4.2] | 0/30 |
+  | qwen3.5-27b | 30 (34) | 90.6 (17) | >3600 s | - | - | 0/30 |
+  | nemotron-nano | 30 (35) | 44.5 (23) | 44.6 | -46.9 | -42.1 | 30/30 |
+  | gpt-oss-120b | 30 (30) | 88.3 (4) | 85.9 | -4.2 [-6.2,-2.2] | -2.1 [-4.4,+0.1] | 8/30 |
+  | nemotron-super | 30 (35) | 89.1 (16) | 85.5 | -4.8 [-6.9,-2.8] | -0.4 [-3.0,+2.1] | 2/30 |
+  | qwen3.5-35b-a3b | 30 (31) | 87.5 (10, 3-way tie) | 90.2 | +0.1 [-1.4,+1.6] | +2.9 [+1.2,+4.6] | 0/30 |
+
+  - No selected design beats LLM Debate; 4 are significantly worse. Only 5/238
+    designs beat Debate even on validation. Picked on TEST (optimistic), the best
+    design per cell is at most +0.9 over Debate. qwen3.5-35b's tied designs test
+    90.2/88.4/90.5. Two beat CoT-SC (qwen3.5-35b, self-design qwen3-30b).
+  - Q6, silent failure: designs where no worker agent reasons before its answer
+    field score median 30.5% on val (66/89 below 50%) vs 82.0% (2/149) for
+    designs with a reasoning field first. gpt-oss-20b and nemotron-nano almost
+    always drop it; gpt-oss-120b mostly survives via worker-written expressions
+    evaluated in Python. Not a scorer bug (exact-match scorer, low truncation).
+  - Working designs (val >= 50%): Spearman val~test 0.92 (n=142).
+  - Cost: qwen3.5-27b's best design uses 54 calls / 75.7k tokens per question
+    (Debate 7 / 6.1k): its test run hit the 3600 s sandbox cap and will on retry.
+    Next best (gen 8, val 89.1) tests 89.8.
+  - qwen3-14b: 42 context overflows at 65,536 (YaRN) -> 28 generations.
+- BUG (walltime): 28086605_3 (qwen3.5-27b) TIMEOUT at 20 h. Margin
+  ADAS_WALLTIME_MARGIN_SECONDS defaults to 1800 s but one test evaluation can take
+  3600 s (sandbox cap), so it started design 25 with 39 min left and was SIGKILLed;
+  maybe_resubmit never ran. Search complete (30/30); test has 23 ok + 2 errors of
+  37 -> needs a MANUAL resubmit. Margin should exceed the sandbox cap.
+- nemotron-super 28086606_6 stopped cleanly 02:02 (search 30/30, test 25 ok + 4
+  errors of 37) and resubmitted itself: 28121292_[6] (3 GPU, PENDING). Each
+  resume retries test_error designs first; these mostly time out again (<=1 h each).
+- NEXT (needs user decision): resubmit qwen3.5-27b test evaluation (ideally after
+  raising the margin to > 3600 s); decide whether timed-out designs count as
+  failed tests; findings.md MGSM section; CPU analysis.
+
+### 2026-10-17 02:13 - batch10 submitted at commit 07de224
+
+```
+e2e_cpu	28200441
+mgsm_tests	28200442
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-17 02:40 - fixes for the MGSM test-evaluation losses; batch10; findings
+
+- (2026-10-16 02:29) Cancelled nemotron-super's self-resubmit 28121292_[6] before it
+  started: it asked for 3 GPUs to finish test evaluation only, and would have
+  retried its 4 timed-out designs under the same 1 h cap.
+- CORRECTION to the 02:05 entry's field-order numbers: that parser missed
+  `output_fields=` keyword arguments, so all 30 gpt-oss-120b designs fell into
+  the "no reasoning" group by default. The claim that gpt-oss-120b "survives via
+  worker-written expressions evaluated in Python" is wrong and withdrawn. Correct
+  split (MGSM, 238 designs): 60 have no worker agent with a reasoning field
+  before its answer field -> 59 below 50% on validation (median 28.5%); 177
+  reasoning-first -> 8 below 50% (median 81.2%); 1 has no answer field.
+  Nemotron-Nano 30/30 answer-first, gpt-oss-20b 28/30, gpt-oss-120b 2/30, others
+  0. On MMLU, Nemotron-Nano is answer-first in 29/30 but answer-first costs
+  little there (other designers' five such designs 50-59%).
+- FIXES at 07de224 (e2e 28199300 PASSED, mgsm + drop, 136 checks):
+  - Evaluations get at most the time left before the deadline. A cut raises
+    DeadlineReached: a search attempt is voided (budget.void_attempt), a test run
+    is left unrecorded, and evaluation_summary.json gets stopped_on_deadline.
+  - Test cap per design = max(--sandbox_timeout, 2 x its validation wallclock x
+    test_size/valid_size), or --test_timeout. test_timeout_s is stored. A
+    SandboxTimeout test_error is retried only under a larger cap; for records
+    written before this change the cap is parsed from the message (3600 s).
+  - maybe_resubmit: also on an evaluation deadline stop; keeps the time limit
+    (squeue %l); requests WORKER_TP GPUs once the search is complete.
+  - stage2_main.slurm: cells with all generations run evaluation-only
+    (ADAS_EVALUATE_ONLY: worker server only, --evaluate_only). In that mode
+    preserve_run_logs does not copy budget_summary.json, which stays the
+    search's own summary.
+  - submit_batch.sh dirty check now covers _drop/.
+- batch10 at 07de224: e2e 28200441 -> mgsm_tests 28200442 (panel_mgsm array
+  2,3,5,6; 1 GPU, 16 CPU, 36 h; afterok). 32 designs to (re)test:
+  qwen3.5-27b 12 missing + 2 timeouts (incl. its selected design, gen 17),
+  nemotron-super 8 + 4, qwen3-30b-a3b 4 timeouts, gpt-oss-120b 2 timeouts.
+  Caps 1.0-11.3 h. Estimated test time per cell at 2.6-5.2x the validation
+  wallclock (observed range): qwen3.5-27b 8-16 h, nemotron-super 10-21 h,
+  qwen3-30b 6-12 h, gpt-oss-120b 1.5-3 h. gpt-oss-20b's timeout (validation
+  131 s, probably hangs) keeps its 1 h cap and is not retried.
+- findings.md: "MMLU panel completed (batch 7)" and "MGSM panel (batch 8)".
+  Report tables come from
+  ~/.copilot/session-state/b051b37d-35d0-4a6e-8863-387617810de7/files/report_tables.py.
+- NEXT: when batch10 finishes, check each task's .out shows "test evaluation
+  only, no meta server" and "test evaluation summary" with stopped_on_deadline
+  false. Re-run report_tables.py and fill in the rows marked † in findings.md,
+  in particular Qwen3.5-27B's selected design (val 90.6, the panel's highest).

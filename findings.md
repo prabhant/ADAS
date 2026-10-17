@@ -206,8 +206,9 @@ baseline 55.6%; the seven seed agents score 53–56% on test.
    validation score was already reached by generation 19 for six of eight.
 
 Caveats: one run per designer (the ADAS protocol), so designer differences are
-descriptive; unequal generation counts until the incomplete runs are finished;
-the motif detector still over-tags critique loops.
+descriptive; unequal generation counts until the incomplete runs are finished
+(finished in batch 7, see "MMLU panel completed" below); the motif detector still
+over-tags critique loops.
 
 # Where do hand-designed scaffolds still help? (seed screens, 2026-10-14)
 
@@ -233,3 +234,129 @@ questions.
   little, and Step-back costs Mistral 19.5 points.
 - Screening heuristic only: one pass on 128 questions gives roughly ±8 points
   per agent. The MGSM production baseline for Qwen3-30B-A3B (128 × 5) is 78.8%.
+
+# MMLU panel completed — batch 7 (2026-10-15)
+
+The four runs that stopped early were resumed to 30 generations: 131,072-token
+context for Nemotron-Nano, Nemotron-Super and Qwen3.5-35B-A3B, 12,288-token
+output cap for Qwen3-30B-A3B. gpt-oss-20b's one failed test run was retried.
+Every designer now has 30 generations and a test score for every design.
+Attempts are summed over both parts; the resumed part restarts the 90-attempt
+budget.
+
+| Designer (total / active B) | Generations (attempts) | Best on validation (gen) | Its test score | vs Self-Consistency on test [95% CI] | Designs ≥ seed mean on test | Worker calls / question | Broken designs |
+|---|---|---|---|---|---|---|---|
+| Qwen3-30B-A3B (31 / 3.4) | 30 (102) | 64.8% (24) | 55.2% | −0.6 [−3.8, +2.8] | 18/30 | 24.6 | 6/30 |
+| Qwen3.5-35B-A3B (35 / 3.5) | 30 (98) | 68.0% (16) | 55.5% | −0.9 [−3.8, +1.9] | 18/30 | 12.5 | 0/30 |
+| Nemotron-3-Nano (32 / 3.6) | 30 (100) | 54.7% (1)* | 54.5% | −1.4 [−4.1, +1.4] | 0/30 | 6.0 | 22/30 |
+| gpt-oss-20b (21 / 4.2) | 30 (31) | 64.8% (13)* | 56.4% | +0.6 [−2.1, +3.5] | 15/30 | 9.8 | 6/30 |
+| gpt-oss-120b (117 / 5.7) | 30 (31) | 64.1% (1) | 54.5% | −0.6 [−3.2, +1.9] | 12/30 | 8.2 | 0/30 |
+| Nemotron-3-Super (121 / 12.8) | 30 (102) | 66.4% (25) | 57.1% | +1.5 [−1.4, +4.2] | 30/30 | 35.1 | 0/30 |
+| Qwen3-14B (15 / 14.8) | 30 (51) | 64.1% (23) | 54.4% | −0.2 [−3.0, +2.4] | 15/30 | 15.2 | 0/30 |
+| Qwen3.5-27B (27 / 26.9) | 30 (34) | 65.6% (14) | 55.9% | +0.6 [−2.5, +3.8] | 19/30 | 7.0 | 0/30 |
+
+"Broken" = below 30% on validation. Paired bootstrap over the 800 test
+questions; the design is selected on validation only. *Three-way tie on
+validation, earliest shown; the tied designs test 54.5 / 49.6 / 49.9%
+(Nemotron-Nano) and 56.4 / 59.5 / 55.2% (gpt-oss-20b).
+
+1. **The null result holds on complete runs.** Selected designs score −1.4 to
+   +1.5 points against Self-Consistency, and every interval includes zero. The
+   largest, Nemotron-Super's generation-25 design, is also the most expensive
+   selection (41.6 worker calls per question).
+2. **Re-running one agent moves its score as much as changing the designer
+   does.** Each cell re-evaluates the seven seed agents on the same 800
+   questions, and a seed's score varies by up to 3 points across cells (CoT
+   52.6–55.4%, Step-back 52.9–55.9%).
+3. **Validation predicts test a little better with every design in:**
+   Spearman 0.64 among the 206 working designs (0.59 in batch 5).
+4. **Nemotron-Nano's broken designs kept coming** (22/30). It asks the worker
+   for its answer before any reasoning in 29 of 30 designs (see the MGSM panel
+   below). On MMLU, answering first costs little: other designers' five
+   answer-first designs score 50–59% on validation. So this habit does not
+   explain its MMLU failures; batch 5 traced those to a parsing and voting
+   fallback.
+
+# MGSM panel — batch 8 (2026-10-15)
+
+Same ADAS protocol on MGSM (30 generations, 128 validation / 800 test
+questions, shared seed archive). The worker is Qwen3-30B-A3B, which had the
+largest scaffold headroom in the MGSM screen. Its production CoT baseline is
+78.8% (128 × 5). In one cell Qwen3-30B-A3B is also the designer (self-design).
+
+| Designer (total / active B) | Generations (attempts) | Best on validation (gen) | Its test score | vs LLM Debate [95% CI] | vs Self-Consistency [95% CI] | Designs ≥ seed mean on test | Worker calls / question | Broken designs |
+|---|---|---|---|---|---|---|---|---|
+| Qwen3-30B-A3B, self-design (31 / 3.4) | 30 (34) | 89.8% (10) | 89.0% | −1.4 [−3.1, +0.5] | +2.2 [+0.4, +4.2] | 5/26† | 33.4 | 0/30 |
+| Qwen3.5-35B-A3B (35 / 3.5) | 30 (31) | 87.5% (10)* | 90.2% | +0.1 [−1.4, +1.6] | +2.9 [+1.2, +4.5] | 25/30 | 12.4 | 0/30 |
+| Nemotron-3-Nano (32 / 3.6) | 30 (35) | 44.5% (23) | 44.6% | −46.9 [−50.4, −43.2] | −42.1 [−45.9, −38.4] | 0/30 | 11.2 | 30/30 |
+| gpt-oss-20b (21 / 4.2) | 30 (31) | 83.6% (2) | 88.2% | −2.1 [−3.9, −0.4] | +0.6 [−1.2, +2.5] | 1/29† | 7.2 | 28/30 |
+| gpt-oss-120b (117 / 5.7) | 30 (30) | 88.3% (4) | 85.9% | −4.2 [−6.1, −2.2] | −2.1 [−4.4, +0.1] | 6/28† | 14.9 | 8/30 |
+| Nemotron-3-Super (121 / 12.8) | 30 (35) | 89.1% (16) | 85.5% | −4.8 [−6.8, −2.8] | −0.4 [−3.0, +2.1] | 6/18† | 34.8 | 2/30 |
+| Qwen3-14B (15 / 14.8) | 28 (90) | 86.7% (11) | 87.0% | −4.4 [−6.5, −2.4] | +0.0 [−2.4, +2.5] | 12/28 | 15.7 | 0/28 |
+| Qwen3.5-27B (27 / 26.9) | 30 (34) | 90.6% (17) | pending† | – | – | 15/16† | 22.4 | 0/30 |
+
+"Broken" = below 50% on validation; CoT scores 74.2%. *Three-way tie, earliest
+shown; the tied designs test 90.2 / 88.4 / 90.5%. †Test evaluation unfinished,
+counts cover tested designs only. Untested so far: Qwen3.5-27B 14 (including
+its selected design), Nemotron-Super 12, Qwen3-30B-A3B 4, gpt-oss-120b 2,
+gpt-oss-20b 1. All but gpt-oss-20b's are being tested in batch 10.
+
+1. **No designer beat LLM Debate.** Debate is the best hand-designed agent on
+   validation (88.3%) and on test (90.1–91.5% across cells). Against it,
+   selected designs score −4.8 to +0.1 points, and four are significantly
+   worse. Only 5 of 238 generated designs beat Debate even on validation.
+   Picking each run's best design by its *test* score would gain at most
+   +0.9 points so far.
+2. **Two searches beat Self-Consistency, but only by matching Debate.**
+   Qwen3.5-35B-A3B (+2.9) and Qwen3-30B-A3B designing for itself (+2.2) are
+   significantly better than CoT-SC. That is Debate's level, at 1.3–1.6× its
+   worker tokens (8.1–9.5k vs 6.1k per question). So the self-design cell
+   does as well as the best outside designer, but no better.
+3. **The commonest failure is asking for the answer before the reasoning
+   (Q6, Q7).** A worker agent is shown its output fields in the order the
+   design lists them, and presumably writes its JSON reply in that order (the
+   call logs do not keep replies, but the split below fits that reading). A
+   design that lists `answer` first then gets an answer before any reasoning. In 60
+   of 238 designs no worker agent has a reasoning field ahead of its answer
+   field. 59 of those 60 score below 50% on validation (median 28.5%),
+   against 8 of the 177 designs that put reasoning first (median 81.2%). This
+   is a designer habit:
+   - Nemotron-Nano does it in 30/30 designs (typically
+     `['answer', 'thinking', 'confidence']`).
+   - gpt-oss-20b does it in 28/30 (`['answer']`, `['answer', 'expression']`).
+   - gpt-oss-120b does it in 2 designs; the other designers never do.
+
+   On MMLU the same habit was harmless. It shows up as failure where the
+   worker needs to reason.
+4. **Validation is far more informative than on MMLU.** Spearman 0.92
+   between validation and test among the 142 working designs with a test
+   score (MMLU: 0.64). The ceiling is close, though: the best designs reach
+   89–91% on test, which is where Debate already is.
+5. **The most expensive designers are the same on both tasks (Q8).** Mean
+   worker calls per question range from 7.2 (gpt-oss-20b) to 34.8
+   (Nemotron-Super). The top two match MMLU: Nemotron-Super at about 35 calls,
+   Qwen3-30B-A3B at 25–33. The cheaper end reshuffles: Qwen3.5-27B averages
+   7.0 calls on MMLU but 22.4 on MGSM. Its selected design uses 54 calls and
+   75.7k tokens per question; Debate uses 7 and 6.1k.
+6. **Protocol fit (Q6).** The MMLU-panel fixes worked: 131k context for
+   Qwen3.5 and Nemotron, and the 12,288-token output cap for Qwen3-30B-A3B.
+   Those designers finished 30 generations in 30–35 attempts. The exception
+   is Qwen3-14B: its YaRN-extended 65,536-token window overflowed on 42
+   attempts, and the run stopped at 28 generations after 90 attempts.
+7. **Test evaluation did not fit the most expensive designs.**
+   - 13 test runs hit the 1-hour sandbox cap. Most of those designs make 32–104
+     worker calls per question.
+   - Separately, a walltime bug left 20 designs untested: the job stopped
+     30 minutes before its limit, but one test run can take an hour.
+   - Fixes: test runs now stop cleanly at the job deadline and resume in the
+     next job, and each design's cap scales with its own validation time.
+   - gpt-oss-20b's timed-out design ran validation in 131 s, so it probably
+     hangs on some question. It keeps the 1-hour cap.
+
+Caveats:
+- One run per designer.
+- Re-evaluating the same seed agent on the same 800 questions varies by up to
+  4 points (CoT 78.4–82.4%), which is comparable to the gaps between designers.
+- The field-order split is a static reading of each design's code. One
+  gpt-oss-20b design requests no answer field and is left out.
+- Rows marked † will change when batch 10 finishes.
