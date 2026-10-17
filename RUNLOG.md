@@ -575,7 +575,7 @@ mgsm_tests	28200442
 
 Inspect with: bash experiments/slurm/status.sh
 
-### 2026-10-17 02:40 - fixes for the MGSM test-evaluation losses; batch10; findings
+### 2026-10-17 02:14 - fixes for the MGSM test-evaluation losses; batch10; findings
 
 - (2026-10-16 02:29) Cancelled nemotron-super's self-resubmit 28121292_[6] before it
   started: it asked for 3 GPUs to finish test evaluation only, and would have
@@ -620,3 +620,6 @@ Inspect with: bash experiments/slurm/status.sh
   only, no meta server" and "test evaluation summary" with stopped_on_deadline
   false. Re-run report_tables.py and fill in the rows marked † in findings.md,
   in particular Qwen3.5-27B's selected design (val 90.6, the panel's highest).
+- 02:28: batch10 gate e2e 28200441 PASSED at 07de224 (mgsm + drop, 136 checks,
+  0 failures). mgsm_tests 28200442 [2,3,5,6] is now eligible (queued, no start
+  estimate yet).
