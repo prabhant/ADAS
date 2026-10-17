@@ -19,7 +19,7 @@ if [[ -s "$BATCH" && "${FORCE:-0}" != "1" ]]; then
     exit 1
 fi
 
-[[ -z "$(git status --porcelain -- _mgsm _mmlu experiments/adas_ext experiments/analysis \
+[[ -z "$(git status --porcelain -- _mgsm _mmlu _drop experiments/adas_ext experiments/analysis \
           experiments/serving experiments/slurm experiments/config experiments/env experiments/tests)" ]] \
     || { echo "commit code changes first: results must map to a commit" >&2; exit 1; }
 COMMIT="$(git rev-parse --short HEAD)"
@@ -101,6 +101,16 @@ sys.exit(0 if paths and len(json.load(open(paths[0]))) == 7 else 1)" \
         submit e2e_cpu          experiments/slurm/sanity/07_e2e_cpu.slurm
         after="--dependency=afterok:$(awk -F'\t' '$1 == "e2e_cpu" {print $2}' "$BATCH")"
         submit drop_screen      "$after" --array=0-4 experiments/slurm/stage05_baselines.slurm drop_screen
+        ;;
+    batch10)
+        # Finish the MGSM panel's test evaluation (all four searches are complete):
+        # qwen3-30b-a3b 2, qwen3.5-27b 3, gpt-oss-120b 5, nemotron-super 6. Their
+        # missing and timed-out test runs get deadline-aware, per-design caps.
+        # Evaluation only, so the worker's one GPU suffices.
+        submit e2e_cpu          experiments/slurm/sanity/07_e2e_cpu.slurm
+        after="--dependency=afterok:$(awk -F'\t' '$1 == "e2e_cpu" {print $2}' "$BATCH")"
+        submit mgsm_tests       "$after" --array=2,3,5,6 --gpus=1 --cpus-per-task=16 --time=36:00:00 \
+                                experiments/slurm/stage2_main.slurm panel_mgsm
         ;;
     batch5)
         # The designer panel. Refuses to start without what every cell needs.

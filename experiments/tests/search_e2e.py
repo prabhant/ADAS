@@ -85,6 +85,9 @@ class Stub:
         self.chains = 0
         self.meta_calls = 0
         self.meta_prompts = []
+        # A slow worker makes an evaluation outlast a deadline or a cap on cue.
+        self.worker_delay = 0.0
+        self.worker_calls = 0
 
     def meta(self, messages):
         with self.lock:
@@ -139,11 +142,14 @@ def serve(stub: Stub):
     class Handler(http.server.BaseHTTPRequestHandler):
         def _send(self, payload):
             data = json.dumps(payload).encode()
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(data)))
-            self.end_headers()
-            self.wfile.write(data)
+            try:
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+            except (BrokenPipeError, ConnectionResetError):
+                pass  # the evaluation that asked was killed at its deadline or cap
 
         def do_GET(self):
             if "models" in self.path:
@@ -153,8 +159,13 @@ def serve(stub: Stub):
 
         def do_POST(self):
             request = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
-            role = stub.meta if request["model"] == "stub-meta" else stub.worker
-            body, reasoning = role(request["messages"])
+            if request["model"] == "stub-meta":
+                body, reasoning = stub.meta(request["messages"])
+            else:
+                with stub.lock:
+                    stub.worker_calls += 1
+                time.sleep(stub.worker_delay)
+                body, reasoning = stub.worker(request["messages"])
             message = {"role": "assistant", "content": json.dumps(body)}
             if reasoning:
                 message["reasoning_content"] = reasoning
@@ -334,6 +345,75 @@ def main() -> int:
           "a previously failed test run is retried in place")
     server.shutdown()
 
+    print("\n=== I: a deadline during a test run leaves it unrecorded; the next job runs it ===")
+    stub = Stub()
+    server = serve(stub)
+    url = f"http://127.0.0.1:{server.server_address[1]}/v1"
+    i_dir, i_id = os.path.join(workdir, "I"), "e2eI"
+    os.makedirs(i_dir)
+    i_archive = os.path.join(i_dir, f"{i_id}_run_archive.json")
+    i_eval = os.path.join(i_dir, f"{i_id}_run_archive_evaluate.json")
+    i_summary = os.path.join(i_dir, i_id, "evaluation_summary.json")
+    designs = [e for e in load(os.path.join(a_dir, f"{a_id}_run_archive.json"))
+               if isinstance(e.get("generation"), int)][:2]
+    with open(i_archive, "w") as handle:
+        json.dump(designs, handle)
+    stub.worker_delay = 30  # three rounds of four parallel questions: >= 90 s per design
+    started = time.time()
+    check(run_search(url, i_dir, i_id, target=1,
+                     extra=["--evaluate_only", "--deadline_epoch", str(time.time() + 20)]) == 0,
+          "exit 0 when the deadline cuts a test run")
+    check(time.time() - started < 80, "stopped at the deadline rather than running to completion")
+    check(not os.path.exists(i_eval) or not load(i_eval), "the cut design is not recorded")
+    summary = load(i_summary) if os.path.exists(i_summary) else {}
+    check(summary.get("stopped_on_deadline") is True and summary.get("untested") == 2,
+          f"evaluation summary records the deadline stop (got {summary})")
+    stub.worker_delay = 0
+    check(run_search(url, i_dir, i_id, target=1, extra=["--evaluate_only"]) == 0, "resumed evaluation exit 0")
+    evaluated = load(i_eval)
+    check(len(evaluated) == 2 and all(e["test_per_question"] == expected_test for e in evaluated),
+          "both designs evaluated, each with the ground-truth test vector")
+    check(all(e.get("test_timeout_s") == 3600 for e in evaluated), "fast designs keep the validation cap")
+    check(load(i_summary).get("stopped_on_deadline") is False, "evaluation summary records a completed pass")
+
+    print("\n=== J: test caps scale with validation time; a timeout is retried only under a larger cap ===")
+    designs[1]["resource"] = dict(designs[1].get("resource") or {}, wallclock_s=5000.0)
+    with open(i_archive, "w") as handle:
+        json.dump(designs, handle)
+    old_timeout = "SandboxTimeout: Sandboxed evaluation exceeded 3600s wall clock"
+    stale = [dict({k: v for k, v in e.items() if not k.startswith("test_")}, test_error=old_timeout)
+             for e in evaluated]
+    with open(i_eval, "w") as handle:
+        json.dump(stale, handle)
+    check(run_search(url, i_dir, i_id, target=1, extra=["--evaluate_only"]) == 0, "exit 0")
+    evaluated = load(i_eval)
+    check(evaluated[0].get("test_error") == old_timeout,
+          "timed out at 3600 s and still capped at 3600 s: not retried")
+    check(not evaluated[1].get("test_error") and evaluated[1].get("test_per_question") == expected_test
+          and evaluated[1].get("test_timeout_s") == 2 * 5000.0 * TEST / VALID,
+          "the cap scales with the design's validation time, and the old timeout is retried under it")
+    designs.append(dict(designs[0], name="Slow"))
+    with open(i_archive, "w") as handle:
+        json.dump(designs, handle)
+    stub.worker_delay = 5
+    check(run_search(url, i_dir, i_id, target=1, extra=["--evaluate_only", "--test_timeout", "1"]) == 0,
+          "exit 0")
+    evaluated = load(i_eval)
+    check(len(evaluated) == 3 and str(evaluated[2].get("test_error", "")).startswith("SandboxTimeout")
+          and evaluated[2].get("test_timeout_s") == 1, "a run over its cap is recorded with that cap")
+    time.sleep(1)  # requests the killed run had in flight
+    calls = stub.worker_calls
+    check(run_search(url, i_dir, i_id, target=1, extra=["--evaluate_only", "--test_timeout", "1"]) == 0
+          and stub.worker_calls == calls, "under the same cap it is not run again")
+    stub.worker_delay = 0
+    check(run_search(url, i_dir, i_id, target=1, extra=["--evaluate_only", "--test_timeout", "600"]) == 0,
+          "exit 0")
+    evaluated = load(i_eval)
+    check(evaluated[2].get("test_per_question") == expected_test and evaluated[2].get("test_timeout_s") == 600
+          and evaluated[0].get("test_error") == old_timeout,
+          "a larger cap retries it; a cap still below the earlier one does not")
+    server.shutdown()
+
     print("\n=== F: designers share one evaluated seed archive ===")
     stub = Stub()
     server = serve(stub)
@@ -361,6 +441,34 @@ def main() -> int:
                       for e in archive if e.get("generation") == "initial"])
     check(len(seeds[0]) == 7 and seeds[0] == seeds[1],
           "both cells start from the identical cached seed archive (same wallclock: not re-evaluated)")
+    server.shutdown()
+
+    print("\n=== K: a deadline during a generation's evaluation voids the attempt ===")
+    stub = Stub()
+    server = serve(stub)
+    url = f"http://127.0.0.1:{server.server_address[1]}/v1"
+    k_dir, k_id = os.path.join(workdir, "K"), "e2eK"
+    stub.worker_delay = 30
+    started = time.time()
+    check(run_search(url, k_dir, k_id, target=1,
+                     extra=["--search_only", *shared_args, "--deadline_epoch", str(time.time() + 25)]) == 0,
+          "exit 0 when the deadline cuts a generation")
+    check(time.time() - started < 80, "stopped at the deadline rather than finishing the generation")
+    budget = load(os.path.join(k_dir, k_id, "budget_summary.json"))
+    check(budget.get("stopped_on_deadline") is True and budget["successes"] == 0 and budget["attempts"] == 0,
+          f"stopped on the deadline with the cut attempt uncounted (got {budget})")
+    abandoned_path = os.path.join(k_dir, k_id, f"{k_id}_abandoned_generations.json")
+    check(not os.path.exists(abandoned_path) or not load(abandoned_path), "nothing recorded as abandoned")
+    server.shutdown()
+    stub = Stub()
+    server = serve(stub)
+    url = f"http://127.0.0.1:{server.server_address[1]}/v1"
+    check(run_search(url, k_dir, k_id, target=1, extra=["--search_only", *shared_args]) == 0,
+          "resumed search exit 0")
+    archive = load(os.path.join(k_dir, f"{k_id}_run_archive.json"))
+    generated = [e for e in archive if isinstance(e.get("generation"), int)]
+    check(len(archive) == 8 and len(generated) == 1 and generated[0]["valid_per_question"] == expected_valid,
+          "the next job completes the generation")
     server.shutdown()
 
     print(f"\n{'PASSED' if not check.failed else f'{check.failed} CHECK(S) FAILED'}  (artifacts in {workdir})")

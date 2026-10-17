@@ -267,6 +267,7 @@ search_args() {    local out_dir="$RESULTS_ROOT/$CELL_ID"
     fi
 
     [[ "${REQUIRE_SEED_CACHE:-0}" == "1" ]] && args+=(--require_seed_cache)
+    [[ "${ADAS_EVALUATE_ONLY:-0}" == "1" ]] && args+=(--evaluate_only)
 
     case "${CELL_CONDITION:-}" in
         bare_model)           args+=(--baseline bare) ;;
@@ -298,17 +299,34 @@ _search_deadline_epoch() {
     echo $(( epoch - margin ))
 }
 
+# True when the cell's archive already holds every generation it was asked for,
+# so only test evaluation can be left.
+search_complete() {
+    python - "$RESULTS_ROOT/$CELL_ID/${CELL_ID}_run_archive.json" "${N_GENERATION:-0}" <<'PY'
+import json, os, sys
+path, target = sys.argv[1], int(sys.argv[2])
+if target <= 0 or not os.path.exists(path):
+    sys.exit(1)
+done = [e["generation"] for e in json.load(open(path)) if isinstance(e.get("generation"), int)]
+sys.exit(0 if done and max(done) >= target else 1)
+PY
+}
+
 # Continue a cell that stopped on the walltime deadline rather than on its
 # generation budget. The archive is written after every generation, so the new
 # job resumes from it instead of restarting.
 maybe_resubmit() {
-    local summary="$RESULTS_ROOT/$CELL_ID/$CELL_ID/budget_summary.json"
+    local run_dir="$RESULTS_ROOT/$CELL_ID/$CELL_ID"
+    local summary="$run_dir/budget_summary.json"
     [[ -f "$summary" ]] || return 0
-    python - "$summary" "$RESULTS_ROOT/$CELL_ID/${CELL_ID}_run_archive" <<'PY' || return 0
+    python - "$summary" "$RESULTS_ROOT/$CELL_ID/${CELL_ID}_run_archive" "$run_dir/evaluation_summary.json" <<'PY' || return 0
 import json, os, sys
 if json.load(open(sys.argv[1])).get("stopped_on_deadline"):
     sys.exit(0)
-# Test evaluation also stops at the deadline; resubmit until every design has a test record.
+# Test evaluation also stops at the deadline, including while retrying a failed
+# run; resubmit until it completes a pass.
+if os.path.exists(sys.argv[3]) and json.load(open(sys.argv[3])).get("stopped_on_deadline"):
+    sys.exit(0)
 archive, evaluated = sys.argv[2] + ".json", sys.argv[2] + "_evaluate.json"
 n_eval = len(json.load(open(evaluated))) if os.path.exists(evaluated) else 0
 sys.exit(0 if os.path.exists(archive) and n_eval < len(json.load(open(archive))) else 1)
@@ -318,11 +336,19 @@ PY
         echo "$CELL_ID stopped on the walltime deadline but ADAS_SELF_SCRIPT is unset; resubmit by hand" >&2
         return 0
     fi
+    # Keep the original request; the script header asks for a whole node.
+    local gpus="${SLURM_GPUS:-}" cpus="${SLURM_CPUS_PER_TASK:-}" limit
+    if search_complete; then
+        # Only test evaluation is left, and it runs on the worker alone.
+        gpus="${WORKER_TP:-1}"
+        cpus=$(( 16 * gpus ))
+    fi
+    limit="$(squeue -h -j "$SLURM_JOB_ID" -o %l 2>/dev/null || true)"
     local opts=(--chdir="$REPO_ROOT")
     [[ -n "${SLURM_ARRAY_TASK_ID:-}" ]] && opts+=(--array="$SLURM_ARRAY_TASK_ID")
-    # Keep the original request; the script header asks for a whole node.
-    [[ -n "${SLURM_GPUS:-}" ]] && opts+=(--gpus="$SLURM_GPUS")
-    [[ -n "${SLURM_CPUS_PER_TASK:-}" ]] && opts+=(--cpus-per-task="$SLURM_CPUS_PER_TASK")
+    [[ -n "$gpus" ]] && opts+=(--gpus="$gpus")
+    [[ -n "$cpus" ]] && opts+=(--cpus-per-task="$cpus")
+    [[ -n "$limit" ]] && opts+=(--time="$limit")
     echo "$CELL_ID hit the walltime deadline; resubmitting to continue"
     sbatch "${opts[@]}" "$script" ${STAGE:+"$STAGE"}
 }
@@ -339,7 +365,10 @@ preserve_run_logs() {
     [[ -d "$dir" ]] || return 0
     local n=1 f
     while compgen -G "$dir/part${n}_*" >/dev/null; do n=$((n + 1)); done
-    for f in "$dir/${CELL_ID}"_* "$dir/budget_summary.json"; do
+    local files=("$dir/${CELL_ID}"_* "$dir/evaluation_summary.json")
+    # An evaluation-only job leaves the search's budget summary in place.
+    [[ "${ADAS_EVALUATE_ONLY:-0}" == "1" ]] || files+=("$dir/budget_summary.json")
+    for f in "${files[@]}"; do
         [[ -f "$f" ]] && cp -p "$f" "$dir/part${n}_$(basename "$f")"
     done
     echo "preserved earlier run logs as part${n}_* in $dir"

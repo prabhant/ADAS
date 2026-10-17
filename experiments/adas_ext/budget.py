@@ -53,6 +53,11 @@ class BudgetController:
         self._current_attempt = self.attempts
         return self.successes, self.attempts
 
+    def void_attempt(self) -> None:
+        """Uncount the current attempt: the job's walltime ended it, not the designer."""
+        self.attempts -= 1
+        self._current_attempt = self.attempts
+
     # -- outcomes -------------------------------------------------------------
 
     def record_success(self, debug_attempts: int = 0,

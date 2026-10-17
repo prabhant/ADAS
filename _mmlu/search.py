@@ -3,6 +3,7 @@ import copy
 import json
 import os
 import random
+import re
 import sys
 import time
 from collections import namedtuple
@@ -21,6 +22,7 @@ from experiments.adas_ext import (
     Instrumentation,
     SandboxError,
     SandboxPolicy,
+    SandboxTimeout,
     classify_failure,
     get_instrumentation,
     run_sandboxed,
@@ -203,6 +205,10 @@ class AgentSystem():
         pass
 
 
+class DeadlineReached(Exception):
+    """The job's walltime deadline, not the design, ended an evaluation."""
+
+
 def _point_accuracy(acc_list):
     """Point estimate of accuracy: the value the bootstrap median converges to.
 
@@ -350,6 +356,10 @@ def search(args):
         instrumentation.set_context(generation=f"initial:{solution['name']}")
         try:
             result = run_evaluation(args, solution["code"])
+        except DeadlineReached as e:
+            # Unevaluated seeds are evaluated by the resubmitted job.
+            print(f"stopping seed evaluation: {e}")
+            break
         except Exception as e:
             print("During evaluating initial archive:")
             print(e)
@@ -420,11 +430,15 @@ def search(args):
         debug_attempts = 0
         terminal_failure = None
         failed_solution = None
+        deadline_hit = None
         for debug_round in range(args.debug_max):
             try:
                 result = run_evaluation(args, next_solution["code"])
                 if np.mean(result["acc_list"]) < 0.01 and SEARCHING_MODE:
                     raise Exception("All 0 accuracy")
+                break
+            except DeadlineReached as e:
+                result, deadline_hit = None, e
                 break
             except Exception as e:
                 result = None
@@ -453,6 +467,13 @@ def search(args):
                     instrumentation.record_failure(terminal_failure, str(e), stage="debug")
                     failure_trace.append({"stage": "debug", "category": terminal_failure, "message": str(e)[:2000]})
                     break
+
+        if deadline_hit is not None:
+            # Not counted against the designer; the resubmitted job redoes this generation.
+            print(f"stopping during generation {generation + 1}: {deadline_hit}")
+            budget.void_attempt()
+            stopped_on_deadline = True
+            break
 
         if result is None:
             budget.record_failure(terminal_failure or "runtime_exception", debug_attempts, failure_trace)
@@ -596,28 +617,37 @@ def evaluate(args):
             eval_archive = json.load(json_file)
 
     current_idx = 0
+    stopped_on_deadline = False
     while (current_idx < len(archive)):
         with open(file_path, 'r') as json_file:
             archive = json.load(json_file)
+        sol = archive[current_idx]
+        cap = _test_timeout(args, sol)
         # Designs whose test run failed are retried in place; results are matched by position.
-        if current_idx < len(eval_archive) and not eval_archive[current_idx].get('test_error'):
+        if current_idx < len(eval_archive) and not _should_retest(eval_archive[current_idx], cap):
             current_idx += 1
             continue
-        sol = archive[current_idx]
         if args.deadline_epoch and time.time() >= args.deadline_epoch:
             print(f"stopping test evaluation before design {current_idx}: within the walltime safety margin")
-            return
-        print(f"current_gen: {sol['generation']}, current_idx: {current_idx}")
+            stopped_on_deadline = True
+            break
+        print(f"current_gen: {sol['generation']}, current_idx: {current_idx}, test timeout: {cap:.0f}s")
         instrumentation.set_context(generation=sol['generation'], phase="test")
         idx = current_idx
         current_idx += 1
         try:
-            result = run_evaluation(args, sol["code"])
+            result = run_evaluation(args, sol["code"], timeout=cap)
+        except DeadlineReached as e:
+            # Left unrecorded, so the resubmitted job runs it again with its full cap.
+            print(f"stopping test evaluation at design {idx}: {e}")
+            stopped_on_deadline = True
+            break
         except Exception as e:
             print(e)
             instrumentation.record_failure(classify_failure(e), str(e), stage="test")
             sol['test_error'] = f"{type(e).__name__}: {e}"[:500]
             result = None
+        sol['test_timeout_s'] = cap
         if result is not None:
             sol.pop('test_error', None)
             acc_list = result["acc_list"]
@@ -638,14 +668,73 @@ def evaluate(args):
         with open(eval_file_path, 'w') as json_file:
             json.dump(eval_archive, json_file, indent=4)
         instrumentation.write(os.path.join(args.save_dir, args.run_id))
+    _write_evaluation_summary(args, eval_archive, len(archive), stopped_on_deadline)
 
 
-def run_evaluation(args, forward_str):
+def _test_timeout(args, sol):
+    """Wall-clock cap for one design's test run.
+
+    The validation cap does not carry over to a test split 6x larger: designs
+    that validated in 17-55 minutes were cut off on test. A design gets its own
+    validation time scaled by the split sizes, with 2x headroom, so one that ran
+    on validation gets what it needs on test while one that hangs still stops.
+    Never below the validation cap.
+    """
+    if args.test_timeout:
+        return float(args.test_timeout)
+    valid_wallclock = (sol.get('resource') or {}).get('wallclock_s') or 0.0
+    return max(args.sandbox_timeout, 2.0 * valid_wallclock * args.test_size / max(args.valid_size, 1))
+
+
+def _should_retest(entry, cap):
+    """Retry a failed test run, unless it already timed out under at least this cap."""
+    error = entry.get('test_error')
+    if not error:
+        return False
+    if not error.startswith("SandboxTimeout"):
+        return True
+    used = entry.get('test_timeout_s')
+    if used is None:
+        # Records from before the cap was stored carry it only in the message.
+        match = re.search(r"exceeded (\d+)s wall clock", error)
+        used = float(match.group(1)) if match else 0.0
+    return cap > used + 1
+
+
+def _write_evaluation_summary(args, eval_archive, n_designs, stopped_on_deadline):
+    """Read by maybe_resubmit: a test evaluation stopped by the deadline needs another job."""
+    summary = {
+        "designs": n_designs,
+        "tested": sum(1 for e in eval_archive if not e.get('test_error')),
+        "test_errors": sum(1 for e in eval_archive if e.get('test_error')),
+        "untested": n_designs - len(eval_archive),
+        "stopped_on_deadline": stopped_on_deadline,
+    }
+    print(f"test evaluation summary: {json.dumps(summary)}")
+    run_dir = os.path.join(args.save_dir, args.run_id)
+    os.makedirs(run_dir, exist_ok=True)
+    with open(os.path.join(run_dir, "evaluation_summary.json"), 'w') as handle:
+        json.dump(summary, handle, indent=2)
+
+
+def run_evaluation(args, forward_str, timeout=None):
     """Evaluate one agent, in a sandbox unless explicitly disabled.
 
     The child returns plain data only, so nothing produced by the untrusted code
     is revived as a live object in the parent.
+
+    ``timeout`` replaces --sandbox_timeout for this run. Under a deadline the run
+    gets at most the time left before it, and a run the deadline cuts raises
+    DeadlineReached instead of failing the design.
     """
+    limit = float(timeout or args.sandbox_timeout)
+    cut_by_deadline = False
+    if args.deadline_epoch:
+        left = args.deadline_epoch - time.time()
+        if left <= 0:
+            raise DeadlineReached("the walltime deadline has passed")
+        if left < limit:
+            limit, cut_by_deadline = left, True
     kwargs = {
         "args": args,
         "forward_str": forward_str,
@@ -660,7 +749,13 @@ def run_evaluation(args, forward_str):
         result = _sandboxed_evaluate(**kwargs)
     else:
         policy = SandboxPolicy.from_args(args, [args.worker_base_url, args.meta_base_url])
-        result = run_sandboxed(_ENTRY_MODULE, "_sandboxed_evaluate", kwargs, policy)
+        policy.timeout_s = limit
+        try:
+            result = run_sandboxed(_ENTRY_MODULE, "_sandboxed_evaluate", kwargs, policy)
+        except SandboxTimeout:
+            if cut_by_deadline:
+                raise DeadlineReached(f"cut after {limit:.0f}s at the walltime deadline") from None
+            raise
 
     get_instrumentation().merge(result.pop("instrumentation", {}))
     return result
@@ -854,6 +949,9 @@ def build_parser():
     # --- sandbox ---
     parser.add_argument('--no_sandbox', action='store_true', default=False)
     parser.add_argument('--sandbox_timeout', type=float, default=3600.0)
+    parser.add_argument('--test_timeout', type=float, default=None,
+                        help="Flat cap per test run; by default each design's validation "
+                             "time sets it (see _test_timeout).")
     parser.add_argument('--sandbox_memory_bytes', type=int, default=None)
 
     parser.add_argument('--search_only', action='store_true', default=False)
