@@ -706,3 +706,10 @@ Inspect with: bash experiments/slurm/status.sh
 - 16:17: batch11 gate e2e 28378098 PASSED at 4eb7a11 (mgsm + drop + arc, 204
   checks, 0 failures). arc_screen 28378099 [0-4] eligible, pending on Priority
   (gpu_h100 83/87 nodes allocated).
+- 18:00: arc_screen 28378099 still PENDING (Priority) after 1h40m. panel_arc
+  stage defaults committed (a04e4ad); panel/baseline cells are added once the
+  worker is chosen. Screen summary (accuracy per seed, best-CoT headroom, tasks
+  solved by any seed, answer kinds) once it has run:
+  python ~/.copilot/session-state/b051b37d-35d0-4a6e-8863-387617810de7/files/arc_screen_summary.py experiments/results
+  Choice rule as for MGSM: largest seed gain over CoT, CoT neither ~0 nor near
+  ceiling (ADAS GPT-3.5: CoT 6.0, best seed 8.0, search 13.7).
