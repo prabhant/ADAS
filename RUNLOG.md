@@ -703,3 +703,6 @@ Inspect with: bash experiments/slurm/status.sh
 - NEXT: inspect the screen (validation accuracy per seed, answer_kinds, CoT vs
   best seed); pick the ARC worker with scaffold headroom; then batch12 =
   s05_cot_arc_<worker> baseline -> 8-designer ARC panel (25 gens, 20/60 x 5).
+- 16:17: batch11 gate e2e 28378098 PASSED at 4eb7a11 (mgsm + drop + arc, 204
+  checks, 0 failures). arc_screen 28378099 [0-4] eligible, pending on Priority
+  (gpu_h100 83/87 nodes allocated).
