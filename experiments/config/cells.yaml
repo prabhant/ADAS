@@ -120,6 +120,17 @@ stage_defaults:
     test_size: 60
     n_repreat: 5
     domain: arc
+  # Designer panel on ARC, ADAS's ARC protocol: 25 generations, 20 validation / 60
+  # test tasks, every task run 5 times. Seed archive from the ARC screen.
+  "panel_arc":
+    n_generation: 25
+    valid_size: 20
+    test_size: 60
+    n_repreat: 5
+    domain: arc
+    max_attempts: 75
+    debug_max: 3
+    require_seed_cache: true
 
 common:
   shuffle_seed: 0
