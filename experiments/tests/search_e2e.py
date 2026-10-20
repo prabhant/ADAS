@@ -37,6 +37,16 @@ if DOMAIN == "drop":
 
     def load_examples():
         return load_drop(os.path.join(ROOT, "dataset", "drop_v0_dev.jsonl.gz"))[1:-1]
+elif DOMAIN == "arc":
+    import pickle
+
+    from utils import format_arc_data, list_to_string  # noqa: E402
+
+    def arc_records(filename):
+        with open(os.path.join(ROOT, "dataset", filename), "rb") as handle:
+            tasks = pickle.load(handle)
+        # "inputs" is exactly the task text an agent receives; the target is test[0]'s output.
+        return [{"inputs": format_arc_data(t)[0], "targets": t["test"][0]["output"]} for t in tasks]
 else:
     from utils import get_all_examples  # noqa: E402
 
@@ -44,6 +54,7 @@ else:
         return get_all_examples()
 
 VALID, TEST, SEED = 12, 12, 0
+N_SEEDS = 5 if DOMAIN == "arc" else 7
 STUB_REASONING = "stub reasoning trace"
 
 GOOD_CODE = '''def forward(self, taskInfo):
@@ -67,10 +78,31 @@ def answered_correctly(question: str) -> bool:
 
 def split():
     """Replicates evaluate_forward_fn's selection exactly."""
+    if DOMAIN == "arc":
+        # ADAS's fixed ARC splits, never shuffled.
+        return (arc_records("sampled_arc_val_data.pkl")[:VALID],
+                arc_records("sampled_arc_test_data.pkl")[:TEST])
     examples = load_examples()
     random.seed(SEED)
     random.shuffle(examples)
     return examples[:VALID], examples[VALID:VALID + TEST]
+
+
+def arc_stub_fields(example, field):
+    """The gold grid when the stub answers correctly, else the gold with one cell changed.
+
+    `code` fields get a transform that returns that grid through a top-level import
+    and helper, returning a numpy array: stock ADAS's exec(code, {}, locals) could not
+    see either, and a numpy result crashed its example comparison.
+    """
+    grid = [list(row) for row in example["targets"]]
+    if not answered_correctly(example["inputs"]):
+        grid[0][0] = (grid[0][0] + 1) % 10
+    if "code" in field:
+        return ("import numpy as np\n\n"
+                f"def _stub_grid():\n    return {list_to_string(grid)}\n\n"
+                "def transform(grid):\n    return np.array(_stub_grid())\n")
+    return list_to_string(grid)
 
 
 VALID_SET, TEST_SET = split()
@@ -114,11 +146,14 @@ class Stub:
     @staticmethod
     def worker(messages):
         system, user = str(messages[0]["content"]), str(messages[-1]["content"])
-        fields = re.findall(r"'(\w+)': 'Your", system) or ["answer"]
+        # ARC's code description contains an apostrophe, so its repr is double-quoted.
+        fields = re.findall(r"'(\w+)': ['\"]Your", system) or ["answer"]
         example = next((e for e in USED if e["inputs"] in user), None)
         body = {}
         for field in fields:
-            if "answer" in field:
+            if DOMAIN == "arc" and example is not None and ("answer" in field or "code" in field):
+                body[field] = arc_stub_fields(example, field)
+            elif "answer" in field:
                 if example is None:
                     body[field] = 0
                     continue
@@ -238,7 +273,8 @@ def main() -> int:
 
     archive = load(os.path.join(a_dir, f"{a_id}_run_archive.json"))
     generated = [e for e in archive if isinstance(e.get("generation"), int)]
-    check(len(archive) == 10 and len(generated) == 3, f"7 seeds + 3 generated (got {len(archive)})")
+    check(len(archive) == N_SEEDS + 3 and len(generated) == 3,
+          f"{N_SEEDS} seeds + 3 generated (got {len(archive)})")
     if not generated:
         print("  no design was generated; the remaining section A checks cannot run")
         print(f"\n{check.failed} CHECK(S) FAILED  (artifacts in {workdir})")
@@ -251,11 +287,11 @@ def main() -> int:
     check(all(e.get("meta_reasoning") == STUB_REASONING for e in generated), "meta reasoning captured")
     ids = [e.get("design_id") for e in archive]
     check(all(ids) and len(set(ids)) == len(ids), "design ids present and unique")
-    check([len(e["archive_context"]) for e in generated] == [7, 8, 9],
+    check([len(e["archive_context"]) for e in generated] == [N_SEEDS, N_SEEDS + 1, N_SEEDS + 2],
           "archive_context records what each generation actually saw")
 
     evaluated = load(os.path.join(a_dir, f"{a_id}_run_archive_evaluate.json"))
-    check(len(evaluated) == 10, f"all 10 designs evaluated on test (got {len(evaluated)})")
+    check(len(evaluated) == N_SEEDS + 3, f"all {N_SEEDS + 3} designs evaluated on test (got {len(evaluated)})")
     check(all(abs(e["test_median_accuracy"] - acc_test) < 1e-9 for e in evaluated),
           f"every test score is exactly {acc_test:.4f}")
     check(all(e["test_per_question"] == expected_test for e in evaluated), "test vectors match ground truth")
@@ -291,7 +327,7 @@ def main() -> int:
     print("\n=== D: rerunning a finished cell resumes and does no new work ===")
     before = stub.meta_calls
     check(run_search(url, a_dir, a_id, target=3, extra=["--search_only"]) == 0, "exit 0")
-    check(len(load(os.path.join(a_dir, f"{a_id}_run_archive.json"))) == 10, "archive unchanged")
+    check(len(load(os.path.join(a_dir, f"{a_id}_run_archive.json"))) == N_SEEDS + 3, "archive unchanged")
     check(stub.meta_calls == before, "no meta calls made")
     server.shutdown()
 
@@ -310,7 +346,7 @@ def main() -> int:
     print("\n=== C: the handed-off cell resumes where it stopped ===")
     check(run_search(url, b_dir, b_id, target=1, extra=["--search_only"]) == 0, "exit 0")
     archive = load(os.path.join(b_dir, f"{b_id}_run_archive.json"))
-    check(len(archive) == 8, f"seeds kept, one generation added (got {len(archive)})")
+    check(len(archive) == N_SEEDS + 1, f"seeds kept, one generation added (got {len(archive)})")
 
     print("\n=== G: test evaluation stops at the deadline and resumes aligned ===")
     eval_path = os.path.join(b_dir, f"{b_id}_run_archive_evaluate.json")
@@ -320,8 +356,8 @@ def main() -> int:
     check(not os.path.exists(eval_path) or not load(eval_path), "no design evaluated past the deadline")
     check(run_search(url, b_dir, b_id, target=1, extra=["--evaluate_only"]) == 0, "resumed evaluation exit 0")
     evaluated = load(eval_path)
-    check(len(evaluated) == 8 and all(e["test_per_question"] == expected_test for e in evaluated),
-          "all 8 designs evaluated, each with the ground-truth test vector")
+    check(len(evaluated) == N_SEEDS + 1 and all(e["test_per_question"] == expected_test for e in evaluated),
+          f"all {N_SEEDS + 1} designs evaluated, each with the ground-truth test vector")
 
     print("\n=== H: test crashes count as wrong answers; failed test runs are retried ===")
     archive_path = os.path.join(b_dir, f"{b_id}_run_archive.json")
@@ -337,7 +373,7 @@ def main() -> int:
     check(run_search(url, b_dir, b_id, target=1, extra=["--evaluate_only"]) == 0, "exit 0")
     evaluated = load(eval_path)
     expected_crashy = [0 if len(e["inputs"]) % 2 else v for e, v in zip(TEST_SET, expected_test)]
-    check(len(evaluated) == 9, f"crashing design evaluated (got {len(evaluated)} records)")
+    check(len(evaluated) == N_SEEDS + 2, f"crashing design evaluated (got {len(evaluated)} records)")
     check(evaluated[-1].get("test_per_question") == expected_crashy
           and evaluated[-1].get("test_crashed_questions") == sum(len(e["inputs"]) % 2 for e in TEST_SET),
           "crashing questions scored wrong and counted, the rest scored normally")
@@ -427,8 +463,8 @@ def main() -> int:
     check(run_search(url, os.path.join(workdir, "S"), "e2eS", target=1,
                      extra=["--seeds_only", "--seed_cache_dir", shared]) == 0, "seeds-only cell exit 0")
     cache_files = os.listdir(shared) if os.path.isdir(shared) else []
-    check(len(cache_files) == 1 and len(load(os.path.join(shared, cache_files[0]))) == 7,
-          "seeds-only writes all 7 seeds to the shared cache")
+    check(len(cache_files) == 1 and len(load(os.path.join(shared, cache_files[0]))) == N_SEEDS,
+          f"seeds-only writes all {N_SEEDS} seeds to the shared cache")
     check(stub.meta_calls == 0, "seeds-only makes no meta call")
     check(not os.path.exists(os.path.join(workdir, "S", "e2eS_run_archive_evaluate.json")),
           "seeds-only skips test evaluation")
@@ -439,7 +475,7 @@ def main() -> int:
         archive = load(os.path.join(workdir, name, f"e2e{name}_run_archive.json"))
         seeds.append([{k: e.get(k) for k in ("name", "valid_per_question", "resource")}
                       for e in archive if e.get("generation") == "initial"])
-    check(len(seeds[0]) == 7 and seeds[0] == seeds[1],
+    check(len(seeds[0]) == N_SEEDS and seeds[0] == seeds[1],
           "both cells start from the identical cached seed archive (same wallclock: not re-evaluated)")
     server.shutdown()
 
@@ -467,7 +503,7 @@ def main() -> int:
           "resumed search exit 0")
     archive = load(os.path.join(k_dir, f"{k_id}_run_archive.json"))
     generated = [e for e in archive if isinstance(e.get("generation"), int)]
-    check(len(archive) == 8 and len(generated) == 1 and generated[0]["valid_per_question"] == expected_valid,
+    check(len(archive) == N_SEEDS + 1 and len(generated) == 1 and generated[0]["valid_per_question"] == expected_valid,
           "the next job completes the generation")
     server.shutdown()
 

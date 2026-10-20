@@ -19,3 +19,4 @@ activate_env
 
 python "$REPO_ROOT/experiments/tests/search_e2e.py" mgsm
 python "$REPO_ROOT/experiments/tests/search_e2e.py" drop
+python "$REPO_ROOT/experiments/tests/search_e2e.py" arc

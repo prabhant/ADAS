@@ -111,6 +111,15 @@ stage_defaults:
     max_attempts: 90
     debug_max: 3
     require_seed_cache: true
+  # ARC worker screen, ADAS's ARC protocol: its fixed 20 validation / 60 test tasks,
+  # every task run 5 times. Same settings as the ARC panel, so the chosen worker's
+  # seed archive is reused as is.
+  "arc_screen":
+    n_generation: 0
+    valid_size: 20
+    test_size: 60
+    n_repreat: 5
+    domain: arc
 
 common:
   shuffle_seed: 0
@@ -285,6 +294,15 @@ cells:
   - {id: dscr_seeds_qwen3-30b-a3b,       stage: "drop_screen", meta: null, worker: qwen3-30b-a3b,       seed: a, condition: seed_eval}
   - {id: dscr_seeds_nemotron-3-nano-30b, stage: "drop_screen", meta: null, worker: nemotron-3-nano-30b, seed: a, condition: seed_eval}
   - {id: dscr_seeds_qwen3.5-27b,         stage: "drop_screen", meta: null, worker: qwen3.5-27b,         seed: a, condition: seed_eval}
+
+  # -------------------------------------------------------------------------
+  # ARC worker screen (batch 11): the 5 ARC seed agents, ADAS's ARC protocol.
+  # -------------------------------------------------------------------------
+  - {id: ascr_seeds_mistral-7b,          stage: "arc_screen", meta: null, worker: mistral-7b,          seed: a, condition: seed_eval}
+  - {id: ascr_seeds_phi-4,               stage: "arc_screen", meta: null, worker: phi-4,               seed: a, condition: seed_eval}
+  - {id: ascr_seeds_qwen3-30b-a3b,       stage: "arc_screen", meta: null, worker: qwen3-30b-a3b,       seed: a, condition: seed_eval}
+  - {id: ascr_seeds_nemotron-3-nano-30b, stage: "arc_screen", meta: null, worker: nemotron-3-nano-30b, seed: a, condition: seed_eval}
+  - {id: ascr_seeds_qwen3.5-27b,         stage: "arc_screen", meta: null, worker: qwen3.5-27b,         seed: a, condition: seed_eval}
 
 # ---------------------------------------------------------------------------
 # Stage X -- cross-evaluation. Best validation agent from each source cell is

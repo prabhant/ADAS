@@ -19,7 +19,7 @@ if [[ -s "$BATCH" && "${FORCE:-0}" != "1" ]]; then
     exit 1
 fi
 
-[[ -z "$(git status --porcelain -- _mgsm _mmlu _drop experiments/adas_ext experiments/analysis \
+[[ -z "$(git status --porcelain -- _mgsm _mmlu _drop _arc experiments/adas_ext experiments/analysis \
           experiments/serving experiments/slurm experiments/config experiments/env experiments/tests)" ]] \
     || { echo "commit code changes first: results must map to a commit" >&2; exit 1; }
 COMMIT="$(git rev-parse --short HEAD)"
@@ -111,6 +111,13 @@ sys.exit(0 if paths and len(json.load(open(paths[0]))) == 7 else 1)" \
         after="--dependency=afterok:$(awk -F'\t' '$1 == "e2e_cpu" {print $2}' "$BATCH")"
         submit mgsm_tests       "$after" --array=2,3,5,6 --gpus=1 --cpus-per-task=16 --time=36:00:00 \
                                 experiments/slurm/stage2_main.slurm panel_mgsm
+        ;;
+    batch11)
+        # ARC ported: e2e now covers mgsm, drop and arc; the ARC worker screen (the
+        # 5 ARC seeds on 5 workers, 20 tasks x 5 runs) waits for it.
+        submit e2e_cpu          experiments/slurm/sanity/07_e2e_cpu.slurm
+        after="--dependency=afterok:$(awk -F'\t' '$1 == "e2e_cpu" {print $2}' "$BATCH")"
+        submit arc_screen       "$after" --array=0-4 experiments/slurm/stage05_baselines.slurm arc_screen
         ;;
     batch5)
         # The designer panel. Refuses to start without what every cell needs.
