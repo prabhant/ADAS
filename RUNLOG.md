@@ -660,3 +660,46 @@ Inspect with: bash experiments/slurm/status.sh
 - Unlikely to explain the MGSM null (Debate ~91%, seed union 94.2%). To rule
   out: optional reflection/debug_thought in the schema (stock order) + blind
   meta, ideally on Mistral-7B/MGSM. Awaiting user decision.
+
+### 2026-10-20 15:55 - batch11 submitted at commit 4eb7a11
+
+```
+e2e_cpu	28378098
+arc_screen	28378099
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-20 - ARC ported (4eb7a11); batch11 = e2e -> ARC worker screen
+
+- _arc/search.py from the reviewed _mgsm/search.py; ARC parts as stock ADAS:
+  worker prompt (FORMAT_INST/CODE_INST), AgentSystem feedback/test-output API,
+  exact match on test[0] only (some tasks have 2-3 test inputs; all shown, first
+  scored, as stock), fixed splits dataset/sampled_arc_{val,test}_data.pkl
+  (20 / 60 tasks), n_repreat 5 on both, 25 generations, 5 seeds (CoT,
+  Self-Refine, LLM Debate, CoT-SC, QD). Per-question vectors are questions x
+  passes (stock: each task's 5 runs consecutive; order changes no score).
+- Stock ARC harness bugs fixed (all verified before fixing):
+  exec(code, {}, locals) hid top-level imports/helpers from transform (NameError);
+  no time limit on worker code (10 s per transform call now, trace-based, also
+  the code's top level); numpy results crashed the example comparison; transforms
+  could mutate the shared task grids; AgentSystem stored `test_iuput` but the
+  designer is told `test_input`; eval() -> ast.literal_eval; sandbox RLIMIT_AS
+  64 GiB. Deviation kept from the other domains: worker output cap 4096 (stock
+  ARC 1024).
+- answer_kinds histogram per evaluation (resource.answer_kinds,
+  test_answer_kinds): correct / wrong_grid / code_error / runtime_error /
+  transform_timeout / no_transform / unparseable / ...
+- Designer prompt with 5 seeds is ~32k chars (~9k tokens); +~2k tokens per
+  design -> ~60k by generation 25. Qwen3-14B (65,536 YaRN, 4096 out) may
+  overflow near the end, as on MGSM (28/30).
+- ADAS reference (Table 3, test, 60 x 5): GPT-3.5 CoT 6.0, CoT-SC 8.0,
+  Self-Refine 6.7, QD 7.0, Debate 4.0; best searched 13.7. Claude-Sonnet:
+  Self-Refine 39.3, best transferred 48.3.
+- ARC-only e2e 28377511 PASSED (68 checks; stub transforms use a top-level
+  import + helper + numpy, which stock exec would have scored 0).
+- batch11: e2e 28378098 (mgsm, drop, arc) -> arc_screen 28378099 (array 0-4:
+  mistral-7b, phi-4, qwen3-30b-a3b, nemotron-nano, qwen3.5-27b; 1 GPU, 4 h).
+- NEXT: inspect the screen (validation accuracy per seed, answer_kinds, CoT vs
+  best seed); pick the ARC worker with scaffold headroom; then batch12 =
+  s05_cot_arc_<worker> baseline -> 8-designer ARC panel (25 gens, 20/60 x 5).
