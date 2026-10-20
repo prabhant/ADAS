@@ -623,3 +623,40 @@ Inspect with: bash experiments/slurm/status.sh
 - 02:28: batch10 gate e2e 28200441 PASSED at 07de224 (mgsm + drop, 136 checks,
   0 failures). mgsm_tests 28200442 [2,3,5,6] is now eligible (queued, no start
   estimate yet).
+
+### 2026-10-19 - batch10 done; MGSM panel complete
+
+- 28200442 tasks 2,3,5,6 COMPLETED first try (6.7 h, 10.3 h, 2.2 h, 12.8 h),
+  all evaluation-only on 1 GPU. evaluation_summary: 37/37 tested, 0 test
+  errors, stopped_on_deadline false in all four cells.
+- Qwen3.5-27B's selected design (gen 17, val 90.6, 54 calls / 75.7k tokens per
+  q) tests 89.4%: -1.5 [-3.1, +0.1] vs LLM Debate, +2.9 [+0.9, +5.0] vs CoT-SC.
+- MGSM final: 0/237 designs significantly better than Debate, 200/237
+  significantly worse; best-per-cell picked on test +0.9 at most; no design
+  cheaper than Debate without being worse. Seed union solves 94.2% of test
+  (Debate 90.9%). ADAS paper (GPT-3.5): MGSM 53.4 vs Debate 39.0.
+- MMLU: 12/240 designs significantly above CoT-SC on test (~6 expected by
+  chance); oracle-on-test up to +4.6; validation selection finds none.
+- Panels cost ~390 H100 GPU-hours (MGSM ~310 incl. batch10, MMLU ~85).
+- findings.md updated with the final numbers.
+
+### 2026-10-20 - fidelity audit vs stock ADAS (d0acd49)
+
+- Same as stock: 30 gens, 128/800 split + shuffle, 7 seeds, archive with fitness
+  shown, 2 reflexion rounds, debug_max 3 (code default; paper says 5), "All 0
+  accuracy" rejection, temps 0.8/0.5, worker json_object + 4096 cap.
+- Deviations that only help the search: equal-successes budget (stock `n -= 1`
+  in a for loop is a no-op, failed gens are lost); score_mgsm accepts numbers
+  (stock scored them wrong); crash-tolerant test; _as_text; prompt-field leak fix;
+  shared seed cache.
+- REAL DEVIATIONS:
+  1. Informed meta: worker name + CoT accuracy + nudge ("earn its extra calls",
+     "scaffolding ... wasted on a model that already reasons well"). Stock is blind.
+  2. Strict designer schema (thought, name, code) - verified with xgrammar
+     strict_mode that `reflection` and `debug_thought` are rejected, though the
+     stock reflexion/debug prompts ask for them. Designers still reason privately
+     (traces in 30/30 designs everywhere except Qwen3-14B 24-25/28-30), but
+     reflections are no longer carried into the next turn.
+- Unlikely to explain the MGSM null (Debate ~91%, seed union 94.2%). To rule
+  out: optional reflection/debug_thought in the schema (stock order) + blind
+  meta, ideally on Mistral-7B/MGSM. Awaiting user decision.
