@@ -1,0 +1,14 @@
+{
+  "target_generations": 30,
+  "max_attempts": 90,
+  "successes": 30,
+  "attempts": 34,
+  "exhausted": false,
+  "degenerate": false,
+  "failure_histogram": {
+    "python_syntax_error": 1,
+    "runtime_exception": 3
+  },
+  "attempts_per_success": 1.1333333333333333,
+  "stopped_on_deadline": false
+}

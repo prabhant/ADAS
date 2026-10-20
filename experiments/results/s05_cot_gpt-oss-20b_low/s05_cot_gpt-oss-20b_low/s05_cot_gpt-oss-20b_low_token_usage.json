@@ -1,0 +1,11 @@
+{
+  "baseline|cot:rep1|worker": {
+    "prompt_tokens": 153405,
+    "completion_tokens": 115139,
+    "reasoning_tokens": 0,
+    "n_calls": 640,
+    "n_truncated": 0,
+    "latency_s": 2327.016954421997,
+    "model": "openai/gpt-oss-20b"
+  }
+}

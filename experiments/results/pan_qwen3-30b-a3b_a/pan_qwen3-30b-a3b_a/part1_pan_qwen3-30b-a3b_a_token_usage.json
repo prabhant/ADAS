@@ -1,0 +1,506 @@
+{
+  "search|1|meta": {
+    "prompt_tokens": 54495,
+    "completion_tokens": 31024,
+    "reasoning_tokens": 27798,
+    "n_calls": 9,
+    "n_truncated": 4,
+    "latency_s": 178.8955614566803,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|1|worker": {
+    "prompt_tokens": 459943,
+    "completion_tokens": 126058,
+    "reasoning_tokens": 0,
+    "n_calls": 1408,
+    "n_truncated": 4,
+    "latency_s": 1790.2666909694672,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|2|meta": {
+    "prompt_tokens": 28712,
+    "completion_tokens": 11685,
+    "reasoning_tokens": 10058,
+    "n_calls": 4,
+    "n_truncated": 1,
+    "latency_s": 68.33611822128296,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|2|worker": {
+    "prompt_tokens": 363023,
+    "completion_tokens": 101531,
+    "reasoning_tokens": 0,
+    "n_calls": 1280,
+    "n_truncated": 2,
+    "latency_s": 1360.2915103435516,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|3|meta": {
+    "prompt_tokens": 62831,
+    "completion_tokens": 26042,
+    "reasoning_tokens": 21883,
+    "n_calls": 8,
+    "n_truncated": 3,
+    "latency_s": 151.8700988292694,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|3|worker": {
+    "prompt_tokens": 568200,
+    "completion_tokens": 179550,
+    "reasoning_tokens": 0,
+    "n_calls": 1920,
+    "n_truncated": 5,
+    "latency_s": 2537.1323618888855,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|4|meta": {
+    "prompt_tokens": 214044,
+    "completion_tokens": 79427,
+    "reasoning_tokens": 65703,
+    "n_calls": 23,
+    "n_truncated": 10,
+    "latency_s": 461.76315808296204,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|4|worker": {
+    "prompt_tokens": 462573,
+    "completion_tokens": 141955,
+    "reasoning_tokens": 0,
+    "n_calls": 1536,
+    "n_truncated": 4,
+    "latency_s": 1878.1900007724762,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|5|meta": {
+    "prompt_tokens": 31070,
+    "completion_tokens": 9988,
+    "reasoning_tokens": 8266,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 56.589489459991455,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|5|worker": {
+    "prompt_tokens": 116101,
+    "completion_tokens": 67622,
+    "reasoning_tokens": 0,
+    "n_calls": 384,
+    "n_truncated": 2,
+    "latency_s": 907.130054473877,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|6|meta": {
+    "prompt_tokens": 32593,
+    "completion_tokens": 8006,
+    "reasoning_tokens": 5693,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 45.45951795578003,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|6|worker": {
+    "prompt_tokens": 188617,
+    "completion_tokens": 60568,
+    "reasoning_tokens": 0,
+    "n_calls": 662,
+    "n_truncated": 2,
+    "latency_s": 813.7105641365051,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|7|meta": {
+    "prompt_tokens": 355400,
+    "completion_tokens": 119857,
+    "reasoning_tokens": 98779,
+    "n_calls": 32,
+    "n_truncated": 19,
+    "latency_s": 682.6509213447571,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|7|worker": {
+    "prompt_tokens": 978811,
+    "completion_tokens": 479855,
+    "reasoning_tokens": 0,
+    "n_calls": 2432,
+    "n_truncated": 20,
+    "latency_s": 6657.962590456009,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|8|meta": {
+    "prompt_tokens": 93497,
+    "completion_tokens": 29487,
+    "reasoning_tokens": 25641,
+    "n_calls": 8,
+    "n_truncated": 5,
+    "latency_s": 168.39341831207275,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|8|worker": {
+    "prompt_tokens": 1183685,
+    "completion_tokens": 507791,
+    "reasoning_tokens": 0,
+    "n_calls": 3200,
+    "n_truncated": 12,
+    "latency_s": 7145.106034994125,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|9|meta": {
+    "prompt_tokens": 52721,
+    "completion_tokens": 13734,
+    "reasoning_tokens": 9856,
+    "n_calls": 4,
+    "n_truncated": 1,
+    "latency_s": 79.42017865180969,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|9|worker": {
+    "prompt_tokens": 1154110,
+    "completion_tokens": 514676,
+    "reasoning_tokens": 0,
+    "n_calls": 3120,
+    "n_truncated": 14,
+    "latency_s": 7208.17674612999,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|10|meta": {
+    "prompt_tokens": 139905,
+    "completion_tokens": 35430,
+    "reasoning_tokens": 29096,
+    "n_calls": 10,
+    "n_truncated": 5,
+    "latency_s": 206.12017583847046,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|10|worker": {
+    "prompt_tokens": 1848372,
+    "completion_tokens": 534572,
+    "reasoning_tokens": 0,
+    "n_calls": 4736,
+    "n_truncated": 9,
+    "latency_s": 8146.367032766342,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|11|meta": {
+    "prompt_tokens": 290956,
+    "completion_tokens": 67011,
+    "reasoning_tokens": 56912,
+    "n_calls": 19,
+    "n_truncated": 10,
+    "latency_s": 393.7762508392334,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|11|worker": {
+    "prompt_tokens": 1267768,
+    "completion_tokens": 322079,
+    "reasoning_tokens": 0,
+    "n_calls": 3200,
+    "n_truncated": 8,
+    "latency_s": 4899.845240116119,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|12|meta": {
+    "prompt_tokens": 50284,
+    "completion_tokens": 7858,
+    "reasoning_tokens": 5124,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 46.75164985656738,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|12|worker": {
+    "prompt_tokens": 1262460,
+    "completion_tokens": 322234,
+    "reasoning_tokens": 0,
+    "n_calls": 3200,
+    "n_truncated": 8,
+    "latency_s": 4840.3047297000885,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|13|meta": {
+    "prompt_tokens": 155837,
+    "completion_tokens": 29733,
+    "reasoning_tokens": 22663,
+    "n_calls": 9,
+    "n_truncated": 3,
+    "latency_s": 177.67440557479858,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|13|worker": {
+    "prompt_tokens": 4134620,
+    "completion_tokens": 1098119,
+    "reasoning_tokens": 0,
+    "n_calls": 10112,
+    "n_truncated": 22,
+    "latency_s": 17228.210954666138,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|14|meta": {
+    "prompt_tokens": 218587,
+    "completion_tokens": 40932,
+    "reasoning_tokens": 33282,
+    "n_calls": 12,
+    "n_truncated": 6,
+    "latency_s": 245.8323633670807,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|14|worker": {
+    "prompt_tokens": 1156595,
+    "completion_tokens": 333384,
+    "reasoning_tokens": 0,
+    "n_calls": 3200,
+    "n_truncated": 10,
+    "latency_s": 4916.091974020004,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|15|meta": {
+    "prompt_tokens": 136794,
+    "completion_tokens": 21615,
+    "reasoning_tokens": 15344,
+    "n_calls": 7,
+    "n_truncated": 2,
+    "latency_s": 131.16139030456543,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|15|worker": {
+    "prompt_tokens": 1269515,
+    "completion_tokens": 347442,
+    "reasoning_tokens": 0,
+    "n_calls": 3200,
+    "n_truncated": 11,
+    "latency_s": 5272.717136859894,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|16|meta": {
+    "prompt_tokens": 81177,
+    "completion_tokens": 10539,
+    "reasoning_tokens": 7756,
+    "n_calls": 4,
+    "n_truncated": 1,
+    "latency_s": 64.22870087623596,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|16|worker": {
+    "prompt_tokens": 1266277,
+    "completion_tokens": 350114,
+    "reasoning_tokens": 0,
+    "n_calls": 3200,
+    "n_truncated": 12,
+    "latency_s": 5199.9758405685425,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|17|meta": {
+    "prompt_tokens": 65200,
+    "completion_tokens": 10437,
+    "reasoning_tokens": 7409,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 64.42787075042725,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|17|worker": {
+    "prompt_tokens": 1540503,
+    "completion_tokens": 358291,
+    "reasoning_tokens": 0,
+    "n_calls": 3200,
+    "n_truncated": 12,
+    "latency_s": 6174.16782617569,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|18|meta": {
+    "prompt_tokens": 138570,
+    "completion_tokens": 18273,
+    "reasoning_tokens": 11846,
+    "n_calls": 6,
+    "n_truncated": 1,
+    "latency_s": 113.90920782089233,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|18|worker": {
+    "prompt_tokens": 1338144,
+    "completion_tokens": 258848,
+    "reasoning_tokens": 0,
+    "n_calls": 3200,
+    "n_truncated": 10,
+    "latency_s": 4061.6552460193634,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|19|meta": {
+    "prompt_tokens": 71891,
+    "completion_tokens": 8450,
+    "reasoning_tokens": 5183,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 53.123764991760254,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|19|worker": {
+    "prompt_tokens": 1546059,
+    "completion_tokens": 353608,
+    "reasoning_tokens": 0,
+    "n_calls": 3200,
+    "n_truncated": 13,
+    "latency_s": 5943.815726041794,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|initial|worker": {
+    "prompt_tokens": 8175622,
+    "completion_tokens": 2210759,
+    "reasoning_tokens": 0,
+    "n_calls": 21383,
+    "n_truncated": 54,
+    "latency_s": 47429.6362092495,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|1|worker": {
+    "prompt_tokens": 3018849,
+    "completion_tokens": 773115,
+    "reasoning_tokens": 0,
+    "n_calls": 8800,
+    "n_truncated": 12,
+    "latency_s": 15576.646706819534,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|4|worker": {
+    "prompt_tokens": 3018696,
+    "completion_tokens": 923658,
+    "reasoning_tokens": 0,
+    "n_calls": 9610,
+    "n_truncated": 23,
+    "latency_s": 18861.087218284607,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|5|worker": {
+    "prompt_tokens": 759118,
+    "completion_tokens": 497993,
+    "reasoning_tokens": 0,
+    "n_calls": 2400,
+    "n_truncated": 26,
+    "latency_s": 8610.297395944595,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|6|worker": {
+    "prompt_tokens": 1343250,
+    "completion_tokens": 426938,
+    "reasoning_tokens": 0,
+    "n_calls": 4461,
+    "n_truncated": 10,
+    "latency_s": 7321.100209951401,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|7|worker": {
+    "prompt_tokens": 6276900,
+    "completion_tokens": 2849967,
+    "reasoning_tokens": 0,
+    "n_calls": 15200,
+    "n_truncated": 77,
+    "latency_s": 57927.3242456913,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|8|worker": {
+    "prompt_tokens": 7596986,
+    "completion_tokens": 3283124,
+    "reasoning_tokens": 0,
+    "n_calls": 20000,
+    "n_truncated": 91,
+    "latency_s": 65280.242042541504,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|9|worker": {
+    "prompt_tokens": 7404516,
+    "completion_tokens": 3207219,
+    "reasoning_tokens": 0,
+    "n_calls": 19496,
+    "n_truncated": 78,
+    "latency_s": 63337.73361968994,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|10|worker": {
+    "prompt_tokens": 12037529,
+    "completion_tokens": 3469899,
+    "reasoning_tokens": 0,
+    "n_calls": 29600,
+    "n_truncated": 57,
+    "latency_s": 75761.26272678375,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|11|worker": {
+    "prompt_tokens": 8148155,
+    "completion_tokens": 2006187,
+    "reasoning_tokens": 0,
+    "n_calls": 20000,
+    "n_truncated": 36,
+    "latency_s": 46258.60322022438,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|12|worker": {
+    "prompt_tokens": 8162199,
+    "completion_tokens": 1983274,
+    "reasoning_tokens": 0,
+    "n_calls": 20000,
+    "n_truncated": 29,
+    "latency_s": 45591.06260871887,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|13|worker": {
+    "prompt_tokens": 26468863,
+    "completion_tokens": 6751688,
+    "reasoning_tokens": 0,
+    "n_calls": 63200,
+    "n_truncated": 93,
+    "latency_s": 153002.9491648674,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|14|worker": {
+    "prompt_tokens": 7430448,
+    "completion_tokens": 2011450,
+    "reasoning_tokens": 0,
+    "n_calls": 20000,
+    "n_truncated": 36,
+    "latency_s": 43133.76828169823,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|15|worker": {
+    "prompt_tokens": 8166873,
+    "completion_tokens": 2113030,
+    "reasoning_tokens": 0,
+    "n_calls": 20000,
+    "n_truncated": 45,
+    "latency_s": 49254.665961265564,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|16|worker": {
+    "prompt_tokens": 8155311,
+    "completion_tokens": 2158076,
+    "reasoning_tokens": 0,
+    "n_calls": 20000,
+    "n_truncated": 58,
+    "latency_s": 50451.96552681923,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|17|worker": {
+    "prompt_tokens": 9914519,
+    "completion_tokens": 2236208,
+    "reasoning_tokens": 0,
+    "n_calls": 20000,
+    "n_truncated": 60,
+    "latency_s": 62854.28093624115,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|18|worker": {
+    "prompt_tokens": 8601255,
+    "completion_tokens": 1457043,
+    "reasoning_tokens": 0,
+    "n_calls": 20000,
+    "n_truncated": 30,
+    "latency_s": 39773.673048734665,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|19|worker": {
+    "prompt_tokens": 9941300,
+    "completion_tokens": 2098804,
+    "reasoning_tokens": 0,
+    "n_calls": 20000,
+    "n_truncated": 45,
+    "latency_s": 56727.87354898453,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  }
+}

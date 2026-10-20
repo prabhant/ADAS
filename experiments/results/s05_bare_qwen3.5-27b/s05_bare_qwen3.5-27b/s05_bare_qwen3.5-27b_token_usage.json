@@ -1,0 +1,11 @@
+{
+  "baseline|bare:rep1|worker": {
+    "prompt_tokens": 122185,
+    "completion_tokens": 8006,
+    "reasoning_tokens": 0,
+    "n_calls": 640,
+    "n_truncated": 0,
+    "latency_s": 3138.6829509735107,
+    "model": "Qwen/Qwen3.5-27B"
+  }
+}

@@ -1,0 +1,13 @@
+{"generation": 3, "attempt": 3, "stage": "evaluate", "category": "python_syntax_error", "message": "unterminated string literal (detected at line 4) (<string>, line 4)", "t": 1792031071.0728443}
+{"generation": 3, "attempt": 3, "stage": "evaluate", "category": "python_syntax_error", "message": "invalid character '\u2011' (U+2011) (<string>, line 50)", "t": 1792031090.5250015}
+{"generation": 3, "attempt": 3, "stage": "evaluate", "category": "python_syntax_error", "message": "invalid syntax (<string>, line 48)", "t": 1792031112.4187365}
+{"generation": 5, "attempt": 6, "stage": "evaluate", "category": "runtime_exception", "message": "too many values to unpack (expected 3)", "t": 1792031787.895013}
+{"generation": 5, "attempt": 6, "stage": "debug", "category": "json_parse_error", "message": "Expecting ',' delimiter: line 4735 column 1 (char 15181)", "t": 1792031842.822209}
+{"generation": 14, "attempt": 16, "stage": "evaluate", "category": "runtime_exception", "message": "too many values to unpack (expected 2)", "t": 1792034528.589343}
+{"generation": 17, "attempt": 19, "stage": "evaluate", "category": "runtime_exception", "message": "too many values to unpack (expected 2)", "t": 1792035624.3906121}
+{"generation": 17, "attempt": 19, "stage": "evaluate", "category": "python_syntax_error", "message": "unmatched '}' (<string>, line 68)", "t": 1792035637.5729873}
+{"generation": 17, "attempt": 19, "stage": "debug", "category": "json_parse_error", "message": "Expecting ',' delimiter: line 4 column 13527 (char 15996)", "t": 1792035693.1596546}
+{"generation": 20, "attempt": 23, "stage": "propose", "category": "json_parse_error", "message": "Expecting ',' delimiter: line 4828 column 1 (char 114500)", "t": 1792037327.427719}
+{"generation": 22, "attempt": 26, "stage": "propose", "category": "json_parse_error", "message": "Unterminated string starting at: line 2 column 14 (char 15)", "t": 1792038696.4415863}
+{"generation": 26, "attempt": 31, "stage": "evaluate", "category": "runtime_exception", "message": "name 'p' is not defined", "t": 1792040949.9255848}
+{"generation": 26, "attempt": 31, "stage": "evaluate", "category": "runtime_exception", "message": "too many values to unpack (expected 3)", "t": 1792041088.927714}

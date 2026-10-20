@@ -1,0 +1,11 @@
+{
+  "target_generations": 30,
+  "max_attempts": 90,
+  "successes": 30,
+  "attempts": 0,
+  "exhausted": false,
+  "degenerate": false,
+  "failure_histogram": {},
+  "attempts_per_success": 0.0,
+  "stopped_on_deadline": false
+}

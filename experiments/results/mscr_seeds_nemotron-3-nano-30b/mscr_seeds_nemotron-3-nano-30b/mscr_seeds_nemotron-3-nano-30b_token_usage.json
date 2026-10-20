@@ -1,0 +1,65 @@
+{
+  "search|initial:Chain-of-Thought|worker": {
+    "prompt_tokens": 25372,
+    "completion_tokens": 50185,
+    "reasoning_tokens": 0,
+    "n_calls": 128,
+    "n_truncated": 4,
+    "latency_s": 1243.8974123001099,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:Self-Consistency with Chain-of-Thought|worker": {
+    "prompt_tokens": 126860,
+    "completion_tokens": 331768,
+    "reasoning_tokens": 0,
+    "n_calls": 640,
+    "n_truncated": 43,
+    "latency_s": 8475.570693016052,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:Self-Refine (Reflexion)|worker": {
+    "prompt_tokens": 229822,
+    "completion_tokens": 243557,
+    "reasoning_tokens": 0,
+    "n_calls": 373,
+    "n_truncated": 35,
+    "latency_s": 4906.370887517929,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:LLM Debate|worker": {
+    "prompt_tokens": 491928,
+    "completion_tokens": 346376,
+    "reasoning_tokens": 0,
+    "n_calls": 896,
+    "n_truncated": 42,
+    "latency_s": 9223.62777543068,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:Step-back Abstraction|worker": {
+    "prompt_tokens": 83759,
+    "completion_tokens": 90891,
+    "reasoning_tokens": 0,
+    "n_calls": 256,
+    "n_truncated": 8,
+    "latency_s": 2469.3419909477234,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:Quality-Diversity|worker": {
+    "prompt_tokens": 428901,
+    "completion_tokens": 257855,
+    "reasoning_tokens": 0,
+    "n_calls": 640,
+    "n_truncated": 30,
+    "latency_s": 7149.619530916214,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:Dynamic Assignment of Roles|worker": {
+    "prompt_tokens": 50107,
+    "completion_tokens": 52415,
+    "reasoning_tokens": 0,
+    "n_calls": 256,
+    "n_truncated": 6,
+    "latency_s": 1267.5928075313568,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  }
+}

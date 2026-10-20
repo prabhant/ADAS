@@ -1,0 +1,11 @@
+{
+  "baseline|bare:rep1|worker": {
+    "prompt_tokens": 144215,
+    "completion_tokens": 5420,
+    "reasoning_tokens": 0,
+    "n_calls": 640,
+    "n_truncated": 0,
+    "latency_s": 596.90886759758,
+    "model": "microsoft/phi-4"
+  }
+}

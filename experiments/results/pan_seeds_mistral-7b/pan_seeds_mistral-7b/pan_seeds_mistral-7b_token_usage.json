@@ -1,0 +1,65 @@
+{
+  "search|initial:Chain-of-Thought|worker": {
+    "prompt_tokens": 29221,
+    "completion_tokens": 11776,
+    "reasoning_tokens": 0,
+    "n_calls": 128,
+    "n_truncated": 0,
+    "latency_s": 266.6935873031616,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:Self-Consistency with Chain-of-Thought|worker": {
+    "prompt_tokens": 146105,
+    "completion_tokens": 66196,
+    "reasoning_tokens": 0,
+    "n_calls": 640,
+    "n_truncated": 2,
+    "latency_s": 780.6760790348053,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:Self-Refine (Reflexion)|worker": {
+    "prompt_tokens": 128268,
+    "completion_tokens": 26317,
+    "reasoning_tokens": 0,
+    "n_calls": 364,
+    "n_truncated": 0,
+    "latency_s": 378.3636178970337,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:LLM Debate|worker": {
+    "prompt_tokens": 517785,
+    "completion_tokens": 118109,
+    "reasoning_tokens": 0,
+    "n_calls": 1152,
+    "n_truncated": 3,
+    "latency_s": 1915.391573190689,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:Step-back Abstraction|worker": {
+    "prompt_tokens": 82718,
+    "completion_tokens": 31851,
+    "reasoning_tokens": 0,
+    "n_calls": 256,
+    "n_truncated": 0,
+    "latency_s": 470.0233533382416,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:Quality-Diversity|worker": {
+    "prompt_tokens": 299560,
+    "completion_tokens": 60318,
+    "reasoning_tokens": 0,
+    "n_calls": 640,
+    "n_truncated": 1,
+    "latency_s": 909.4304876327515,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:Dynamic Assignment of Roles|worker": {
+    "prompt_tokens": 57969,
+    "completion_tokens": 19455,
+    "reasoning_tokens": 0,
+    "n_calls": 256,
+    "n_truncated": 1,
+    "latency_s": 325.7629704475403,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  }
+}

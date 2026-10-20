@@ -1,0 +1,65 @@
+{
+  "search|initial:Chain-of-Thought|worker": {
+    "prompt_tokens": 86186,
+    "completion_tokens": 30834,
+    "reasoning_tokens": 0,
+    "n_calls": 128,
+    "n_truncated": 4,
+    "latency_s": 858.4342000484467,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:Self-Consistency with Chain-of-Thought|worker": {
+    "prompt_tokens": 610200,
+    "completion_tokens": 212169,
+    "reasoning_tokens": 0,
+    "n_calls": 768,
+    "n_truncated": 27,
+    "latency_s": 6336.806874036789,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:Self-Refine (Reflexion)|worker": {
+    "prompt_tokens": 433271,
+    "completion_tokens": 258170,
+    "reasoning_tokens": 0,
+    "n_calls": 430,
+    "n_truncated": 40,
+    "latency_s": 5573.700132369995,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:LLM Debate|worker": {
+    "prompt_tokens": 830460,
+    "completion_tokens": 178157,
+    "reasoning_tokens": 0,
+    "n_calls": 896,
+    "n_truncated": 14,
+    "latency_s": 5935.486146688461,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:Step-back Abstraction|worker": {
+    "prompt_tokens": 206903,
+    "completion_tokens": 68587,
+    "reasoning_tokens": 0,
+    "n_calls": 256,
+    "n_truncated": 5,
+    "latency_s": 2100.787342786789,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:Quality-Diversity|worker": {
+    "prompt_tokens": 609294,
+    "completion_tokens": 127731,
+    "reasoning_tokens": 0,
+    "n_calls": 640,
+    "n_truncated": 12,
+    "latency_s": 4075.9532475471497,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:Dynamic Assignment of Roles|worker": {
+    "prompt_tokens": 173653,
+    "completion_tokens": 30940,
+    "reasoning_tokens": 0,
+    "n_calls": 256,
+    "n_truncated": 3,
+    "latency_s": 1024.9236841201782,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  }
+}

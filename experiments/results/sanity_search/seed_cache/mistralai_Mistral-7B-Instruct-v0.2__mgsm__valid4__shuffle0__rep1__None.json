@@ -1,0 +1,156 @@
+{
+  "Chain-of-Thought": {
+    "fitness": "95% Bootstrap Confidence Interval: (0.0%, 0.0%), Median: 0.0%",
+    "raw_median_accuracy": 0.0,
+    "valid_per_question": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "resource": {
+      "generation": "initial",
+      "n_questions": 4,
+      "worker_calls": 4,
+      "calls_per_question": 1.0,
+      "prompt_tokens": 1261,
+      "completion_tokens": 457,
+      "reasoning_tokens": 0,
+      "truncated_calls": 0,
+      "tokens_per_question": 429.5,
+      "wallclock_s": 3.8216552734375
+    }
+  },
+  "Self-Consistency with Chain-of-Thought": {
+    "fitness": "95% Bootstrap Confidence Interval: (0.0%, 0.0%), Median: 0.0%",
+    "raw_median_accuracy": 0.0,
+    "valid_per_question": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "resource": {
+      "generation": "initial",
+      "n_questions": 4,
+      "worker_calls": 20,
+      "calls_per_question": 5.0,
+      "prompt_tokens": 6305,
+      "completion_tokens": 2106,
+      "reasoning_tokens": 0,
+      "truncated_calls": 0,
+      "tokens_per_question": 2102.75,
+      "wallclock_s": 6.096708297729492
+    }
+  },
+  "Self-Refine (Reflexion)": {
+    "fitness": "95% Bootstrap Confidence Interval: (0.0%, 0.0%), Median: 0.0%",
+    "raw_median_accuracy": 0.0,
+    "valid_per_question": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "resource": {
+      "generation": "initial",
+      "n_questions": 4,
+      "worker_calls": 10,
+      "calls_per_question": 2.5,
+      "prompt_tokens": 4096,
+      "completion_tokens": 941,
+      "reasoning_tokens": 0,
+      "truncated_calls": 0,
+      "tokens_per_question": 1259.25,
+      "wallclock_s": 4.415206432342529
+    }
+  },
+  "LLM Debate": {
+    "fitness": "95% Bootstrap Confidence Interval: (0.0%, 0.0%), Median: 0.0%",
+    "raw_median_accuracy": 0.0,
+    "valid_per_question": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "resource": {
+      "generation": "initial",
+      "n_questions": 4,
+      "worker_calls": 28,
+      "calls_per_question": 7.0,
+      "prompt_tokens": 14897,
+      "completion_tokens": 3235,
+      "reasoning_tokens": 0,
+      "truncated_calls": 0,
+      "tokens_per_question": 4533.0,
+      "wallclock_s": 9.87818717956543
+    }
+  },
+  "Step-back Abstraction": {
+    "fitness": "95% Bootstrap Confidence Interval: (0.0%, 0.0%), Median: 0.0%",
+    "raw_median_accuracy": 0.0,
+    "valid_per_question": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "resource": {
+      "generation": "initial",
+      "n_questions": 4,
+      "worker_calls": 8,
+      "calls_per_question": 2.0,
+      "prompt_tokens": 3425,
+      "completion_tokens": 1413,
+      "reasoning_tokens": 0,
+      "truncated_calls": 0,
+      "tokens_per_question": 1209.5,
+      "wallclock_s": 4.853808164596558
+    }
+  },
+  "Quality-Diversity": {
+    "fitness": "95% Bootstrap Confidence Interval: (0.0%, 0.0%), Median: 0.0%",
+    "raw_median_accuracy": 0.0,
+    "valid_per_question": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "resource": {
+      "generation": "initial",
+      "n_questions": 4,
+      "worker_calls": 20,
+      "calls_per_question": 5.0,
+      "prompt_tokens": 11848,
+      "completion_tokens": 2300,
+      "reasoning_tokens": 0,
+      "truncated_calls": 0,
+      "tokens_per_question": 3537.0,
+      "wallclock_s": 7.361910343170166
+    }
+  },
+  "Dynamic Assignment of Roles": {
+    "fitness": "95% Bootstrap Confidence Interval: (0.0%, 0.0%), Median: 0.0%",
+    "raw_median_accuracy": 0.0,
+    "valid_per_question": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "resource": {
+      "generation": "initial",
+      "n_questions": 4,
+      "worker_calls": 8,
+      "calls_per_question": 2.0,
+      "prompt_tokens": 2514,
+      "completion_tokens": 643,
+      "reasoning_tokens": 0,
+      "truncated_calls": 0,
+      "tokens_per_question": 789.25,
+      "wallclock_s": 3.3682427406311035
+    }
+  }
+}

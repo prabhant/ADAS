@@ -1,0 +1,1 @@
+{"generation": 1, "attempt": 1, "stage": "evaluate", "category": "runtime_exception", "message": "'AgentSystem' object has no attribute 'agent_name'", "t": 1788458820.382644}

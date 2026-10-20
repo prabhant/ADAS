@@ -1,0 +1,11 @@
+{
+  "test|30|worker": {
+    "prompt_tokens": 5413220,
+    "completion_tokens": 1307520,
+    "reasoning_tokens": 0,
+    "n_calls": 8320,
+    "n_truncated": 6,
+    "latency_s": 32546.903551101685,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  }
+}

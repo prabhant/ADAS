@@ -1,0 +1,27 @@
+{"generation": 1, "attempt": 1, "stage": "evaluate", "category": "runtime_exception", "message": "2 things in namespace. Please only provide 1", "t": 1792028231.7176366}
+{"generation": 1, "attempt": 1, "stage": "evaluate", "category": "runtime_exception", "message": "2 things in namespace. Please only provide 1", "t": 1792028257.574245}
+{"generation": 1, "attempt": 1, "stage": "evaluate", "category": "python_syntax_error", "message": "unexpected character after line continuation character (<string>, line 7)", "t": 1792028277.2861438}
+{"generation": 6, "attempt": 7, "stage": "evaluate", "category": "runtime_exception", "message": "2 things in namespace. Please only provide 1", "t": 1792029045.8505456}
+{"generation": 6, "attempt": 7, "stage": "evaluate", "category": "runtime_exception", "message": "2 things in namespace. Please only provide 1", "t": 1792029069.1505508}
+{"generation": 6, "attempt": 7, "stage": "evaluate", "category": "runtime_exception", "message": "2 things in namespace. Please only provide 1", "t": 1792029080.1090233}
+{"generation": 6, "attempt": 8, "stage": "evaluate", "category": "runtime_exception", "message": "could not convert string to float: ''", "t": 1792029261.8280475}
+{"generation": 16, "attempt": 18, "stage": "evaluate", "category": "runtime_exception", "message": "too many values to unpack (expected 3)", "t": 1792032339.320225}
+{"generation": 17, "attempt": 19, "stage": "evaluate", "category": "runtime_exception", "message": "too many values to unpack (expected 3)", "t": 1792033726.256268}
+{"generation": 17, "attempt": 19, "stage": "evaluate", "category": "runtime_exception", "message": "too many values to unpack (expected 3)", "t": 1792034081.9879045}
+{"generation": 18, "attempt": 20, "stage": "evaluate", "category": "runtime_exception", "message": "2 things in namespace. Please only provide 1", "t": 1792035867.9892766}
+{"generation": 18, "attempt": 20, "stage": "evaluate", "category": "runtime_exception", "message": "2 things in namespace. Please only provide 1", "t": 1792035888.1536388}
+{"generation": 18, "attempt": 20, "stage": "evaluate", "category": "runtime_exception", "message": "2 things in namespace. Please only provide 1", "t": 1792035905.1609201}
+{"generation": 18, "attempt": 21, "stage": "evaluate", "category": "python_syntax_error", "message": "unexpected character after line continuation character (<string>, line 48)", "t": 1792035955.8346462}
+{"generation": 19, "attempt": 22, "stage": "evaluate", "category": "runtime_exception", "message": "too many values to unpack (expected 3)", "t": 1792037749.4850202}
+{"generation": 19, "attempt": 22, "stage": "evaluate", "category": "runtime_exception", "message": "LLMAgentBase.__call__() got an unexpected keyword argument 'temperature'", "t": 1792038322.062737}
+{"generation": 20, "attempt": 23, "stage": "evaluate", "category": "runtime_exception", "message": "2 things in namespace. Please only provide 1", "t": 1792040580.545233}
+{"generation": 20, "attempt": 23, "stage": "evaluate", "category": "runtime_exception", "message": "too many values to unpack (expected 3)", "t": 1792042204.8069851}
+{"generation": 20, "attempt": 23, "stage": "evaluate", "category": "runtime_exception", "message": "2 things in namespace. Please only provide 1", "t": 1792042228.1819255}
+{"generation": 20, "attempt": 24, "stage": "evaluate", "category": "runtime_exception", "message": "too many values to unpack (expected 3)", "t": 1792044809.0276833}
+{"generation": 23, "attempt": 27, "stage": "evaluate", "category": "runtime_exception", "message": "could not convert string to float: ''", "t": 1792049016.1932218}
+{"generation": 23, "attempt": 27, "stage": "evaluate", "category": "all_zero_accuracy", "message": "All 0 accuracy", "t": 1792049248.8440132}
+{"generation": 30, "attempt": 34, "stage": "evaluate", "category": "runtime_exception", "message": "could not convert string to float: ''", "t": 1792052091.1933384}
+{"generation": 17, "attempt": 34, "stage": "test", "category": "wallclock_timeout", "message": "Sandboxed evaluation exceeded 3600s wall clock", "t": 1792066525.607799}
+{"generation": 18, "attempt": 34, "stage": "test", "category": "wallclock_timeout", "message": "Sandboxed evaluation exceeded 3600s wall clock", "t": 1792070127.8429947}
+{"generation": 19, "attempt": 34, "stage": "test", "category": "wallclock_timeout", "message": "Sandboxed evaluation exceeded 3600s wall clock", "t": 1792073730.0928097}
+{"generation": 20, "attempt": 34, "stage": "test", "category": "wallclock_timeout", "message": "Sandboxed evaluation exceeded 3600s wall clock", "t": 1792077332.2293644}

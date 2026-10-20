@@ -1,0 +1,45 @@
+{"generation": 1, "attempt": 1, "stage": "propose", "category": "runtime_exception", "message": "Model returned an empty message body", "t": 1791934137.1410859}
+{"generation": 4, "attempt": 5, "stage": "propose", "category": "json_parse_error", "message": "Unterminated string starting at: line 1 column 13 (char 12)", "t": 1791934725.791689}
+{"generation": 4, "attempt": 6, "stage": "propose", "category": "runtime_exception", "message": "Model returned an empty message body", "t": 1791934834.176127}
+{"generation": 5, "attempt": 8, "stage": "propose", "category": "json_parse_error", "message": "Unterminated string starting at: line 1 column 1406 (char 1405)", "t": 1791935090.5292828}
+{"generation": 5, "attempt": 9, "stage": "propose", "category": "runtime_exception", "message": "Model returned an empty message body", "t": 1791935153.0179033}
+{"generation": 5, "attempt": 10, "stage": "propose", "category": "runtime_exception", "message": "Model returned an empty message body", "t": 1791935215.5076442}
+{"generation": 6, "attempt": 12, "stage": "evaluate", "category": "python_syntax_error", "message": "unterminated string literal (detected at line 3) (<string>, line 3)", "t": 1791935546.1589987}
+{"generation": 6, "attempt": 12, "stage": "evaluate", "category": "runtime_exception", "message": "list index out of range", "t": 1791935623.8335679}
+{"generation": 6, "attempt": 12, "stage": "evaluate", "category": "runtime_exception", "message": "could not convert string to float: '1.0;'", "t": 1791935738.6419804}
+{"generation": 6, "attempt": 13, "stage": "evaluate", "category": "runtime_exception", "message": "'list' object has no attribute 'content'", "t": 1791935951.5186865}
+{"generation": 6, "attempt": 13, "stage": "debug", "category": "json_parse_error", "message": "Unterminated string starting at: line 7 column 9 (char 787)", "t": 1791936015.3446608}
+{"generation": 8, "attempt": 16, "stage": "propose", "category": "json_parse_error", "message": "Unterminated string starting at: line 4 column 9 (char 1695)", "t": 1791936462.397225}
+{"generation": 9, "attempt": 18, "stage": "evaluate", "category": "python_syntax_error", "message": "unexpected character after line continuation character (<string>, line 3)", "t": 1791936674.3835354}
+{"generation": 9, "attempt": 18, "stage": "evaluate", "category": "python_syntax_error", "message": "unexpected character after line continuation character (<string>, line 3)", "t": 1791936706.6180124}
+{"generation": 9, "attempt": 18, "stage": "evaluate", "category": "runtime_exception", "message": "'str' object has no attribute 'get'", "t": 1791936821.4620664}
+{"generation": 10, "attempt": 20, "stage": "evaluate", "category": "runtime_exception", "message": "'LLMAgentBase' object has no attribute 'content'", "t": 1791937165.297388}
+{"generation": 11, "attempt": 21, "stage": "evaluate", "category": "runtime_exception", "message": "invalid literal for int() with base 10: 'B'", "t": 1791937440.860693}
+{"generation": 11, "attempt": 21, "stage": "evaluate", "category": "runtime_exception", "message": "name 'domain_critic' is not defined", "t": 1791937531.330105}
+{"generation": 11, "attempt": 21, "stage": "evaluate", "category": "runtime_exception", "message": "generator raised StopIteration", "t": 1791937665.828891}
+{"generation": 11, "attempt": 22, "stage": "evaluate", "category": "runtime_exception", "message": "'str' object has no attribute 'content'", "t": 1791937752.5202832}
+{"generation": 12, "attempt": 23, "stage": "evaluate", "category": "runtime_exception", "message": "'valid'", "t": 1791938007.4855337}
+{"generation": 12, "attempt": 23, "stage": "evaluate", "category": "runtime_exception", "message": "'valid'", "t": 1791938087.5381038}
+{"generation": 12, "attempt": 23, "stage": "debug", "category": "json_parse_error", "message": "Unterminated string starting at: line 1 column 1466 (char 1465)", "t": 1791938154.8946383}
+{"generation": 13, "attempt": 25, "stage": "propose", "category": "json_parse_error", "message": "Unterminated string starting at: line 5 column 9 (char 1296)", "t": 1791938380.3707428}
+{"generation": 14, "attempt": 27, "stage": "evaluate", "category": "runtime_exception", "message": "could not convert string to float: '{\"principle_weight\": 1.0, \"domain_weight\": 0.0}'", "t": 1791938725.7871544}
+{"generation": 14, "attempt": 27, "stage": "evaluate", "category": "runtime_exception", "message": "'float' object is not subscriptable", "t": 1791938847.2847116}
+{"generation": 15, "attempt": 28, "stage": "evaluate", "category": "python_syntax_error", "message": "'[' was never closed (<string>, line 57)", "t": 1791939112.7670138}
+{"generation": 15, "attempt": 28, "stage": "evaluate", "category": "python_syntax_error", "message": "'[' was never closed (<string>, line 57)", "t": 1791939156.561364}
+{"generation": 15, "attempt": 28, "stage": "debug", "category": "json_parse_error", "message": "Unterminated string starting at: line 5 column 9 (char 1013)", "t": 1791939225.4684038}
+{"generation": 15, "attempt": 29, "stage": "propose", "category": "json_parse_error", "message": "Unterminated string starting at: line 1 column 1380 (char 1379)", "t": 1791939352.5409417}
+{"generation": 16, "attempt": 31, "stage": "evaluate", "category": "python_syntax_error", "message": "invalid syntax (<string>, line 21)", "t": 1791939642.4112992}
+{"generation": 18, "attempt": 33, "stage": "evaluate", "category": "runtime_exception", "message": "'str' object has no attribute 'get'", "t": 1791940126.8035147}
+{"generation": 18, "attempt": 33, "stage": "evaluate", "category": "runtime_exception", "message": "'float' object has no attribute 'get'", "t": 1791940342.4774234}
+{"generation": 18, "attempt": 33, "stage": "debug", "category": "runtime_exception", "message": "Model returned an empty message body", "t": 1791940412.5651343}
+{"generation": 18, "attempt": 34, "stage": "propose", "category": "runtime_exception", "message": "Model returned an empty message body", "t": 1791940479.6258652}
+{"generation": 22, "attempt": 39, "stage": "propose", "category": "json_parse_error", "message": "Unterminated string starting at: line 1 column 1727 (char 1726)", "t": 1791941185.2996979}
+{"generation": 22, "attempt": 40, "stage": "evaluate", "category": "runtime_exception", "message": "could not convert string to float: ''", "t": 1791941322.0412319}
+{"generation": 22, "attempt": 40, "stage": "evaluate", "category": "runtime_exception", "message": "'str' object has no attribute 'content'", "t": 1791941427.8562288}
+{"generation": 22, "attempt": 40, "stage": "evaluate", "category": "runtime_exception", "message": "could not convert string to float: '0.2.'", "t": 1791941538.5278838}
+{"generation": 22, "attempt": 41, "stage": "evaluate", "category": "runtime_exception", "message": "could not convert string to float: ''", "t": 1791941668.1281664}
+{"generation": 22, "attempt": 41, "stage": "evaluate", "category": "runtime_exception", "message": "'float' object has no attribute 'values'", "t": 1791941751.442483}
+{"generation": 22, "attempt": 41, "stage": "evaluate", "category": "runtime_exception", "message": "could not convert string to float: 'D'", "t": 1791941842.2380083}
+{"generation": 29, "attempt": 49, "stage": "evaluate", "category": "runtime_exception", "message": "'\"principle_weight\"'", "t": 1791943216.3758435}
+{"generation": 29, "attempt": 49, "stage": "evaluate", "category": "runtime_exception", "message": "'\"principle_weight\"'", "t": 1791943302.9091644}
+{"generation": 29, "attempt": 49, "stage": "debug", "category": "json_parse_error", "message": "Unterminated string starting at: line 7 column 9 (char 1601)", "t": 1791943378.8533058}

@@ -1,0 +1,11 @@
+{
+  "baseline|cot:rep1|worker": {
+    "prompt_tokens": 163070,
+    "completion_tokens": 193420,
+    "reasoning_tokens": 0,
+    "n_calls": 640,
+    "n_truncated": 31,
+    "latency_s": 2768.487811088562,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  }
+}

@@ -1,0 +1,218 @@
+{
+  "search|23|meta": {
+    "prompt_tokens": 154631,
+    "completion_tokens": 8884,
+    "reasoning_tokens": 3280,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 43.24332404136658,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|23|worker": {
+    "prompt_tokens": 204382,
+    "completion_tokens": 82490,
+    "reasoning_tokens": 0,
+    "n_calls": 768,
+    "n_truncated": 5,
+    "latency_s": 1103.5705907344818,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|24|meta": {
+    "prompt_tokens": 218100,
+    "completion_tokens": 13727,
+    "reasoning_tokens": 5794,
+    "n_calls": 4,
+    "n_truncated": 0,
+    "latency_s": 63.176846504211426,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|24|worker": {
+    "prompt_tokens": 204382,
+    "completion_tokens": 84523,
+    "reasoning_tokens": 0,
+    "n_calls": 768,
+    "n_truncated": 6,
+    "latency_s": 1035.560605764389,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|25|meta": {
+    "prompt_tokens": 167444,
+    "completion_tokens": 9894,
+    "reasoning_tokens": 3597,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 45.63145160675049,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|25|worker": {
+    "prompt_tokens": 133652,
+    "completion_tokens": 38820,
+    "reasoning_tokens": 0,
+    "n_calls": 512,
+    "n_truncated": 0,
+    "latency_s": 595.7200713157654,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|26|meta": {
+    "prompt_tokens": 397218,
+    "completion_tokens": 41072,
+    "reasoning_tokens": 10291,
+    "n_calls": 7,
+    "n_truncated": 2,
+    "latency_s": 188.70596718788147,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|26|worker": {
+    "prompt_tokens": 222302,
+    "completion_tokens": 83411,
+    "reasoning_tokens": 0,
+    "n_calls": 768,
+    "n_truncated": 3,
+    "latency_s": 1090.6865601539612,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|27|meta": {
+    "prompt_tokens": 177440,
+    "completion_tokens": 11136,
+    "reasoning_tokens": 5367,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 51.34742045402527,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|27|worker": {
+    "prompt_tokens": 222302,
+    "completion_tokens": 75878,
+    "reasoning_tokens": 0,
+    "n_calls": 768,
+    "n_truncated": 1,
+    "latency_s": 963.8666167259216,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|28|meta": {
+    "prompt_tokens": 186412,
+    "completion_tokens": 13582,
+    "reasoning_tokens": 7516,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 62.58385634422302,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|28|worker": {
+    "prompt_tokens": 222302,
+    "completion_tokens": 88118,
+    "reasoning_tokens": 0,
+    "n_calls": 768,
+    "n_truncated": 4,
+    "latency_s": 1060.2503519058228,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|29|meta": {
+    "prompt_tokens": 188982,
+    "completion_tokens": 7014,
+    "reasoning_tokens": 1507,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 32.72321701049805,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|29|worker": {
+    "prompt_tokens": 222302,
+    "completion_tokens": 94365,
+    "reasoning_tokens": 0,
+    "n_calls": 768,
+    "n_truncated": 6,
+    "latency_s": 1171.4285380840302,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|30|meta": {
+    "prompt_tokens": 196567,
+    "completion_tokens": 11386,
+    "reasoning_tokens": 5731,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 52.72509407997131,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|30|worker": {
+    "prompt_tokens": 222302,
+    "completion_tokens": 75510,
+    "reasoning_tokens": 0,
+    "n_calls": 768,
+    "n_truncated": 2,
+    "latency_s": 1013.1190717220306,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|23|worker": {
+    "prompt_tokens": 1318258,
+    "completion_tokens": 587926,
+    "reasoning_tokens": 0,
+    "n_calls": 4800,
+    "n_truncated": 44,
+    "latency_s": 10297.375901937485,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|24|worker": {
+    "prompt_tokens": 1318258,
+    "completion_tokens": 563504,
+    "reasoning_tokens": 0,
+    "n_calls": 4800,
+    "n_truncated": 34,
+    "latency_s": 9720.04198551178,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|25|worker": {
+    "prompt_tokens": 862572,
+    "completion_tokens": 254633,
+    "reasoning_tokens": 0,
+    "n_calls": 3200,
+    "n_truncated": 2,
+    "latency_s": 4871.973396062851,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|26|worker": {
+    "prompt_tokens": 1431030,
+    "completion_tokens": 560121,
+    "reasoning_tokens": 0,
+    "n_calls": 4802,
+    "n_truncated": 24,
+    "latency_s": 9502.86283493042,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|27|worker": {
+    "prompt_tokens": 1432612,
+    "completion_tokens": 562521,
+    "reasoning_tokens": 0,
+    "n_calls": 4804,
+    "n_truncated": 28,
+    "latency_s": 9691.16261100769,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|28|worker": {
+    "prompt_tokens": 1430258,
+    "completion_tokens": 569462,
+    "reasoning_tokens": 0,
+    "n_calls": 4800,
+    "n_truncated": 26,
+    "latency_s": 9882.318400859833,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|29|worker": {
+    "prompt_tokens": 1430929,
+    "completion_tokens": 552129,
+    "reasoning_tokens": 0,
+    "n_calls": 4801,
+    "n_truncated": 25,
+    "latency_s": 9585.575659751892,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|30|worker": {
+    "prompt_tokens": 1432058,
+    "completion_tokens": 529157,
+    "reasoning_tokens": 0,
+    "n_calls": 4803,
+    "n_truncated": 18,
+    "latency_s": 9185.474041938782,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  }
+}

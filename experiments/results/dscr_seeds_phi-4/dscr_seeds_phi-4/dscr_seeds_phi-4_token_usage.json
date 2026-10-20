@@ -1,0 +1,65 @@
+{
+  "search|initial:Chain-of-Thought|worker": {
+    "prompt_tokens": 79470,
+    "completion_tokens": 12802,
+    "reasoning_tokens": 0,
+    "n_calls": 128,
+    "n_truncated": 0,
+    "latency_s": 500.83276295661926,
+    "model": "microsoft/phi-4"
+  },
+  "search|initial:Self-Consistency with Chain-of-Thought|worker": {
+    "prompt_tokens": 549179,
+    "completion_tokens": 80282,
+    "reasoning_tokens": 0,
+    "n_calls": 768,
+    "n_truncated": 1,
+    "latency_s": 1956.227058172226,
+    "model": "microsoft/phi-4"
+  },
+  "search|initial:Self-Refine (Reflexion)|worker": {
+    "prompt_tokens": 174508,
+    "completion_tokens": 22807,
+    "reasoning_tokens": 0,
+    "n_calls": 256,
+    "n_truncated": 0,
+    "latency_s": 802.3033871650696,
+    "model": "microsoft/phi-4"
+  },
+  "search|initial:LLM Debate|worker": {
+    "prompt_tokens": 720122,
+    "completion_tokens": 89376,
+    "reasoning_tokens": 0,
+    "n_calls": 896,
+    "n_truncated": 0,
+    "latency_s": 3245.421367406845,
+    "model": "microsoft/phi-4"
+  },
+  "search|initial:Step-back Abstraction|worker": {
+    "prompt_tokens": 183447,
+    "completion_tokens": 32563,
+    "reasoning_tokens": 0,
+    "n_calls": 256,
+    "n_truncated": 0,
+    "latency_s": 1079.634749174118,
+    "model": "microsoft/phi-4"
+  },
+  "search|initial:Quality-Diversity|worker": {
+    "prompt_tokens": 543626,
+    "completion_tokens": 58637,
+    "reasoning_tokens": 0,
+    "n_calls": 640,
+    "n_truncated": 0,
+    "latency_s": 1748.2884442806244,
+    "model": "microsoft/phi-4"
+  },
+  "search|initial:Dynamic Assignment of Roles|worker": {
+    "prompt_tokens": 160351,
+    "completion_tokens": 15473,
+    "reasoning_tokens": 0,
+    "n_calls": 256,
+    "n_truncated": 0,
+    "latency_s": 757.2320861816406,
+    "model": "microsoft/phi-4"
+  }
+}

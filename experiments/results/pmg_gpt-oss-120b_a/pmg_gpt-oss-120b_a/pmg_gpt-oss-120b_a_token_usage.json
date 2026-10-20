@@ -1,0 +1,20 @@
+{
+  "test|28|worker": {
+    "prompt_tokens": 7769206,
+    "completion_tokens": 11617391,
+    "reasoning_tokens": 0,
+    "n_calls": 24874,
+    "n_truncated": 2304,
+    "latency_s": 610683.2769055367,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|29|worker": {
+    "prompt_tokens": 7988468,
+    "completion_tokens": 11967666,
+    "reasoning_tokens": 0,
+    "n_calls": 24678,
+    "n_truncated": 2347,
+    "latency_s": 631085.2631092072,
+    "model": "Qwen/Qwen3-30B-A3B"
+  }
+}
