@@ -382,3 +382,94 @@ Caveats:
   4 points (CoT 78.4–82.4%), which is comparable to the gaps between designers.
 - The field-order split is a static reading of each design's code. One
   gpt-oss-20b design requests no answer field and is left out.
+
+# ARC worker screen — batch 11 (2026-10-21)
+
+The five ADAS ARC seed agents on five workers, ADAS's ARC protocol: its fixed
+20 validation tasks, every task run 5 times (100 runs per agent), exact match on
+the test grid. Workers answer through JSON with a 4,096-token output cap, as in
+every other domain (stock ADAS ARC used 1,024).
+
+| Worker | Architecture | Total / active B | CoT | Self-Refine | Debate | CoT-SC | QD | Best − CoT [95% CI, by task] | Tasks solved at least once |
+|---|---|---|---|---|---|---|---|---|---|
+| Mistral-7B-v0.2 (2023) | dense transformer | 7.2 / 7.2 | 0% | 0% | 0% | 0% | 0% | +0 | 0/20 |
+| Phi-4 (2024) | dense transformer | 14.7 / 14.7 | 11% | 20% | 18% | 19% | 15% | +9 [0, +18] | 11/20 |
+| Nemotron-3-Nano (reasoning) | hybrid Mamba-2 + MoE (23 Mamba, 23 MoE, 6 attention layers; 128 experts, top-6) | 31.6 / 3.6 | 11% | 22% | 37% | 39% | 28% | +28 [+15, +43] | 13/20 |
+| Qwen3-30B-A3B (reasoning) | MoE transformer (128 experts, top-8) | 30.5 / 3.4 | 23% | 36% | 38% | 42% | 27% | +19 [+9, +30] | 14/20 |
+| Qwen3.5-27B (reasoning) | dense, hybrid attention (48 linear + 16 full layers) | 26.9 / 26.9 | 63% | 79% | 80% | 78% | 75% | +17 [+5, +31] | 20/20 |
+
+Intervals resample the 20 tasks (runs of one task are not independent).
+
+1. **The reasoning-trained workers mostly fail by running out of tokens, not by
+   being wrong.** They write their reasoning into the `thinking` field, which
+   fills the 4,096-token cap before the `code` field is written. The reply ends
+   mid-JSON and the run has no code.
+   - Share of all 2,000 worker calls cut off this way: Qwen3-30B-A3B 42%,
+     Nemotron-Nano ~45% (plus 13% more with missing fields), Qwen3.5-27B 22%.
+     Phi-4 and Mistral: under 1%.
+   - In single-call CoT, truncated calls match no-code runs exactly for
+     Qwen3-30B-A3B (71 of 100) and nearly so for the others.
+   - When they do produce code, it is mostly right: 79% (Qwen3-30B-A3B), 73%
+     (Nemotron-Nano), 95% (Qwen3.5-27B). Phi-4 produces code 98% of the time
+     and is right 11% of the time.
+   - These conditional rates are optimistic, because truncation hits the
+     harder, larger tasks more.
+2. **Much of the scaffold "gain" for reasoning workers is recovering truncated
+   answers.** Going from CoT to the best seed:
+   - Qwen3.5-27B gains 17 correct runs and loses 18 no-code runs; wrong grids
+     barely change (+1). Almost its entire gain is getting an answer out at all.
+   - Qwen3-30B-A3B loses 50 no-code runs, but gains only 19 correct runs and
+     29 wrong grids.
+   - Nemotron-Nano loses 39 no-code runs, for 28 correct and 11 wrong grids.
+   - Phi-4's +9 is the only gain that comes from turning wrong grids into right
+     ones (no truncation involved). It is the gain the feedback-driven seed
+     (Self-Refine) is designed to deliver.
+   - Consequence: an ARC search over a reasoning worker at this cap would be
+     rewarded partly for working around the token limit, not for solving ARC
+     better.
+3. **Neither total nor active parameter count orders the workers.**
+   - By total size, Qwen3.5-27B (27B) beats both ~31B MoE models.
+   - By active size, the ~3.5B-active MoE models beat dense Phi-4 (14.7B) on
+     every seed except Nemotron-Nano's CoT, even while truncated.
+   - What lines up is training generation, then compute per token:
+     reasoning-trained 2025–26 models > Phi-4 (2024, no long reasoning) >
+     Mistral (2023). Among reasoning models, dense 27B > 3.5B-active MoE.
+   - The two ~3.5B-active MoE models reach the same level with their best seed
+     (CoT-SC 42% vs 39%), despite different architectures (transformer MoE vs
+     Mamba-2 hybrid MoE). Nemotron-Nano's CoT is lower (11% vs 23%) because it
+     is more verbose and truncates more. It was the most verbose designer
+     too (~6.6k tokens per proposal).
+   - With five workers, this is a description, not a scaling law.
+4. **Capability is nested, and ARC separates modern models far more than MGSM
+   or DROP do.**
+   - Qwen3.5-27B solves every task that any other worker solves (20/20).
+   - Phi-4, Qwen3-30B-A3B and Nemotron-Nano find the same tasks hard
+     (Spearman 0.69–0.83 on per-task solve rates). Qwen3.5-27B's few failures
+     fall elsewhere (0.23–0.46).
+   - Bigger tasks fail more for every worker (Spearman −0.39 to −0.68 between
+     grid cells and solve rate). That holds for Phi-4 too, which never
+     truncates, so size is real difficulty as well as token pressure.
+   - Chain-of-thought spread across the four modern workers: MGSM 74–84%,
+     DROP F1 81–84%, ARC 11–63%.
+5. **Floor and failure modes differ by model.**
+   - Mistral-7B cannot write working Python for these tasks: about 45% of its
+     runs end in code or runtime errors, and no seed helps (0/20 tasks).
+   - Phi-4's failures are wrong grids from code that runs.
+   - The reasoning models' failures are unfinished replies.
+
+Caveats:
+- These are ARC-AGI-1 *training* tasks, public since 2019, as in ADAS. Modern
+  models have likely seen them, so memorisation cannot be separated from
+  reasoning.
+- The sample is filtered to tasks whose first example grids have at most
+  5 rows.
+- 20 validation tasks only, and no test split has been run.
+- For reference, ADAS's GPT-3.5 scored 6.0% (CoT) to 8.0% (best seed) on its
+  60 test tasks, and its searched agent 13.7%.
+
+Implications for an ARC panel:
+- Phi-4 is the clean ADAS-like setting: low CoT, a real feedback-driven seed
+  gain, no truncation, cheap (1.8k tokens per question).
+- The reasoning workers need a larger output cap before a search on them means
+  anything; re-screening them at 16k tokens would show their real ceiling.
+- Qwen3.5-27B is likely near ceiling on these tasks once truncation is removed.

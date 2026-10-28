@@ -713,3 +713,20 @@ Inspect with: bash experiments/slurm/status.sh
   python ~/.copilot/session-state/b051b37d-35d0-4a6e-8863-387617810de7/files/arc_screen_summary.py experiments/results
   Choice rule as for MGSM: largest seed gain over CoT, CoT neither ~0 nor near
   ceiling (ADAS GPT-3.5: CoT 6.0, best seed 8.0, search 13.7).
+
+### 2026-10-28 - ARC screen (28378099, 2026-10-21) analysed
+
+- All 5 tasks COMPLETED (8-59 min). Results committed by user (3b6a3a9).
+- CoT / best seed (val, 20 tasks x 5): Mistral 0/0, Phi-4 11/20 (Refine),
+  Qwen3-30B-A3B 23/42 (CoT-SC), Nemotron-Nano 11/39 (CoT-SC), Qwen3.5-27B 63/80
+  (Debate).
+- MAIN FINDING: the 4096-token worker cap truncates the reasoning workers'
+  JSON (thinking fills it before code): 42% of Qwen3-30B calls, ~45% (+13%
+  missing fields) Nemotron, 22% Qwen3.5-27B; Phi-4/Mistral <1%. Most of the
+  reasoning workers' scaffold gain is recovered truncations (Qwen3.5-27B:
+  +17 correct, -18 no-code, +1 wrong grid).
+- Size: neither total nor active params orders the workers; reasoning-trained
+  generation does (3.5B-active MoEs > 14.7B dense Phi-4). Capability nested
+  (Qwen3.5-27B solves a superset). Written up in findings.md "ARC worker screen".
+- NEXT (needs user decision): ARC panel on Phi-4 (clean, ADAS-like), and/or
+  re-screen reasoning workers with worker max_tokens 16384 on ARC.
