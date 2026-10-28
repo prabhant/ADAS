@@ -131,6 +131,22 @@ stage_defaults:
     max_attempts: 75
     debug_max: 3
     require_seed_cache: true
+  # ARC screen again for the reasoning workers, now reasoning natively: the worker
+  # thinks in its own channel (vLLM reasoning parser; JSON is enforced only after
+  # the thinking ends), so only the agent's fields are written as JSON. In the
+  # first screen the reasoning went into the JSON `thinking` field and 22-54% of
+  # calls hit the 4,096-token cap before writing any code. vLLM clips the budget
+  # to the context left after the prompt. Long replies need longer timeouts.
+  "arc_screen_r":
+    n_generation: 0
+    valid_size: 20
+    test_size: 60
+    n_repreat: 5
+    domain: arc
+    worker_native_reasoning: true
+    worker_max_tokens: 32768
+    request_timeout: 3600
+    sandbox_timeout: 21600
 
 common:
   shuffle_seed: 0
@@ -314,6 +330,13 @@ cells:
   - {id: ascr_seeds_qwen3-30b-a3b,       stage: "arc_screen", meta: null, worker: qwen3-30b-a3b,       seed: a, condition: seed_eval}
   - {id: ascr_seeds_nemotron-3-nano-30b, stage: "arc_screen", meta: null, worker: nemotron-3-nano-30b, seed: a, condition: seed_eval}
   - {id: ascr_seeds_qwen3.5-27b,         stage: "arc_screen", meta: null, worker: qwen3.5-27b,         seed: a, condition: seed_eval}
+
+  # -------------------------------------------------------------------------
+  # ARC screen, reasoning workers reasoning natively (batch 12).
+  # -------------------------------------------------------------------------
+  - {id: ascr_r_seeds_qwen3-30b-a3b,       stage: "arc_screen_r", meta: null, worker: qwen3-30b-a3b,       seed: a, condition: seed_eval}
+  - {id: ascr_r_seeds_nemotron-3-nano-30b, stage: "arc_screen_r", meta: null, worker: nemotron-3-nano-30b, seed: a, condition: seed_eval}
+  - {id: ascr_r_seeds_qwen3.5-27b,         stage: "arc_screen_r", meta: null, worker: qwen3.5-27b,         seed: a, condition: seed_eval}
 
 # ---------------------------------------------------------------------------
 # Stage X -- cross-evaluation. Best validation agent from each source cell is

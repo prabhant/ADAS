@@ -237,7 +237,7 @@ def _seed_cache_path(args):
         f"shuffle{args.shuffle_seed}",
         f"rep{args.n_repreat}",
         str(getattr(args, "worker_reasoning_effort", None)),
-    ])
+    ] + (["native"] if getattr(args, "worker_native_reasoning", False) else []))
     return os.path.join(args.seed_cache_dir or os.path.join(args.save_dir, "seed_cache"), f"{key}.json")
 
 
@@ -281,6 +281,7 @@ def _attach_fitness(args, solution, result, generation):
         "completion_tokens": worker_usage.get("completion_tokens", 0),
         "reasoning_tokens": worker_usage.get("reasoning_tokens", 0),
         "truncated_calls": worker_usage.get("n_truncated", 0),
+        "reasoning_chars": worker_usage.get("reasoning_chars", 0),
         "tokens_per_question": total_tokens / n_questions,
         "wallclock_s": result.get("wallclock_s"),
     }
@@ -572,6 +573,7 @@ def run_baseline(args):
         "name": name,
         "worker_model": args.worker_model,
         "worker_reasoning_effort": args.worker_reasoning_effort,
+        "worker_native_reasoning": args.worker_native_reasoning,
         "domain": args.domain,
         "valid_size": args.valid_size,
         "shuffle_seed": args.shuffle_seed,
@@ -914,6 +916,9 @@ def build_parser():
     parser.add_argument('--worker_reasoning_effort', type=str, default=None,
                         choices=[None, 'low', 'medium', 'high'])
     parser.add_argument('--request_timeout', type=float, default=900.0)
+    parser.add_argument('--worker_native_reasoning', action='store_true', default=False,
+                        help="The worker is served with its reasoning parser: it thinks in its own "
+                             "channel and only the agent's output fields are written as JSON.")
 
     # --- budget control ---
     parser.add_argument('--run_id', type=str, default=None)

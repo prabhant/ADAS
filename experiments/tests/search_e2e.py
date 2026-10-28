@@ -120,6 +120,8 @@ class Stub:
         # A slow worker makes an evaluation outlast a deadline or a cap on cue.
         self.worker_delay = 0.0
         self.worker_calls = 0
+        # Set to emulate a worker served with a reasoning parser.
+        self.worker_reasoning = None
 
     def meta(self, messages):
         with self.lock:
@@ -201,6 +203,7 @@ def serve(stub: Stub):
                     stub.worker_calls += 1
                 time.sleep(stub.worker_delay)
                 body, reasoning = stub.worker(request["messages"])
+                reasoning = reasoning or stub.worker_reasoning
             message = {"role": "assistant", "content": json.dumps(body)}
             if reasoning:
                 message["reasoning_content"] = reasoning
@@ -505,6 +508,28 @@ def main() -> int:
     generated = [e for e in archive if isinstance(e.get("generation"), int)]
     check(len(archive) == N_SEEDS + 1 and len(generated) == 1 and generated[0]["valid_per_question"] == expected_valid,
           "the next job completes the generation")
+    server.shutdown()
+
+    print("\n=== L: a natively reasoning worker: answers come from its JSON only ===")
+    stub = Stub()
+    # A trace that would score wrong if it were ever read as the answer.
+    stub.worker_reasoning = "STUB WORKER REASONING [[9,9],[9,9]] 123456"
+    server = serve(stub)
+    url = f"http://127.0.0.1:{server.server_address[1]}/v1"
+    l_dir, l_id = os.path.join(workdir, "L"), "e2eL"
+    check(run_search(url, l_dir, l_id, target=1,
+                     extra=["--seeds_only", "--seed_cache_dir", shared, "--worker_native_reasoning"]) == 0,
+          "seeds-only exit 0 with --worker_native_reasoning")
+    native = sorted(f for f in os.listdir(shared) if f.endswith("__native.json"))
+    check(len(native) == 1 and len(os.listdir(shared)) == 2,
+          f"native results get their own seed cache beside the existing one (got {sorted(os.listdir(shared))})")
+    cache = load(os.path.join(shared, native[0])) if native else {}
+    check(len(cache) == N_SEEDS and all(v["valid_per_question"] == expected_valid for v in cache.values()),
+          "every seed scores exactly the ground truth: the reasoning never reaches an answer")
+    resource = next(iter(cache.values()), {}).get("resource", {})
+    check(resource.get("reasoning_chars", 0) == len(stub.worker_reasoning) * resource.get("worker_calls", -1),
+          f"worker reasoning is measured per call (got {resource.get('reasoning_chars')} chars "
+          f"over {resource.get('worker_calls')} calls)")
     server.shutdown()
 
     print(f"\n{'PASSED' if not check.failed else f'{check.failed} CHECK(S) FAILED'}  (artifacts in {workdir})")

@@ -131,7 +131,7 @@ class RoleClient:
 
     # -- instrumentation ------------------------------------------------------
 
-    def _record_usage(self, response, latency: float) -> None:
+    def _record_usage(self, response, latency: float, reasoning: Optional[str] = None) -> None:
         usage = getattr(response, "usage", None)
         if usage is None:
             return
@@ -150,6 +150,7 @@ class RoleClient:
             reasoning_tokens=reasoning_tokens,
             latency_s=latency,
             truncated=finish_reason == "length",
+            reasoning_chars=len(reasoning or ""),
         )
 
     # -- public API -----------------------------------------------------------
@@ -201,14 +202,15 @@ class RoleClient:
                 time.sleep(self.retry_backoff ** attempt)
                 continue
 
-            self._record_usage(response, time.time() - started)
             message = response.choices[0].message
             # vLLM exposes the split-out trace as reasoning_content when a
             # reasoning parser is active, and folds it into content otherwise.
-            self.last_reasoning = (
+            reasoning = (
                 getattr(message, "reasoning_content", None)
                 or getattr(message, "reasoning", None)
             )
+            self._record_usage(response, time.time() - started, reasoning)
+            self.last_reasoning = reasoning
             content = message.content
             if content is None:
                 raise ValueError("Model returned an empty message body")

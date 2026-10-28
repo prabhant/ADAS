@@ -90,6 +90,9 @@ class Instrumentation:
                 "prompt_tokens": 0,
                 "completion_tokens": 0,
                 "reasoning_tokens": 0,
+                # vLLM reports reasoning_tokens as 0 (the cost sits inside
+                # completion_tokens), so the split-out trace is measured directly.
+                "reasoning_chars": 0,
                 "n_calls": 0,
                 "n_truncated": 0,
                 "latency_s": 0.0,
@@ -118,12 +121,13 @@ class Instrumentation:
 
     def add_usage(self, role: str, model: str, prompt_tokens: int, completion_tokens: int,
                   reasoning_tokens: int = 0, latency_s: float = 0.0,
-                  truncated: bool = False) -> None:
+                  truncated: bool = False, reasoning_chars: int = 0) -> None:
         with self._lock:
             bucket = self.usage[self._key(role)]
             bucket["prompt_tokens"] += prompt_tokens
             bucket["completion_tokens"] += completion_tokens
             bucket["reasoning_tokens"] += reasoning_tokens
+            bucket["reasoning_chars"] = bucket.get("reasoning_chars", 0) + reasoning_chars
             bucket["n_calls"] += 1
             bucket["n_truncated"] += int(truncated)
             bucket["latency_s"] += latency_s

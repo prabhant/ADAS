@@ -119,6 +119,16 @@ sys.exit(0 if paths and len(json.load(open(paths[0]))) == 7 else 1)" \
         after="--dependency=afterok:$(awk -F'\t' '$1 == "e2e_cpu" {print $2}' "$BATCH")"
         submit arc_screen       "$after" --array=0-4 experiments/slurm/stage05_baselines.slurm arc_screen
         ;;
+    batch12)
+        # ARC screen of the three reasoning workers, reasoning natively (their own
+        # channel, JSON only for the agent's fields). Full-length reasoning on 2,000
+        # calls per worker: hours, not minutes. Finished seeds are cached as they
+        # complete, so a job that runs out of time resumes when resubmitted.
+        submit e2e_cpu          experiments/slurm/sanity/07_e2e_cpu.slurm
+        after="--dependency=afterok:$(awk -F'\t' '$1 == "e2e_cpu" {print $2}' "$BATCH")"
+        submit arc_screen_r     "$after" --array=0-2 --time=24:00:00 \
+                                experiments/slurm/stage05_baselines.slurm arc_screen_r
+        ;;
     batch5)
         # The designer panel. Refuses to start without what every cell needs.
         [[ -f experiments/results/s05_cot_mmlu_mistral-7b/cot_baseline.json ]] \
