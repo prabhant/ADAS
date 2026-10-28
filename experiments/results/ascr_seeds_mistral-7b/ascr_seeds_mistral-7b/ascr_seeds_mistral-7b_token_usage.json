@@ -1,0 +1,47 @@
+{
+  "search|initial:Chain-of-Thought|worker": {
+    "prompt_tokens": 99085,
+    "completion_tokens": 38289,
+    "reasoning_tokens": 0,
+    "n_calls": 100,
+    "n_truncated": 2,
+    "latency_s": 598.1503839492798,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:Self-Refine (Reflexion)|worker": {
+    "prompt_tokens": 554650,
+    "completion_tokens": 135963,
+    "reasoning_tokens": 0,
+    "n_calls": 400,
+    "n_truncated": 1,
+    "latency_s": 2272.424322128296,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:LLM Debate|worker": {
+    "prompt_tokens": 607460,
+    "completion_tokens": 214630,
+    "reasoning_tokens": 0,
+    "n_calls": 500,
+    "n_truncated": 16,
+    "latency_s": 3236.520183324814,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:Self-Consistency with Chain-of-Thought|worker": {
+    "prompt_tokens": 740846,
+    "completion_tokens": 267508,
+    "reasoning_tokens": 0,
+    "n_calls": 600,
+    "n_truncated": 23,
+    "latency_s": 3789.877574443817,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:Quality-Diversity|worker": {
+    "prompt_tokens": 441458,
+    "completion_tokens": 151876,
+    "reasoning_tokens": 0,
+    "n_calls": 400,
+    "n_truncated": 8,
+    "latency_s": 2287.740685224533,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  }
+}
