@@ -730,3 +730,27 @@ Inspect with: bash experiments/slurm/status.sh
   (Qwen3.5-27B solves a superset). Written up in findings.md "ARC worker screen".
 - NEXT (needs user decision): ARC panel on Phi-4 (clean, ADAS-like), and/or
   re-screen reasoning workers with worker max_tokens 16384 on ARC.
+
+### 2026-10-28 09:22 - batch12 submitted at commit df44cf0
+
+```
+e2e_cpu	28650191
+arc_screen_r	28650192
+```
+
+Inspect with: bash experiments/slurm/status.sh
+- (batch12 details) Workers can now reason natively (df44cf0): stage option
+  worker_native_reasoning serves the worker with its reasoning parser (qwen3 /
+  nemotron_v3); vLLM 0.28 enforces JSON only after </think>
+  (enable_in_reasoning=False), so the agent's JSON holds only its fields and the
+  trace stays out of every Info. max_tokens 32768 (vLLM clips to context left),
+  request_timeout 3600, sandbox_timeout 21600. Seed cache key gets "__native";
+  existing caches and cells unchanged (verified offline). reasoning_chars now
+  recorded per call. e2e section L; working-tree e2e 28649584 PASSED (216).
+  batch12: e2e 28650191 -> arc_screen_r 28650192 [0-2] (qwen3-30b-a3b,
+  nemotron-nano, qwen3.5-27b; 1 GPU, 24 h).
+- What to check: .out shows the worker launched with "reasoning parser qwen3"
+  / "nemotron_v3"; truncated_calls far below the 4k screen; reasoning_chars > 0;
+  answer_kinds no_transform mostly gone. Risk: Qwen3-30B at 40,960 context has
+  KV room for only ~10 full-length sequences per GPU -> slow; seeds cache as they
+  finish, so a timed-out task resumes on resubmit.
