@@ -762,3 +762,16 @@ Inspect with: bash experiments/slurm/status.sh
   (was 71), 42 wrong grids, 1 runtime error. ~26k reasoning chars and ~8.8k
   completion tokens per call: the reasoning needs about twice the old 4k cap.
   CoT took 13 min (100 calls); the multi-call seeds will take hours.
+
+### 2026-10-29 - batch12 (native worker reasoning, ARC screen) analysed
+
+- 28650192 tasks 0-2 COMPLETED (3.6 h, 7.6 h, 12.2 h).
+- Native CoT / best seed: Nemotron-Nano 65 / 79 (Debate), Qwen3-30B-A3B 57 / 61
+  (CoT-SC, CI incl. 0), Qwen3.5-27B 90 / 96 (Debate). Native single-call CoT
+  beats the best 4k-JSON scaffold for all three (+26, +15, +10) at under half
+  the tokens. Per-task oracle over seeds 85 / 67 / 98.
+- Truncation still: Nemotron CoT 13/100 at the 32k budget; Qwen3.5-27B CoT-SC
+  108/600 (final-decision prompt with 5 prior solutions leaves less context).
+- findings.md: new section; batch-11 reasoning-worker rows superseded.
+- No ARC search run yet. Candidates for one: Phi-4 (ADAS-like room, cheap) and
+  Qwen3-30B-A3B native (does search beat a reasoning model's own CoT?).

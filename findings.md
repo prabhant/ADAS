@@ -473,3 +473,62 @@ Implications for an ARC panel:
 - The reasoning workers need a larger output cap before a search on them means
   anything; re-screening them at 16k tokens would show their real ceiling.
 - Qwen3.5-27B is likely near ceiling on these tasks once truncation is removed.
+
+# ARC screen with native worker reasoning — batch 12 (2026-10-28)
+
+The three reasoning workers again, now thinking in their own reasoning channel.
+They are served with their reasoning parser, and only the agent's fields are
+written as JSON (32k-token budget). Same 20 tasks × 5 runs and 5 seed agents.
+**This supersedes the reasoning-worker rows of the batch-11 screen above:**
+there the JSON format forced the reasoning into a 4,096-token field and cut
+most of it off.
+
+| Worker | CoT | Self-Refine | Debate | CoT-SC | QD | Best − CoT [95% CI, by task] | Best seed per task, picked knowing the answer | 4k-JSON screen: CoT → best |
+|---|---|---|---|---|---|---|---|---|
+| Nemotron-3-Nano | 65% | 75% | 79% | 69% | 68% | +14 [+6, +23] (Debate, 3.7× CoT's tokens) | 85% | 11% → 39% |
+| Qwen3-30B-A3B | 57% | 55% | 54% | 61% | 52% | +4 [−3, +11] (CoT-SC, 5.8× tokens) | 67% | 23% → 42% |
+| Qwen3.5-27B | 90% | 93% | 96% | 95% | 93% | +6 [+1, +12] (Debate, 4.7× tokens) | 98% | 63% → 80% |
+| Phi-4 (no reasoning mode; batch 11) | 11% | 20% | 18% | 19% | 15% | +9 [0, +18] (Refine) | 28% | – |
+
+1. **Thinking inside one call beats every scaffold from the JSON-forced
+   setup, at under half the tokens (Q4).** Native single-call CoT against
+   that worker's best 4k-JSON multi-call scaffold:
+   - Nemotron-Nano +26 points [+11, +42] (13k vs 27k tokens per question);
+   - Qwen3-30B-A3B +15 [+6, +25] (10k vs 25k);
+   - Qwen3.5-27B +10 [−3, +25] (15k vs 20k).
+
+   In the batch-11 screen, the large "scaffold gains" (+17 to +28) were mostly
+   the scaffolds working around a token cap that suppressed the model's own
+   reasoning.
+2. **Once workers reason natively, the hand-designed scaffolds add little.**
+   - Qwen3-30B-A3B: CoT-SC is +4 points with an interval including zero, at
+     5.8× the tokens. Self-Refine, Debate and QD all score below its CoT.
+   - Qwen3.5-27B: +6 at 4.7× the tokens, at the ceiling (90% → 96%).
+   - Nemotron-Nano: the one real gain, +14. Debate turns 12 wrong grids into
+     correct ones and recovers 4 still-truncated runs. Nemotron remains the
+     most verbose: 13% of its CoT calls still hit the budget.
+3. **Little is left for a search to find on these 20 tasks.**
+   - Even choosing the best seed separately for every task, with hindsight,
+     adds only 2–6 points over the best single seed.
+   - Tasks solved only by some scaffold and never by CoT: 2, 2 and 0 of 20.
+   - Only Qwen3-30B-A3B has tasks no seed solves (3).
+   - The ADAS-like room is with Phi-4, which has no reasoning mode: 11% CoT,
+     20% best seed, 28% per-task oracle. GPT-3.5 in ADAS: 6%, 8%, then 13.7%
+     searched.
+4. **Size and architecture, revised.**
+   - With reasoning working, Qwen3.5-27B solves 90% with plain CoT.
+   - Nemotron-Nano, a hybrid Mamba-2 MoE with 3.6B active parameters, now
+     beats the transformer MoE Qwen3-30B-A3B (3.4B active): 65% vs 57% for
+     CoT, 79% vs 61% for the best seed. At 4k it was the reverse, because
+     Nemotron was cut off more.
+   - All three reasoning models beat dense 14.7B Phi-4 by 5–8× on CoT. As
+     before, parameter count does not order them; reasoning training does.
+     With 4 workers this remains a description.
+
+Caveats:
+- 20 public ARC training tasks (possible memorisation), validation only.
+- These are the five *hand-designed* agents. No ARC search has been run yet,
+  so whether a searched design beats them on ARC is untested.
+- The MGSM and MMLU panels used JSON-forced workers. Native reasoning would
+  likely raise those workers' baselines, and narrow the room for scaffolds
+  further.
