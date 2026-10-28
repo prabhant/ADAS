@@ -754,3 +754,11 @@ Inspect with: bash experiments/slurm/status.sh
   answer_kinds no_transform mostly gone. Risk: Qwen3-30B at 40,960 context has
   KV room for only ~10 full-length sequences per GPU -> slow; seeds cache as they
   finish, so a timed-out task resumes on resubmit.
+- 09:45: batch12 gate 28650191 PASSED (216). 09:46-09:51: all three tasks started;
+  workers launched with "reasoning parser qwen3 / nemotron_v3 / qwen3" and passed
+  the JSON health probe.
+- 10:01 FIRST RESULT (verifies the fix): Qwen3-30B-A3B CoT, native reasoning:
+  57% (was 23% JSON-forced at 4k), truncated 0/100 (was 71), no_transform 0
+  (was 71), 42 wrong grids, 1 runtime error. ~26k reasoning chars and ~8.8k
+  completion tokens per call: the reasoning needs about twice the old 4k cap.
+  CoT took 13 min (100 calls); the multi-call seeds will take hours.
