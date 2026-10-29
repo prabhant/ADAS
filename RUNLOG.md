@@ -775,3 +775,32 @@ Inspect with: bash experiments/slurm/status.sh
 - findings.md: new section; batch-11 reasoning-worker rows superseded.
 - No ARC search run yet. Candidates for one: Phi-4 (ADAS-like room, cheap) and
   Qwen3-30B-A3B native (does search beat a reasoning model's own CoT?).
+
+### 2026-10-29 01:29 - batch13 submitted at commit c1af459
+
+```
+arc_baseline	28689966
+designers_1gpu	28689967
+designers_2gpu	28689968
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-29 - batch13: ARC designer panel, Phi-4 worker
+
+- User: run only the Phi-4 ARC search. Commit c1af459: stage panel_arc (25 gens,
+  20/60 tasks x 5 runs, 75 attempts), cells par_qwen3.5-27b_a (idx 0, 2 GPU),
+  par_gpt-oss-120b_a (1, 3 GPU), par_qwen3.5-35b-a3b_a (2, 3 GPU); baseline
+  cell s05_cot_arc_phi-4 (stage 0.5 idx 10). ARC --baseline path checked
+  offline against the e2e stub (exact ground truth). No code change since the
+  df44cf0 e2e (216 checks), so no e2e gate.
+- 28689966 baseline COMPLETED 01:32: Phi-4 ARC CoT 9.0% [4.0, 15.0] (screen
+  11%). Designers 28689967 [0] + 28689968 [1-2] released, PENDING (Priority)
+  at 02:27.
+- What to check when they run: .out shows "Initial Archive (cached)" x5, then
+  generation 1; designer prompt starts ~9k tokens (5 ARC seeds), grows per
+  design. Phi-4's 16k context (like GPT-3.5's) may overflow on agents that
+  pass many solutions to a final agent -> "context is too long" goes to the
+  debug loop, as in stock ADAS.
+- Compare against: CoT 9-11%, best seed Self-Refine 20%, per-task seed oracle
+  28% (validation). ADAS/GPT-3.5 test: 6.0 / 8.0 -> 13.7 searched.
