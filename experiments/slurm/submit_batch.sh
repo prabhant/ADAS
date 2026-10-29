@@ -129,6 +129,21 @@ sys.exit(0 if paths and len(json.load(open(paths[0]))) == 7 else 1)" \
         submit arc_screen_r     "$after" --array=0-2 --time=24:00:00 \
                                 experiments/slurm/stage05_baselines.slurm arc_screen_r
         ;;
+    batch13)
+        # ARC designer panel with Phi-4 as worker: production CoT baseline first
+        # (20 tasks x 5, the number informed designers are told), then 3 designers.
+        python3 -c "
+import json, sys
+d = json.load(open('experiments/results/_seed_cache/microsoft_phi-4__arc__valid20__shuffle0__rep5__None.json'))
+sys.exit(0 if len(d) == 5 else 1)" \
+            || { echo "Phi-4 ARC seed archive missing or incomplete" >&2; rm -f "$BATCH"; exit 1; }
+        submit arc_baseline     --array=10 experiments/slurm/stage05_baselines.slurm 0.5
+        after="--dependency=afterok:$(awk -F'\t' '$1 == "arc_baseline" {print $2}' "$BATCH")"
+        submit designers_1gpu   "$after" --array=0 --gpus=2 --cpus-per-task=32 \
+                                experiments/slurm/stage2_main.slurm panel_arc
+        submit designers_2gpu   "$after" --array=1-2 --gpus=3 --cpus-per-task=48 \
+                                experiments/slurm/stage2_main.slurm panel_arc
+        ;;
     batch5)
         # The designer panel. Refuses to start without what every cell needs.
         [[ -f experiments/results/s05_cot_mmlu_mistral-7b/cot_baseline.json ]] \

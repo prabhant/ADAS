@@ -182,6 +182,8 @@ cells:
   - {id: s05_cot_mmlu_mistral-7b,  stage: "0.5", meta: null, worker: mistral-7b,   seed: a, condition: solo_cot, domain: mmlu}
   # Batch 8: the MGSM panel's worker (chosen by the MGSM worker screen).
   - {id: s05_cot_qwen3-30b-a3b,    stage: "0.5", meta: null, worker: qwen3-30b-a3b, seed: a, condition: solo_cot}
+  # Batch 13: the ARC panel's worker, on ADAS's ARC validation protocol (20 tasks x 5 runs).
+  - {id: s05_cot_arc_phi-4,        stage: "0.5", meta: null, worker: phi-4,         seed: a, condition: solo_cot, domain: arc, valid_size: 20, test_size: 60}
 
   # -------------------------------------------------------------------------
   # Stage 0.5s -- worker screen (batch 1). Three of four current workers sit at
@@ -337,6 +339,16 @@ cells:
   - {id: ascr_r_seeds_qwen3-30b-a3b,       stage: "arc_screen_r", meta: null, worker: qwen3-30b-a3b,       seed: a, condition: seed_eval}
   - {id: ascr_r_seeds_nemotron-3-nano-30b, stage: "arc_screen_r", meta: null, worker: nemotron-3-nano-30b, seed: a, condition: seed_eval}
   - {id: ascr_r_seeds_qwen3.5-27b,         stage: "arc_screen_r", meta: null, worker: qwen3.5-27b,         seed: a, condition: seed_eval}
+
+  # -------------------------------------------------------------------------
+  # ARC designer panel (batch 13): Phi-4 worker, the setting closest to ADAS's
+  # GPT-3.5 (no reasoning mode, 16k context, CoT 11% / best seed 20%). Three
+  # designers: the two Qwen3.5 designers (best MGSM designers, no broken designs)
+  # and gpt-oss-120b (the large GPT; ADAS used GPT-4 as designer).
+  # -------------------------------------------------------------------------
+  - {id: par_qwen3.5-27b_a,     stage: "panel_arc", meta: qwen3.5-27b,     worker: phi-4, seed: a}
+  - {id: par_gpt-oss-120b_a,    stage: "panel_arc", meta: gpt-oss-120b,    worker: phi-4, seed: a}
+  - {id: par_qwen3.5-35b-a3b_a, stage: "panel_arc", meta: qwen3.5-35b-a3b, worker: phi-4, seed: a}
 
 # ---------------------------------------------------------------------------
 # Stage X -- cross-evaluation. Best validation agent from each source cell is
