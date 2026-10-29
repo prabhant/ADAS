@@ -532,3 +532,77 @@ Caveats:
 - The MGSM and MMLU panels used JSON-forced workers. Native reasoning would
   likely raise those workers' baselines, and narrow the room for scaffolds
   further.
+
+# ARC designer panel, Phi-4 worker — batch 13 (2026-10-29, partial)
+
+ADAS's ARC protocol: 25 generations, 20 validation / 60 test tasks, every task
+run 5 times. The worker is Phi-4 (no reasoning mode, 16k context: the setting
+closest to ADAS's GPT-3.5). Phi-4's CoT baseline is 9.0% (20 × 5). Status:
+gpt-oss-120b complete; Qwen3.5-27B search complete, test evaluation 19/30 so
+far (its selected design is scored); Qwen3.5-35B-A3B still queued.
+
+The seed agents are re-evaluated on the 60 test tasks in each cell. Their scores
+differ between cells by up to 6 points: Self-Refine 22.3% vs 16.3% on the same
+tasks. So the comparisons below use each seed pooled over both cells (10 runs per
+task). Pooled test scores: CoT 17.2%, Self-Refine 19.3%, Debate 18.2%, CoT-SC
+19.8%, QD 22.0% (best).
+
+| Designer | Gens (attempts) | Best on validation (gen) | Its test score | vs pooled Self-Refine (best seed on val) [95% CI, by task] | vs pooled QD (best seed on test) | Test answers the worker never saw |
+|---|---|---|---|---|---|---|
+| gpt-oss-120b | 25 (31) | 34% (18, tied with 20) | 31.3% | +12.0 [+1.2, +23.5] | +9.3 [−1.5, +20.3] | 7 of 60 tasks, all correct |
+| Qwen3.5-27B | 25 (28) | 40% (10) | 30.3% | **+11.0 [+5.7, +16.8]** | **+8.3 [+3.7, +13.5]** | 0 |
+
+1. **This is the first setting in the project where ADAS's search clearly
+   helps.**
+   - Both selected designs score about 30–31% on test, against 17–22% for the
+     five hand-designed agents.
+   - Qwen3.5-27B's design beats every seed significantly, including the best
+     one chosen with hindsight.
+   - So with a weak, non-reasoning worker on ARC, the paper's effect
+     reproduces, and is larger: +8 to +12 points, against ADAS's
+     8.0% → 13.7% with GPT-3.5.
+2. **The two designers gained in different ways (Q7, Q8).**
+   - **Qwen3.5-27B ("Consensus-Driven Program Synthesis", 9 worker calls,
+     16k tokens per task):** 6 worker agents with different roles and
+     temperatures write `transform` code, each run on the examples. A
+     cell-by-cell majority vote over their outputs builds a "consensus" grid
+     for every example. Candidates are ranked by examples passed plus
+     agreement with that consensus. The top two are refined with feedback,
+     then a final agent synthesises. All of its answers come through the
+     worker; the gain is a better *use* of Phi-4. On test it gives 91 correct
+     runs against Self-Refine's 49 (of 300).
+   - **gpt-oss-120b (generations 17–22, about 1 worker call per task):** the
+     designer wrote a hand-coded ARC program search: rotations, flips, colour
+     replacement, crops at separator lines, bounding boxes, and their
+     pairwise compositions. It tries every program against the examples; only
+     if none fits does it ask Phi-4 for the grid directly.
+     - This code alone, with no worker, answers 7 of the 60 test tasks, all
+       correctly: 11.7 points.
+     - On the other 53 tasks the worker fallback solves 22.3%, the same level
+       as the best seeds.
+     - So gpt-oss-120b's gain is the *designer* solving tasks in code. A
+       legitimate ADAS outcome, but a different claim: it measures the
+       designer's knowledge of ARC, not better scaffolding for the worker.
+     - Three of its designs (generations 12, 14, 15) answer every task without
+       the worker and score 5%. The deterministic part alone is weak; it works
+       as a pre-filter.
+3. **A simpler fixed pattern than any seed: just ask for the grid.**
+   gpt-oss-120b's first design asks Phi-4 for the output grid directly, with
+   no code and one call at about 0.9k tokens per task. It scores 25.0% on test.
+   - That is above all five code-writing seeds: +7.8 [−2.7, +18.3] over CoT
+     and +5.7 [−4.0, +15.8] over Self-Refine. Neither difference is
+     significant.
+   - At about one-eighth of Self-Refine's tokens, the seeds' code-writing
+     format is not obviously the right baseline for Phi-4.
+   - The searched designs still add 5–6 points over this direct-answer design.
+4. **Validation is noisy, as everywhere else.** Qwen3.5-27B's selected design
+   scored 40% on validation and 30.3% on test. Its best design by test,
+   generation 12 at 33.0%, scored 32% on validation. With 20 validation tasks,
+   one task is 5 points.
+
+Caveats:
+- One run per designer.
+- Public ARC training tasks (possible memorisation, by the worker and by the
+  designer's DSL).
+- 60 test tasks, so confidence intervals are wide.
+- The third designer and Qwen3.5-27B's remaining test evaluations are pending.

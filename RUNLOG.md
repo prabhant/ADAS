@@ -804,3 +804,20 @@ Inspect with: bash experiments/slurm/status.sh
   debug loop, as in stock ADAS.
 - Compare against: CoT 9-11%, best seed Self-Refine 20%, per-task seed oracle
   28% (validation). ADAS/GPT-3.5 test: 6.0 / 8.0 -> 13.7 searched.
+
+### 2026-10-29 12:40 - batch13 partial results (ARC panel, Phi-4)
+
+- 28689968_1 gpt-oss-120b COMPLETED 05:01-08:36 (25 gens in 31 attempts, 30/30
+  tested). 28689967_0 qwen3.5-27b RUNNING since 05:59: search 25/25 in 28
+  attempts, test 19/30. 28689968_2 qwen3.5-35b PENDING (Priority).
+- Selected designs on test: gpt-oss-120b gen 18 31.3%, qwen3.5-27b gen 10 30.3%;
+  pooled seeds 17.2-22.0%. Qwen3.5-27B +8.3 [+3.7, +13.5] vs the best seed on
+  test (QD) -> first clear ADAS gain in the project.
+- gpt-oss-120b's gens 17-22 contain a hand-coded DSL program search that answers
+  7/60 test tasks correctly without any worker call (checked by running the code
+  with a stubbed worker); its worker fallback scores like the seeds.
+- Direct-answer design (gpt-oss gen 1, no code, 1 call): 25.0% test, above all
+  code-writing seeds (n.s.).
+- Seed re-evaluation differs across cells (Self-Refine 22.3 vs 16.3, CI excl. 0)
+  -> compare against seeds pooled over cells.
+- findings.md: "ARC designer panel, Phi-4 worker" (partial).
