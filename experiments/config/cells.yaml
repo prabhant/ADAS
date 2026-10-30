@@ -131,6 +131,18 @@ stage_defaults:
     max_attempts: 75
     debug_max: 3
     require_seed_cache: true
+  # Designer panel on DROP, ADAS's DROP protocol (stock _drop/search.py): 30
+  # generations, 128 validation / 800 test questions, each answered once. Seed
+  # archive from the DROP worker screen (batch 9), same settings.
+  "panel_drop":
+    n_generation: 30
+    valid_size: 128
+    test_size: 800
+    n_repreat: 1
+    domain: drop
+    max_attempts: 90
+    debug_max: 3
+    require_seed_cache: true
   # ARC screen again for the reasoning workers, now reasoning natively: the worker
   # thinks in its own channel (vLLM reasoning parser; JSON is enforced only after
   # the thinking ends), so only the agent's fields are written as JSON. In the
@@ -184,6 +196,8 @@ cells:
   - {id: s05_cot_qwen3-30b-a3b,    stage: "0.5", meta: null, worker: qwen3-30b-a3b, seed: a, condition: solo_cot}
   # Batch 13: the ARC panel's worker, on ADAS's ARC validation protocol (20 tasks x 5 runs).
   - {id: s05_cot_arc_phi-4,        stage: "0.5", meta: null, worker: phi-4,         seed: a, condition: solo_cot, domain: arc, valid_size: 20, test_size: 60}
+  # Batch 14: the DROP panel's worker; the informed designers are told this F1.
+  - {id: s05_cot_drop_mistral-7b,  stage: "0.5", meta: null, worker: mistral-7b,    seed: a, condition: solo_cot, domain: drop}
 
   # -------------------------------------------------------------------------
   # Stage 0.5s -- worker screen (batch 1). Three of four current workers sit at
@@ -349,6 +363,15 @@ cells:
   - {id: par_qwen3.5-27b_a,     stage: "panel_arc", meta: qwen3.5-27b,     worker: phi-4, seed: a}
   - {id: par_gpt-oss-120b_a,    stage: "panel_arc", meta: gpt-oss-120b,    worker: phi-4, seed: a}
   - {id: par_qwen3.5-35b-a3b_a, stage: "panel_arc", meta: qwen3.5-35b-a3b, worker: phi-4, seed: a}
+
+  # -------------------------------------------------------------------------
+  # DROP designer panel (batch 14): Mistral-7B worker, the weakest and only
+  # non-reasoning worker in the DROP screen (CoT F1 44.6, best seed Debate 49.9),
+  # the closest analogue of ADAS's GPT-3.5. Same three designers as the ARC panel.
+  # -------------------------------------------------------------------------
+  - {id: pdr_qwen3.5-27b_a,     stage: "panel_drop", meta: qwen3.5-27b,     worker: mistral-7b, seed: a}
+  - {id: pdr_gpt-oss-120b_a,    stage: "panel_drop", meta: gpt-oss-120b,    worker: mistral-7b, seed: a}
+  - {id: pdr_qwen3.5-35b-a3b_a, stage: "panel_drop", meta: qwen3.5-35b-a3b, worker: mistral-7b, seed: a}
 
 # ---------------------------------------------------------------------------
 # Stage X -- cross-evaluation. Best validation agent from each source cell is

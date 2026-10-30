@@ -144,6 +144,21 @@ sys.exit(0 if len(d) == 5 else 1)" \
         submit designers_2gpu   "$after" --array=1-2 --gpus=3 --cpus-per-task=48 \
                                 experiments/slurm/stage2_main.slurm panel_arc
         ;;
+    batch14)
+        # DROP designer panel with Mistral-7B as worker: production CoT baseline first
+        # (128 x 5, the F1 informed designers are told), then 3 designers.
+        python3 -c "
+import json, sys
+d = json.load(open('experiments/results/_seed_cache/mistralai_Mistral-7B-Instruct-v0.2__drop__valid128__shuffle0__rep1__None.json'))
+sys.exit(0 if len(d) == 7 else 1)" \
+            || { echo "Mistral-7B DROP seed archive missing or incomplete" >&2; rm -f "$BATCH"; exit 1; }
+        submit drop_baseline    --array=11 experiments/slurm/stage05_baselines.slurm 0.5
+        after="--dependency=afterok:$(awk -F'\t' '$1 == "drop_baseline" {print $2}' "$BATCH")"
+        submit designers_1gpu   "$after" --array=0 --gpus=2 --cpus-per-task=32 \
+                                experiments/slurm/stage2_main.slurm panel_drop
+        submit designers_2gpu   "$after" --array=1-2 --gpus=3 --cpus-per-task=48 \
+                                experiments/slurm/stage2_main.slurm panel_drop
+        ;;
     batch5)
         # The designer panel. Refuses to start without what every cell needs.
         [[ -f experiments/results/s05_cot_mmlu_mistral-7b/cot_baseline.json ]] \
