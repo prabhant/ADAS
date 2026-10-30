@@ -532,6 +532,21 @@ def main() -> int:
           f"over {resource.get('worker_calls')} calls)")
     server.shutdown()
 
+    print("\n=== M: the CoT baseline (Stage 0.5) runs and scores exactly ===")
+    stub = Stub()
+    server = serve(stub)
+    url = f"http://127.0.0.1:{server.server_address[1]}/v1"
+    m_dir = os.path.join(workdir, "M")
+    check(run_search(url, m_dir, "e2eM", target=0, extra=["--baseline", "cot", "--n_repreat", "2"]) == 0,
+          "--baseline cot exit 0")
+    baseline_path = os.path.join(m_dir, "cot_baseline.json")
+    baseline = load(baseline_path) if os.path.exists(baseline_path) else {}
+    check(abs(baseline.get("accuracy", -1) - acc_valid) < 1e-9 and baseline.get("domain") == DOMAIN
+          and baseline.get("per_question", [[]])[0] == expected_valid * 2,
+          f"cot_baseline.json has the ground-truth accuracy, the domain and questions x passes "
+          f"(got {baseline.get('accuracy')}, {baseline.get('domain')})")
+    server.shutdown()
+
     print(f"\n{'PASSED' if not check.failed else f'{check.failed} CHECK(S) FAILED'}  (artifacts in {workdir})")
     return 1 if check.failed else 0
 

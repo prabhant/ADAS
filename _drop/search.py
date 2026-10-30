@@ -561,8 +561,9 @@ def run_baseline(args):
         if rep == 0:
             samples = result.get("samples") or []
             for s in samples[:5]:
+                # Scored samples carry F1; misses carry correct=0.
                 print(f"    target={s['target']!r} prediction={str(s.get('prediction'))[:70]!r} "
-                      f"correct={s['correct']}")
+                      f"f1={s.get('f1', s.get('correct'))}")
         print(f"  {args.baseline} rep {rep + 1}/{args.baseline_repeats}: "
               f"median accuracy {medians[-1]:.4f}")
 
