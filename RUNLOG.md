@@ -831,3 +831,15 @@ Inspect with: bash experiments/slurm/status.sh
   qwen3.5-35b-a3b gen 17 36.0% +15.1 [+9.4, +21.1] (45 calls/task, no
   worker-free answers); gpt-oss-120b 31.3% +10.4 [-0.4, +21.4]; qwen3.5-27b
   30.3% +9.4 [+4.8, +14.6]. findings.md ARC section updated to final.
+
+### 2026-10-30 - DROP panel prepared for another session; DROP baseline bug fixed
+
+- BUG FIXED: _drop/search.py run_baseline printed s['correct'], but DROP samples
+  carry 'f1' -> KeyError after the first pass of any DROP CoT baseline (never
+  run before). e2e section M now runs --baseline cot in all three domains;
+  28777636 PASSED (222 checks).
+- Prompt for the DROP designer panel (Mistral-7B worker; Qwen3.5-27B,
+  gpt-oss-120b, Qwen3.5-35B-A3B designers; ADAS DROP protocol 30 gens, 128/800,
+  1 pass; cells pdr_*; baseline s05_cot_drop_mistral-7b at stage 0.5 idx 11;
+  batch14) saved at
+  ~/.copilot/session-state/b051b37d-35d0-4a6e-8863-387617810de7/files/drop_panel_prompt.md
