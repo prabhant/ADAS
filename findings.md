@@ -533,34 +533,38 @@ Caveats:
   likely raise those workers' baselines, and narrow the room for scaffolds
   further.
 
-# ARC designer panel, Phi-4 worker — batch 13 (2026-10-29, partial)
+# ARC designer panel, Phi-4 worker — batch 13 (2026-10-29/30, complete)
 
 ADAS's ARC protocol: 25 generations, 20 validation / 60 test tasks, every task
 run 5 times. The worker is Phi-4 (no reasoning mode, 16k context: the setting
-closest to ADAS's GPT-3.5). Phi-4's CoT baseline is 9.0% (20 × 5). Status:
-gpt-oss-120b complete; Qwen3.5-27B search complete, test evaluation 19/30 so
-far (its selected design is scored); Qwen3.5-35B-A3B still queued.
+closest to ADAS's GPT-3.5). Phi-4's CoT baseline is 9.0% (20 × 5). All three
+designers completed 25 generations. Every design has a test score except one of
+Qwen3.5-27B's 30, which timed out.
 
 The seed agents are re-evaluated on the 60 test tasks in each cell. Their scores
 differ between cells by up to 6 points: Self-Refine 22.3% vs 16.3% on the same
-tasks. So the comparisons below use each seed pooled over both cells (10 runs per
-task). Pooled test scores: CoT 17.2%, Self-Refine 19.3%, Debate 18.2%, CoT-SC
-19.8%, QD 22.0% (best).
+tasks. So the comparisons below use each seed pooled over the three cells (15
+runs per task). Pooled test scores: CoT 17.1%, Self-Refine 19.6%, Debate 17.8%,
+CoT-SC 19.2%, QD 20.9% (best).
 
-| Designer | Gens (attempts) | Best on validation (gen) | Its test score | vs pooled Self-Refine (best seed on val) [95% CI, by task] | vs pooled QD (best seed on test) | Test answers the worker never saw |
-|---|---|---|---|---|---|---|
-| gpt-oss-120b | 25 (31) | 34% (18, tied with 20) | 31.3% | +12.0 [+1.2, +23.5] | +9.3 [−1.5, +20.3] | 7 of 60 tasks, all correct |
-| Qwen3.5-27B | 25 (28) | 40% (10) | 30.3% | **+11.0 [+5.7, +16.8]** | **+8.3 [+3.7, +13.5]** | 0 |
+| Designer | Gens (attempts) | Best on validation (gen) | Its test score | vs pooled Self-Refine (best seed on val) [95% CI, by task] | vs pooled QD (best seed on test) | Worker calls / task | Test answers the worker never saw |
+|---|---|---|---|---|---|---|---|
+| Qwen3.5-35B-A3B | 25 (27) | 47% (17) | **36.0%** | **+16.4 [+10.8, +22.9]** | **+15.1 [+9.4, +21.1]** | 45.4 | 0 |
+| gpt-oss-120b | 25 (31) | 34% (18, tied with 20) | 31.3% | +11.8 [+1.4, +22.9] | +10.4 [−0.4, +21.4] | 7.4 | 7 of 60 tasks, all correct |
+| Qwen3.5-27B | 25 (28) | 40% (10) | 30.3% | **+10.8 [+5.4, +16.3]** | **+9.4 [+4.8, +14.6]** | 9.0 | 0 |
 
 1. **This is the first setting in the project where ADAS's search clearly
    helps.**
-   - Both selected designs score about 30–31% on test, against 17–22% for the
+   - The three selected designs score 30–36% on test, against 17–21% for the
      five hand-designed agents.
-   - Qwen3.5-27B's design beats every seed significantly, including the best
-     one chosen with hindsight.
+   - Two of them, Qwen3.5-35B-A3B's and Qwen3.5-27B's, beat every seed
+     significantly, including the best one chosen with hindsight.
    - So with a weak, non-reasoning worker on ARC, the paper's effect
-     reproduces, and is larger: +8 to +12 points, against ADAS's
+     reproduces, and is larger: +9 to +15 points, against ADAS's
      8.0% → 13.7% with GPT-3.5.
+   - The best design is the most expensive: Qwen3.5-35B-A3B's "Diagnostic
+     Progressive Verification" uses 8 worker agents with example feedback
+     and 45 calls per task (Self-Refine uses 4).
 2. **The two designers gained in different ways (Q7, Q8).**
    - **Qwen3.5-27B ("Consensus-Driven Program Synthesis", 9 worker calls,
      16k tokens per task):** 6 worker agents with different roles and
@@ -605,4 +609,6 @@ Caveats:
 - Public ARC training tasks (possible memorisation, by the worker and by the
   designer's DSL).
 - 60 test tasks, so confidence intervals are wide.
-- The third designer and Qwen3.5-27B's remaining test evaluations are pending.
+- Qwen3.5-35B-A3B's gain comes at about 11× Self-Refine's worker calls.
+  Spending was not penalised (as in ADAS), so cost-matched comparisons are
+  still open.

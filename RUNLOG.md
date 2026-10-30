@@ -821,3 +821,13 @@ Inspect with: bash experiments/slurm/status.sh
 - Seed re-evaluation differs across cells (Self-Refine 22.3 vs 16.3, CI excl. 0)
   -> compare against seeds pooled over cells.
 - findings.md: "ARC designer panel, Phi-4 worker" (partial).
+
+### 2026-10-30 - batch13 complete (ARC panel, Phi-4)
+
+- 28689967_0 qwen3.5-27b COMPLETED (7.9 h; 29/30 tested, 1 timeout);
+  28689968_2 qwen3.5-35b-a3b COMPLETED 2026-10-30 14:55 (15.2 h, 25 gens in 27
+  attempts, 30/30 tested).
+- Selected designs on test vs best pooled seed (QD 20.9%, 15 runs/task):
+  qwen3.5-35b-a3b gen 17 36.0% +15.1 [+9.4, +21.1] (45 calls/task, no
+  worker-free answers); gpt-oss-120b 31.3% +10.4 [-0.4, +21.4]; qwen3.5-27b
+  30.3% +9.4 [+4.8, +14.6]. findings.md ARC section updated to final.
