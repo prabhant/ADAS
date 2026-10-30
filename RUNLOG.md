@@ -843,3 +843,42 @@ Inspect with: bash experiments/slurm/status.sh
   1 pass; cells pdr_*; baseline s05_cot_drop_mistral-7b at stage 0.5 idx 11;
   batch14) saved at
   ~/.copilot/session-state/b051b37d-35d0-4a6e-8863-387617810de7/files/drop_panel_prompt.md
+
+### 2026-10-30 17:37 - batch14 submitted at commit 33df850
+
+```
+drop_baseline	28779455
+designers_1gpu	28779456
+designers_2gpu	28779457
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-30 - batch14: DROP designer panel, Mistral-7B worker
+
+- Commit 33df850 (config only): stage panel_drop (ADAS DROP protocol: 30 gens,
+  128 val / 800 test, 1 pass, 90 attempts, debug 3, require_seed_cache); cells
+  pdr_qwen3.5-27b_a (idx 0, 2 GPU), pdr_gpt-oss-120b_a (1, 3 GPU),
+  pdr_qwen3.5-35b-a3b_a (2, 3 GPU), worker mistral-7b; baseline cell
+  s05_cot_drop_mistral-7b (stage 0.5 idx 11, 128 x 5). No code change since
+  the b2ca802 e2e (28777636, 222 checks), so no e2e gate.
+- Seed archive reused from the batch-9 screen
+  (mistralai_Mistral-7B-Instruct-v0.2__drop__valid128__shuffle0__rep1__None.json,
+  7 seeds, 2026-10-14). DROP code changed since only in deadline/test-cap
+  handling, instrumentation and the baseline print, not in scoring, so it is
+  still valid.
+- Dry run (session script dryrun_batch14.sh, throwaway results root): each new
+  cell resolved and parsed by _drop/search.py build_parser. Domain drop,
+  128/800, rep 1, 30 gens / 90 attempts, --require_seed_cache, seed-cache name
+  equals the cached file and its 7 seed names equal get_init_archive(); meta
+  Qwen3.5-27B tp1, gpt-oss-120b tp2, Qwen3.5-35B-A3B tp2; informed with
+  --worker_cot_accuracy. Without the DROP baseline the designers refuse; an
+  MGSM baseline file is refused for DROP. Existing stage indices unchanged.
+- scontrol: 28779456 and 28779457 Dependency=afterok:28779455_*; ReqTRES gpu
+  1 / 2 / 3, cpu 16 / 32 / 48.
+- What to check: baseline F1 vs screen CoT 44.6 (1 pass) and cot_baseline.json
+  domain drop; each designer .out shows "Initial Archive (cached)" x7 then
+  Generation 1. Expect "context is too long" debug rounds (Mistral 32k).
+- Compare against (screen, val F1): CoT 44.6, CoT-SC 46.7, Self-Refine 42.8,
+  Debate 49.9 (best), Step-back 25.1, QD 39.2, Role Assignment 45.9. ADAS with
+  GPT-3.5: CoT 64.2, best seed 65.8, searched 79.4 (+13.6).
