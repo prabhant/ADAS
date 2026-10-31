@@ -897,3 +897,6 @@ Inspect with: bash experiments/slurm/status.sh
 - 2026-10-31 16:53: designers 28779456 [0] and 28779457 [1-2] PENDING
   (Priority); no designer output yet. SLURM's estimated start is 2026-11-02
   15:20-15:50 (gpu_h100 83/84 nodes allocated).
+- 2026-11-01 00:05: designers 28779456 [0] and 28779457 [1-2] still PENDING
+  (Priority) 13 h after release; gpu_h100 full. SLURM's estimated start has
+  drifted between 2026-11-01 02:37 and 2026-11-02 18:00; latest ~11:00 Nov 1.
