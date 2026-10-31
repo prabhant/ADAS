@@ -888,3 +888,9 @@ Inspect with: bash experiments/slurm/status.sh
   baselines ran 2-5 min) to help backfill is not allowed for users
   (scontrol update: Access/permission denied); not resubmitted, to keep its
   accrued age priority and the afterok chain.
+- 2026-10-31 10:42-10:44: 28779455_11 baseline COMPLETED (backfilled, 2.5 min,
+  gcn128). Mistral-7B DROP CoT F1 42.3% [38.9, 45.8] (128 x 5 = 640 calls;
+  per pass 40.1 / 42.6 / 45.4 / 43.1 / 40.5); screen 44.6 (1 pass) is inside
+  that spread. 20/640 empty answers, 0 failed calls. cot_baseline.json domain
+  drop, accuracy 0.4234: the informed designers are told 42.3%. Designers
+  28779456 [0] and 28779457 [1-2] released from the dependency, PENDING.
