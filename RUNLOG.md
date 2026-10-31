@@ -894,3 +894,6 @@ Inspect with: bash experiments/slurm/status.sh
   that spread. 20/640 empty answers, 0 failed calls. cot_baseline.json domain
   drop, accuracy 0.4234: the informed designers are told 42.3%. Designers
   28779456 [0] and 28779457 [1-2] released from the dependency, PENDING.
+- 2026-10-31 16:53: designers 28779456 [0] and 28779457 [1-2] PENDING
+  (Priority); no designer output yet. SLURM's estimated start is 2026-11-02
+  15:20-15:50 (gpu_h100 83/84 nodes allocated).
