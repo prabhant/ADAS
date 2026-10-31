@@ -882,3 +882,9 @@ Inspect with: bash experiments/slurm/status.sh
 - Compare against (screen, val F1): CoT 44.6, CoT-SC 46.7, Self-Refine 42.8,
   Debate 49.9 (best), Step-back 25.1, QD 39.2, Role Assignment 45.9. ADAS with
   GPT-3.5: CoT 64.2, best seed 65.8, searched 79.4 (+13.6).
+- 2026-10-31 10:40: 28779455 (baseline) still PENDING (Priority) after 17 h;
+  gpu_h100 83/84 nodes allocated; SLURM estimated start 2026-10-31 16:11.
+  Designers PENDING (Dependency). Shortening the baseline's 4 h limit (past
+  baselines ran 2-5 min) to help backfill is not allowed for users
+  (scontrol update: Access/permission denied); not resubmitted, to keep its
+  accrued age priority and the afterok chain.
