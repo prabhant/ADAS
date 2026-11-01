@@ -900,3 +900,14 @@ Inspect with: bash experiments/slurm/status.sh
 - 2026-11-01 00:05: designers 28779456 [0] and 28779457 [1-2] still PENDING
   (Priority) 13 h after release; gpu_h100 full. SLURM's estimated start has
   drifted between 2026-11-01 02:37 and 2026-11-02 18:00; latest ~11:00 Nov 1.
+- 2026-11-01 06:19: 28779457_1 pdr_gpt-oss-120b_a STARTED (gcn129; worker
+  port 8598 GPU 0, meta tp=2 port 8599 GPUs 1-2). .out: "Initial Archive
+  (cached)" x7, then Generation 1 (attempt 1/90) at ~06:33; gen 1 F1 39.0%
+  [31.6, 46.5], 3 empty answers, 0 failed calls of 128.
+  28779456_0 (qwen3.5-27b) and 28779457_2 (qwen3.5-35b-a3b) still PENDING.
+- Health-probe note: this job printed guided_json=False for worker and meta
+  (ARC panel: True). That probe asks for a whole design JSON at temperature 0
+  in 4,096 tokens and configures nothing: worker calls use json_object (no
+  schema), and the designer's schema calls only fall back on a server
+  BadRequest. No errors in _serving_logs/{worker_8598,meta_8599}.log; gen 1's
+  design parsed. Past logs: worker probe False in 37, True in 38 jobs.
