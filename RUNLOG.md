@@ -911,3 +911,23 @@ Inspect with: bash experiments/slurm/status.sh
   schema), and the designer's schema calls only fall back on a server
   BadRequest. No errors in _serving_logs/{worker_8598,meta_8599}.log; gen 1's
   design parsed. Past logs: worker probe False in 37, True in 38 jobs.
+- 2026-11-01 07:02: 28779456_0 pdr_qwen3.5-27b_a STARTED (gcn124; meta tp=1,
+  reasoning parser qwen3). 10:05: 28779457_2 pdr_qwen3.5-35b-a3b_a STARTED
+  (gcn89; meta tp=2). Both .out: "Initial Archive (cached)" x7 (0 uncached),
+  then Generation 1; health probes guided_json=True. No context-overflow
+  messages so far in any cell.
+- 2026-11-01 10:25 snapshot (interim, validation only, n=128, 1 pass; Debate
+  49.9 is the best seed): DROP search is fast.
+  - gpt-oss-120b: search done, 30 gens in 30 attempts; best val 47.8 (gen 27,
+    "Self-Consistent Ranker"), none above Debate; 11/30 below 30 F1; test 22/37.
+  - Qwen3.5-27B: search done, 30 gens in 32 attempts; best val 53.2 (gen 28,
+    "Adaptive Type-Aware Debate"), 3 above Debate; 9/30 below 30; test 1/37.
+  - Qwen3.5-35B-A3B: generation 2.
+- NEXT (follow-up session): partial findings when the first cell completes,
+  final when all three do (plan: validation-only selection + ties; seeds
+  pooled over the 3 cells; paired bootstrap on per-question F1 vs pooled
+  Debate, best pooled seed on test, CoT; upper bound; worker-free stub check;
+  answer-before-reasoning; cost). Reusable scripts:
+  ~/.copilot/session-state/b051b37d-35d0-4a6e-8863-387617810de7/files/
+  {panel_summary.py, report_tables.py}; this session's plan and dry run:
+  ~/.copilot/session-state/dbfc01f3-fe65-4ebd-9662-20f07f93008e/{plan.md, files/}.
