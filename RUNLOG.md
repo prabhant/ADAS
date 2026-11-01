@@ -931,3 +931,27 @@ Inspect with: bash experiments/slurm/status.sh
   ~/.copilot/session-state/b051b37d-35d0-4a6e-8863-387617810de7/files/
   {panel_summary.py, report_tables.py}; this session's plan and dry run:
   ~/.copilot/session-state/dbfc01f3-fe65-4ebd-9662-20f07f93008e/{plan.md, files/}.
+- 2026-11-01: designers started. 28779457_1 gpt-oss-120b 06:19 (gcn129),
+  28779456_0 qwen3.5-27b 07:02 (gcn124), 28779457_2 qwen3.5-35b-a3b 10:05
+  (gcn89). Each .out: correct worker/meta and TP, "Initial Archive (cached)"
+  x7, uncached 0, then "Generation 1 (attempt 1/90)". No "context is too
+  long" so far.
+- gpt-oss-120b cell's probe printed guided_json=False for both servers (True
+  in the other cells). Harmless: worker calls send no schema (json_object
+  mode, as stock ADAS), and the meta server answered all 98 requests 200 (the
+  json_schema fallback needs a 400) and ran the grammar-bitmask kernel. Likely
+  the probe's 4,096-token budget spent on gpt-oss reasoning. The same probe
+  read False on pan_gpt-oss-120b_a's worker before.
+- 10:25 snapshot (validation F1, 128 q): qwen3.5-27b 30 gens in 32 attempts
+  (2 json_parse_error), best gen 28 "Adaptive Type-Aware Debate" 53.2
+  [45.4, 61.0], 7 calls/q; 3/30 above Debate's 49.9, 9/30 below 30, median
+  39.8. gpt-oss-120b 30 gens in 30 attempts, best gen 27 "Self-Consistent
+  Ranker" 47.8, 24 calls/q; 0/30 above Debate, 11/30 below 30; its designs are
+  mostly extract -> code/expression -> verify. Both in test evaluation
+  (gpt-oss 21/37 tested). Seeds re-scored on test in the gpt-oss cell: CoT
+  39.0, CoT-SC 42.6, Refine 37.1, Debate 40.5, Step-back 29.0, QD 39.4,
+  Roles 39.8 (Debate's 49.9 on validation was partly selection luck). Best
+  tested design so far: gen 9 "Extract-Generate-Code-Verify" 47.1 (val 46.8).
+  Code-executing designs: run the worker-free check before crediting them.
+- worker calls log JSON errors in all cells ("not returning enough fields"
+  13-20%, as in the seed screen): Mistral output, not a server difference.
