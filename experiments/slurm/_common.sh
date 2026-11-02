@@ -153,10 +153,17 @@ for name, prefix in (("meta", "META"), ("worker", "WORKER")):
          if is_meta else spec["max_model_len"])
     # A designer may need a larger budget than the same model as a worker.
     emit(f"{prefix}_MAX_TOKENS", spec.get("meta_max_output_tokens", spec["max_output_tokens"])
-         if prefix == "META" else spec["max_output_tokens"])
-    # Workers keep the setup their Stage 0.5 baselines were measured under.
-    emit(f"{prefix}_REASONING_PARSER",
-         spec.get("meta_reasoning_parser", "") if prefix == "META" else "")
+         if prefix == "META" else merged.get("worker_max_tokens", spec["max_output_tokens"]))
+    # Workers keep the setup their Stage 0.5 baselines were measured under, unless
+    # the cell asks for native reasoning: then the worker thinks in its own channel
+    # (the parser its designer role uses) and only the agent's JSON fields are content.
+    parser = spec.get("reasoning_parser", spec.get("meta_reasoning_parser", "")) or ""
+    native = prefix == "WORKER" and bool(merged.get("worker_native_reasoning")) and bool(parser)
+    if prefix == "WORKER" and merged.get("worker_native_reasoning") and not parser:
+        sys.stderr.write(f"{key} has no reasoning parser; worker_native_reasoning ignored\n")
+    emit(f"{prefix}_REASONING_PARSER", parser if prefix == "META" or native else "")
+    if prefix == "WORKER":
+        emit("WORKER_NATIVE_REASONING", native)
     if spec.get("stage_to_node_nvme"):
         emit("STAGE_TO_NVME", 1)
 
@@ -175,6 +182,9 @@ emit("COST_LAMBDA", merged.get("cost_lambda", 0.0))
 emit("REQUIRE_SEED_CACHE", merged.get("require_seed_cache", False))
 emit("WORKER_REASONING_EFFORT", cell.get("worker_reasoning_effort", ""))
 emit("META_REASONING_EFFORT", cell.get("meta_reasoning_effort", ""))
+# Per-stage overrides; empty keeps search.py's defaults.
+emit("SANDBOX_TIMEOUT", merged.get("sandbox_timeout", ""))
+emit("REQUEST_TIMEOUT", merged.get("request_timeout", ""))
 PYTHON
 }
 
@@ -268,6 +278,9 @@ search_args() {    local out_dir="$RESULTS_ROOT/$CELL_ID"
 
     [[ "${REQUIRE_SEED_CACHE:-0}" == "1" ]] && args+=(--require_seed_cache)
     [[ "${ADAS_EVALUATE_ONLY:-0}" == "1" ]] && args+=(--evaluate_only)
+    [[ "${WORKER_NATIVE_REASONING:-0}" == "1" ]] && args+=(--worker_native_reasoning)
+    [[ -n "${SANDBOX_TIMEOUT:-}" ]] && args+=(--sandbox_timeout "$SANDBOX_TIMEOUT")
+    [[ -n "${REQUEST_TIMEOUT:-}" ]] && args+=(--request_timeout "$REQUEST_TIMEOUT")
 
     case "${CELL_CONDITION:-}" in
         bare_model)           args+=(--baseline bare) ;;

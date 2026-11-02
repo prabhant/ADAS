@@ -1,0 +1,19 @@
+{
+  "worker": {
+    "url": "http://127.0.0.1:8000/v1",
+    "model": "mistralai/Mistral-7B-Instruct-v0.2",
+    "healthy": true,
+    "json_mode": {
+      "parsed_keys": [
+        "code",
+        "name",
+        "thought"
+      ],
+      "finish_reason": "stop",
+      "completion_tokens": 31,
+      "reasoning_tokens": null,
+      "reasoning_split_exposed": false
+    },
+    "guided_json": false
+  }
+}

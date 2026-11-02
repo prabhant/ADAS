@@ -1,0 +1,11 @@
+{"generation": 3, "attempt": 3, "stage": "evaluate", "category": "runtime_exception", "message": "list index out of range", "t": 1792031371.0014327}
+{"generation": 10, "attempt": 10, "stage": "evaluate", "category": "python_syntax_error", "message": "unterminated string literal (detected at line 165) (<string>, line 165)", "t": 1792036751.6757398}
+{"generation": 14, "attempt": 14, "stage": "propose", "category": "json_parse_error", "message": "Expecting ',' delimiter: line 1 column 12897 (char 12896)", "t": 1792041558.6824472}
+{"generation": 15, "attempt": 16, "stage": "evaluate", "category": "context_overflow", "message": "The context is too long. Please try to design the agent to have shorter context.", "t": 1792044638.87293}
+{"generation": 15, "attempt": 16, "stage": "debug", "category": "json_parse_error", "message": "Expecting ',' delimiter: line 11831 column 1 (char 296224)", "t": 1792044980.3759308}
+{"generation": 19, "attempt": 21, "stage": "propose", "category": "json_parse_error", "message": "Expecting ',' delimiter: line 5050 column 1 (char 45816)", "t": 1792049471.721289}
+{"generation": 25, "attempt": 28, "stage": "evaluate", "category": "context_overflow", "message": "The context is too long. Please try to design the agent to have shorter context.", "t": 1792057911.798991}
+{"generation": 26, "attempt": 29, "stage": "propose", "category": "json_parse_error", "message": "Expecting ',' delimiter: line 1 column 12481 (char 12480)", "t": 1792059379.8006544}
+{"generation": 30, "attempt": 34, "stage": "evaluate", "category": "python_syntax_error", "message": "unterminated string literal (detected at line 207) (<string>, line 207)", "t": 1792062955.814437}
+{"generation": 9, "attempt": 34, "stage": "test", "category": "wallclock_timeout", "message": "Sandboxed evaluation exceeded 3600s wall clock", "t": 1792077271.659114}
+{"generation": 17, "attempt": 34, "stage": "test", "category": "wallclock_timeout", "message": "Sandboxed evaluation exceeded 3600s wall clock", "t": 1792096146.2273672}

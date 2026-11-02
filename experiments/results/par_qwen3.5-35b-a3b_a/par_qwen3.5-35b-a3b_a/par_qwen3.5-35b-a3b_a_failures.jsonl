@@ -1,0 +1,15 @@
+{"generation": 3, "attempt": 3, "stage": "evaluate", "category": "python_syntax_error", "message": "unmatched '}' (<string>, line 84)", "t": 1793315656.234844}
+{"generation": 5, "attempt": 5, "stage": "propose", "category": "json_parse_error", "message": "Expecting ',' delimiter: line 82004 column 4 (char 98600)", "t": 1793316625.3604407}
+{"generation": 5, "attempt": 6, "stage": "evaluate", "category": "runtime_exception", "message": "list index out of range", "t": 1793317010.0573206}
+{"generation": 5, "attempt": 6, "stage": "evaluate", "category": "runtime_exception", "message": "list index out of range", "t": 1793317363.133437}
+{"generation": 7, "attempt": 8, "stage": "evaluate", "category": "python_syntax_error", "message": "f-string expression part cannot include a backslash (<string>, line 49)", "t": 1793318551.0163615}
+{"generation": 12, "attempt": 13, "stage": "evaluate", "category": "runtime_exception", "message": "'structural_verification'", "t": 1793322127.1206357}
+{"generation": 13, "attempt": 14, "stage": "evaluate", "category": "python_syntax_error", "message": "f-string expression part cannot include a backslash (<string>, line 23)", "t": 1793322604.671556}
+{"generation": 14, "attempt": 15, "stage": "evaluate", "category": "context_overflow", "message": "The context is too long. Please try to design the agent to have shorter context.", "t": 1793323722.4335885}
+{"generation": 16, "attempt": 17, "stage": "evaluate", "category": "runtime_exception", "message": "'itertools.permutations' object is not subscriptable", "t": 1793324326.916246}
+{"generation": 16, "attempt": 17, "stage": "evaluate", "category": "all_zero_accuracy", "message": "All 0 accuracy", "t": 1793324414.6421957}
+{"generation": 24, "attempt": 25, "stage": "evaluate", "category": "runtime_exception", "message": "'role'", "t": 1793329570.7410252}
+{"generation": 24, "attempt": 25, "stage": "evaluate", "category": "python_syntax_error", "message": "f-string expression part cannot include a backslash (<string>, line 141)", "t": 1793329584.970974}
+{"generation": 24, "attempt": 25, "stage": "debug", "category": "json_parse_error", "message": "Expecting ',' delimiter: line 2 column 36152 (char 36153)", "t": 1793329641.1170268}
+{"generation": 24, "attempt": 26, "stage": "evaluate", "category": "python_syntax_error", "message": "unmatched '}' (<string>, line 284)", "t": 1793329709.0540326}
+{"generation": 24, "attempt": 26, "stage": "evaluate", "category": "python_syntax_error", "message": "unmatched '}' (<string>, line 284)", "t": 1793329728.1486886}

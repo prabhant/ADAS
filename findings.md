@@ -269,7 +269,13 @@ validation, earliest shown; the tied designs test 54.5 / 49.6 / 49.9%
    questions, and a seed's score varies by up to 3 points across cells (CoT
    52.6–55.4%, Step-back 52.9–55.9%).
 3. **Validation predicts test a little better with every design in:**
-   Spearman 0.64 among the 206 working designs (0.59 in batch 5).
+   Spearman 0.64 among the 206 working designs (0.59 in batch 5). The search
+   does produce some better designs, but selection misses them:
+   - 12 of 240 designs score significantly above Self-Consistency on test.
+     Chance alone would give about 6, so this is weak evidence.
+   - Picking each run's best design by test score would gain up to +4.6
+     points.
+   - Picking on 128 validation questions finds none of these.
 4. **Nemotron-Nano's broken designs kept coming** (22/30). It asks the worker
    for its answer before any reasoning in 29 of 30 designs (see the MGSM panel
    below). On MMLU, answering first costs little: other designers' five
@@ -277,7 +283,7 @@ validation, earliest shown; the tied designs test 54.5 / 49.6 / 49.9%
    explain its MMLU failures; batch 5 traced those to a parsing and voting
    fallback.
 
-# MGSM panel — batch 8 (2026-10-15)
+# MGSM panel — batch 8, test evaluation finished in batch 10 (2026-10-17)
 
 Same ADAS protocol on MGSM (30 generations, 128 validation / 800 test
 questions, shared seed archive). The worker is Qwen3-30B-A3B, which had the
@@ -286,32 +292,40 @@ largest scaffold headroom in the MGSM screen. Its production CoT baseline is
 
 | Designer (total / active B) | Generations (attempts) | Best on validation (gen) | Its test score | vs LLM Debate [95% CI] | vs Self-Consistency [95% CI] | Designs ≥ seed mean on test | Worker calls / question | Broken designs |
 |---|---|---|---|---|---|---|---|---|
-| Qwen3-30B-A3B, self-design (31 / 3.4) | 30 (34) | 89.8% (10) | 89.0% | −1.4 [−3.1, +0.5] | +2.2 [+0.4, +4.2] | 5/26† | 33.4 | 0/30 |
+| Qwen3-30B-A3B, self-design (31 / 3.4) | 30 (34) | 89.8% (10) | 89.0% | −1.4 [−3.1, +0.5] | +2.2 [+0.4, +4.2] | 5/30 | 33.4 | 0/30 |
 | Qwen3.5-35B-A3B (35 / 3.5) | 30 (31) | 87.5% (10)* | 90.2% | +0.1 [−1.4, +1.6] | +2.9 [+1.2, +4.5] | 25/30 | 12.4 | 0/30 |
 | Nemotron-3-Nano (32 / 3.6) | 30 (35) | 44.5% (23) | 44.6% | −46.9 [−50.4, −43.2] | −42.1 [−45.9, −38.4] | 0/30 | 11.2 | 30/30 |
 | gpt-oss-20b (21 / 4.2) | 30 (31) | 83.6% (2) | 88.2% | −2.1 [−3.9, −0.4] | +0.6 [−1.2, +2.5] | 1/29† | 7.2 | 28/30 |
-| gpt-oss-120b (117 / 5.7) | 30 (30) | 88.3% (4) | 85.9% | −4.2 [−6.1, −2.2] | −2.1 [−4.4, +0.1] | 6/28† | 14.9 | 8/30 |
-| Nemotron-3-Super (121 / 12.8) | 30 (35) | 89.1% (16) | 85.5% | −4.8 [−6.8, −2.8] | −0.4 [−3.0, +2.1] | 6/18† | 34.8 | 2/30 |
+| gpt-oss-120b (117 / 5.7) | 30 (30) | 88.3% (4) | 85.9% | −4.2 [−6.1, −2.2] | −2.1 [−4.4, +0.1] | 6/30 | 14.9 | 8/30 |
+| Nemotron-3-Super (121 / 12.8) | 30 (35) | 89.1% (16) | 85.5% | −4.8 [−6.8, −2.8] | −0.4 [−3.0, +2.1] | 7/30 | 34.8 | 2/30 |
 | Qwen3-14B (15 / 14.8) | 28 (90) | 86.7% (11) | 87.0% | −4.4 [−6.5, −2.4] | +0.0 [−2.4, +2.5] | 12/28 | 15.7 | 0/28 |
-| Qwen3.5-27B (27 / 26.9) | 30 (34) | 90.6% (17) | pending† | – | – | 15/16† | 22.4 | 0/30 |
+| Qwen3.5-27B (27 / 26.9) | 30 (34) | 90.6% (17) | 89.4% | −1.5 [−3.1, +0.1] | +2.9 [+0.9, +5.0] | 28/30 | 22.4 | 0/30 |
 
 "Broken" = below 50% on validation; CoT scores 74.2%. *Three-way tie, earliest
-shown; the tied designs test 90.2 / 88.4 / 90.5%. †Test evaluation unfinished,
-counts cover tested designs only. Untested so far: Qwen3.5-27B 14 (including
-its selected design), Nemotron-Super 12, Qwen3-30B-A3B 4, gpt-oss-120b 2,
-gpt-oss-20b 1. All but gpt-oss-20b's are being tested in batch 10.
+shown; the tied designs test 90.2 / 88.4 / 90.5%. †One design untested: it
+timed out at 1 h on test after 131 s on validation (probably hangs) and was not
+retried. Every other design has a test score; batch 10 tested the 32 missing
+or timed-out ones under per-design caps.
 
 1. **No designer beat LLM Debate.** Debate is the best hand-designed agent on
    validation (88.3%) and on test (90.1–91.5% across cells). Against it,
    selected designs score −4.8 to +0.1 points, and four are significantly
-   worse. Only 5 of 238 generated designs beat Debate even on validation.
-   Picking each run's best design by its *test* score would gain at most
-   +0.9 points so far.
-2. **Two searches beat Self-Consistency, but only by matching Debate.**
-   Qwen3.5-35B-A3B (+2.9) and Qwen3-30B-A3B designing for itself (+2.2) are
-   significantly better than CoT-SC. That is Debate's level, at 1.3–1.6× its
-   worker tokens (8.1–9.5k vs 6.1k per question). So the self-design cell
-   does as well as the best outside designer, but no better.
+   worse.
+   - Of all 237 generated designs with a test score, none is significantly
+     better than Debate and 200 are significantly worse.
+   - Only 5 of 238 beat Debate even on validation.
+   - Picking each run's best design by its *test* score (a cheat) would
+     gain at most +0.9 points.
+   - No design is cheaper than Debate in test tokens without being worse.
+
+   For comparison, ADAS (GPT-3.5 worker) reported 53.4% on MGSM against
+   Debate's 39.0%, a gain of +14.4.
+2. **Three searches beat Self-Consistency, but only by matching Debate.**
+   Qwen3.5-35B-A3B (+2.9), Qwen3.5-27B (+2.9) and Qwen3-30B-A3B designing for
+   itself (+2.2) are significantly better than CoT-SC. That is Debate's level,
+   at 1.3× to 12× its worker tokens: 8.1–9.5k for the two A3B designers,
+   75.7k for Qwen3.5-27B's, against Debate's 6.1k per question. The
+   self-design cell does as well as the best outside designers, but no better.
 3. **The commonest failure is asking for the answer before the reasoning
    (Q6, Q7).** A worker agent is shown its output fields in the order the
    design lists them, and presumably writes its JSON reply in that order (the
@@ -328,10 +342,14 @@ gpt-oss-20b 1. All but gpt-oss-20b's are being tested in batch 10.
 
    On MMLU the same habit was harmless. It shows up as failure where the
    worker needs to reason.
-4. **Validation is far more informative than on MMLU.** Spearman 0.92
-   between validation and test among the 142 working designs with a test
-   score (MMLU: 0.64). The ceiling is close, though: the best designs reach
-   89–91% on test, which is where Debate already is.
+4. **Validation is far more informative than on MMLU.** Spearman 0.93
+   between validation and test among the 170 working designs (MMLU: 0.64).
+   But there is little left to find above Debate:
+   - The best designs reach 89–91% on test, which is where Debate already is.
+   - Some seed agent solves 94.2% of the test questions; Debate alone solves
+     90.9%. So even perfect routing among the seeds would add only ~3 points.
+   - All 293 evaluated agents together leave just 10 questions unsolved.
+   - No design captures that complementarity.
 5. **The most expensive designers are the same on both tasks (Q8).** Mean
    worker calls per question range from 7.2 (gpt-oss-20b) to 34.8
    (Nemotron-Super). The top two match MMLU: Nemotron-Super at about 35 calls,
@@ -343,15 +361,20 @@ gpt-oss-20b 1. All but gpt-oss-20b's are being tested in batch 10.
    Those designers finished 30 generations in 30–35 attempts. The exception
    is Qwen3-14B: its YaRN-extended 65,536-token window overflowed on 42
    attempts, and the run stopped at 28 generations after 90 attempts.
-7. **Test evaluation did not fit the most expensive designs.**
+7. **Test evaluation did not fit the most expensive designs at first.**
    - 13 test runs hit the 1-hour sandbox cap. Most of those designs make 32–104
      worker calls per question.
    - Separately, a walltime bug left 20 designs untested: the job stopped
      30 minutes before its limit, but one test run can take an hour.
-   - Fixes: test runs now stop cleanly at the job deadline and resume in the
-     next job, and each design's cap scales with its own validation time.
+   - Fixes (07de224): test runs now stop cleanly at the job deadline and resume
+     in the next job, and each design's cap scales with its own validation
+     time.
+   - Batch 10 then tested all 32 affected designs in one 1-GPU job per cell
+     (2–13 h, no resubmissions).
    - gpt-oss-20b's timed-out design ran validation in 131 s, so it probably
      hangs on some question. It keeps the 1-hour cap.
+8. **Cost.** The two panels used about 390 H100 GPU-hours: ~310 for MGSM,
+   including batch 10, and ~85 for MMLU.
 
 Caveats:
 - One run per designer.
@@ -359,4 +382,233 @@ Caveats:
   4 points (CoT 78.4–82.4%), which is comparable to the gaps between designers.
 - The field-order split is a static reading of each design's code. One
   gpt-oss-20b design requests no answer field and is left out.
-- Rows marked † will change when batch 10 finishes.
+
+# ARC worker screen — batch 11 (2026-10-21)
+
+The five ADAS ARC seed agents on five workers, ADAS's ARC protocol: its fixed
+20 validation tasks, every task run 5 times (100 runs per agent), exact match on
+the test grid. Workers answer through JSON with a 4,096-token output cap, as in
+every other domain (stock ADAS ARC used 1,024).
+
+| Worker | Architecture | Total / active B | CoT | Self-Refine | Debate | CoT-SC | QD | Best − CoT [95% CI, by task] | Tasks solved at least once |
+|---|---|---|---|---|---|---|---|---|---|
+| Mistral-7B-v0.2 (2023) | dense transformer | 7.2 / 7.2 | 0% | 0% | 0% | 0% | 0% | +0 | 0/20 |
+| Phi-4 (2024) | dense transformer | 14.7 / 14.7 | 11% | 20% | 18% | 19% | 15% | +9 [0, +18] | 11/20 |
+| Nemotron-3-Nano (reasoning) | hybrid Mamba-2 + MoE (23 Mamba, 23 MoE, 6 attention layers; 128 experts, top-6) | 31.6 / 3.6 | 11% | 22% | 37% | 39% | 28% | +28 [+15, +43] | 13/20 |
+| Qwen3-30B-A3B (reasoning) | MoE transformer (128 experts, top-8) | 30.5 / 3.4 | 23% | 36% | 38% | 42% | 27% | +19 [+9, +30] | 14/20 |
+| Qwen3.5-27B (reasoning) | dense, hybrid attention (48 linear + 16 full layers) | 26.9 / 26.9 | 63% | 79% | 80% | 78% | 75% | +17 [+5, +31] | 20/20 |
+
+Intervals resample the 20 tasks (runs of one task are not independent).
+
+1. **The reasoning-trained workers mostly fail by running out of tokens, not by
+   being wrong.** They write their reasoning into the `thinking` field, which
+   fills the 4,096-token cap before the `code` field is written. The reply ends
+   mid-JSON and the run has no code.
+   - Share of all 2,000 worker calls cut off this way: Qwen3-30B-A3B 42%,
+     Nemotron-Nano ~45% (plus 13% more with missing fields), Qwen3.5-27B 22%.
+     Phi-4 and Mistral: under 1%.
+   - In single-call CoT, truncated calls match no-code runs exactly for
+     Qwen3-30B-A3B (71 of 100) and nearly so for the others.
+   - When they do produce code, it is mostly right: 79% (Qwen3-30B-A3B), 73%
+     (Nemotron-Nano), 95% (Qwen3.5-27B). Phi-4 produces code 98% of the time
+     and is right 11% of the time.
+   - These conditional rates are optimistic, because truncation hits the
+     harder, larger tasks more.
+2. **Much of the scaffold "gain" for reasoning workers is recovering truncated
+   answers.** Going from CoT to the best seed:
+   - Qwen3.5-27B gains 17 correct runs and loses 18 no-code runs; wrong grids
+     barely change (+1). Almost its entire gain is getting an answer out at all.
+   - Qwen3-30B-A3B loses 50 no-code runs, but gains only 19 correct runs and
+     29 wrong grids.
+   - Nemotron-Nano loses 39 no-code runs, for 28 correct and 11 wrong grids.
+   - Phi-4's +9 is the only gain that comes from turning wrong grids into right
+     ones (no truncation involved). It is the gain the feedback-driven seed
+     (Self-Refine) is designed to deliver.
+   - Consequence: an ARC search over a reasoning worker at this cap would be
+     rewarded partly for working around the token limit, not for solving ARC
+     better.
+3. **Neither total nor active parameter count orders the workers.**
+   - By total size, Qwen3.5-27B (27B) beats both ~31B MoE models.
+   - By active size, the ~3.5B-active MoE models beat dense Phi-4 (14.7B) on
+     every seed except Nemotron-Nano's CoT, even while truncated.
+   - What lines up is training generation, then compute per token:
+     reasoning-trained 2025–26 models > Phi-4 (2024, no long reasoning) >
+     Mistral (2023). Among reasoning models, dense 27B > 3.5B-active MoE.
+   - The two ~3.5B-active MoE models reach the same level with their best seed
+     (CoT-SC 42% vs 39%), despite different architectures (transformer MoE vs
+     Mamba-2 hybrid MoE). Nemotron-Nano's CoT is lower (11% vs 23%) because it
+     is more verbose and truncates more. It was the most verbose designer
+     too (~6.6k tokens per proposal).
+   - With five workers, this is a description, not a scaling law.
+4. **Capability is nested, and ARC separates modern models far more than MGSM
+   or DROP do.**
+   - Qwen3.5-27B solves every task that any other worker solves (20/20).
+   - Phi-4, Qwen3-30B-A3B and Nemotron-Nano find the same tasks hard
+     (Spearman 0.69–0.83 on per-task solve rates). Qwen3.5-27B's few failures
+     fall elsewhere (0.23–0.46).
+   - Bigger tasks fail more for every worker (Spearman −0.39 to −0.68 between
+     grid cells and solve rate). That holds for Phi-4 too, which never
+     truncates, so size is real difficulty as well as token pressure.
+   - Chain-of-thought spread across the four modern workers: MGSM 74–84%,
+     DROP F1 81–84%, ARC 11–63%.
+5. **Floor and failure modes differ by model.**
+   - Mistral-7B cannot write working Python for these tasks: about 45% of its
+     runs end in code or runtime errors, and no seed helps (0/20 tasks).
+   - Phi-4's failures are wrong grids from code that runs.
+   - The reasoning models' failures are unfinished replies.
+
+Caveats:
+- These are ARC-AGI-1 *training* tasks, public since 2019, as in ADAS. Modern
+  models have likely seen them, so memorisation cannot be separated from
+  reasoning.
+- The sample is filtered to tasks whose first example grids have at most
+  5 rows.
+- 20 validation tasks only, and no test split has been run.
+- For reference, ADAS's GPT-3.5 scored 6.0% (CoT) to 8.0% (best seed) on its
+  60 test tasks, and its searched agent 13.7%.
+
+Implications for an ARC panel:
+- Phi-4 is the clean ADAS-like setting: low CoT, a real feedback-driven seed
+  gain, no truncation, cheap (1.8k tokens per question).
+- The reasoning workers need a larger output cap before a search on them means
+  anything; re-screening them at 16k tokens would show their real ceiling.
+- Qwen3.5-27B is likely near ceiling on these tasks once truncation is removed.
+
+# ARC screen with native worker reasoning — batch 12 (2026-10-28)
+
+The three reasoning workers again, now thinking in their own reasoning channel.
+They are served with their reasoning parser, and only the agent's fields are
+written as JSON (32k-token budget). Same 20 tasks × 5 runs and 5 seed agents.
+**This supersedes the reasoning-worker rows of the batch-11 screen above:**
+there the JSON format forced the reasoning into a 4,096-token field and cut
+most of it off.
+
+| Worker | CoT | Self-Refine | Debate | CoT-SC | QD | Best − CoT [95% CI, by task] | Best seed per task, picked knowing the answer | 4k-JSON screen: CoT → best |
+|---|---|---|---|---|---|---|---|---|
+| Nemotron-3-Nano | 65% | 75% | 79% | 69% | 68% | +14 [+6, +23] (Debate, 3.7× CoT's tokens) | 85% | 11% → 39% |
+| Qwen3-30B-A3B | 57% | 55% | 54% | 61% | 52% | +4 [−3, +11] (CoT-SC, 5.8× tokens) | 67% | 23% → 42% |
+| Qwen3.5-27B | 90% | 93% | 96% | 95% | 93% | +6 [+1, +12] (Debate, 4.7× tokens) | 98% | 63% → 80% |
+| Phi-4 (no reasoning mode; batch 11) | 11% | 20% | 18% | 19% | 15% | +9 [0, +18] (Refine) | 28% | – |
+
+1. **Thinking inside one call beats every scaffold from the JSON-forced
+   setup, at under half the tokens (Q4).** Native single-call CoT against
+   that worker's best 4k-JSON multi-call scaffold:
+   - Nemotron-Nano +26 points [+11, +42] (13k vs 27k tokens per question);
+   - Qwen3-30B-A3B +15 [+6, +25] (10k vs 25k);
+   - Qwen3.5-27B +10 [−3, +25] (15k vs 20k).
+
+   In the batch-11 screen, the large "scaffold gains" (+17 to +28) were mostly
+   the scaffolds working around a token cap that suppressed the model's own
+   reasoning.
+2. **Once workers reason natively, the hand-designed scaffolds add little.**
+   - Qwen3-30B-A3B: CoT-SC is +4 points with an interval including zero, at
+     5.8× the tokens. Self-Refine, Debate and QD all score below its CoT.
+   - Qwen3.5-27B: +6 at 4.7× the tokens, at the ceiling (90% → 96%).
+   - Nemotron-Nano: the one real gain, +14. Debate turns 12 wrong grids into
+     correct ones and recovers 4 still-truncated runs. Nemotron remains the
+     most verbose: 13% of its CoT calls still hit the budget.
+3. **Little is left for a search to find on these 20 tasks.**
+   - Even choosing the best seed separately for every task, with hindsight,
+     adds only 2–6 points over the best single seed.
+   - Tasks solved only by some scaffold and never by CoT: 2, 2 and 0 of 20.
+   - Only Qwen3-30B-A3B has tasks no seed solves (3).
+   - The ADAS-like room is with Phi-4, which has no reasoning mode: 11% CoT,
+     20% best seed, 28% per-task oracle. GPT-3.5 in ADAS: 6%, 8%, then 13.7%
+     searched.
+4. **Size and architecture, revised.**
+   - With reasoning working, Qwen3.5-27B solves 90% with plain CoT.
+   - Nemotron-Nano, a hybrid Mamba-2 MoE with 3.6B active parameters, now
+     beats the transformer MoE Qwen3-30B-A3B (3.4B active): 65% vs 57% for
+     CoT, 79% vs 61% for the best seed. At 4k it was the reverse, because
+     Nemotron was cut off more.
+   - All three reasoning models beat dense 14.7B Phi-4 by 5–8× on CoT. As
+     before, parameter count does not order them; reasoning training does.
+     With 4 workers this remains a description.
+
+Caveats:
+- 20 public ARC training tasks (possible memorisation), validation only.
+- These are the five *hand-designed* agents. No ARC search has been run yet,
+  so whether a searched design beats them on ARC is untested.
+- The MGSM and MMLU panels used JSON-forced workers. Native reasoning would
+  likely raise those workers' baselines, and narrow the room for scaffolds
+  further.
+
+# ARC designer panel, Phi-4 worker — batch 13 (2026-10-29/30, complete)
+
+ADAS's ARC protocol: 25 generations, 20 validation / 60 test tasks, every task
+run 5 times. The worker is Phi-4 (no reasoning mode, 16k context: the setting
+closest to ADAS's GPT-3.5). Phi-4's CoT baseline is 9.0% (20 × 5). All three
+designers completed 25 generations. Every design has a test score except one of
+Qwen3.5-27B's 30, which timed out.
+
+The seed agents are re-evaluated on the 60 test tasks in each cell. Their scores
+differ between cells by up to 6 points: Self-Refine 22.3% vs 16.3% on the same
+tasks. So the comparisons below use each seed pooled over the three cells (15
+runs per task). Pooled test scores: CoT 17.1%, Self-Refine 19.6%, Debate 17.8%,
+CoT-SC 19.2%, QD 20.9% (best).
+
+| Designer | Gens (attempts) | Best on validation (gen) | Its test score | vs pooled Self-Refine (best seed on val) [95% CI, by task] | vs pooled QD (best seed on test) | Worker calls / task | Test answers the worker never saw |
+|---|---|---|---|---|---|---|---|
+| Qwen3.5-35B-A3B | 25 (27) | 47% (17) | **36.0%** | **+16.4 [+10.8, +22.9]** | **+15.1 [+9.4, +21.1]** | 45.4 | 0 |
+| gpt-oss-120b | 25 (31) | 34% (18, tied with 20) | 31.3% | +11.8 [+1.4, +22.9] | +10.4 [−0.4, +21.4] | 7.4 | 7 of 60 tasks, all correct |
+| Qwen3.5-27B | 25 (28) | 40% (10) | 30.3% | **+10.8 [+5.4, +16.3]** | **+9.4 [+4.8, +14.6]** | 9.0 | 0 |
+
+1. **This is the first setting in the project where ADAS's search clearly
+   helps.**
+   - The three selected designs score 30–36% on test, against 17–21% for the
+     five hand-designed agents.
+   - Two of them, Qwen3.5-35B-A3B's and Qwen3.5-27B's, beat every seed
+     significantly, including the best one chosen with hindsight.
+   - So with a weak, non-reasoning worker on ARC, the paper's effect
+     reproduces, and is larger: +9 to +15 points, against ADAS's
+     8.0% → 13.7% with GPT-3.5.
+   - The best design is the most expensive: Qwen3.5-35B-A3B's "Diagnostic
+     Progressive Verification" uses 8 worker agents with example feedback
+     and 45 calls per task (Self-Refine uses 4).
+2. **The two designers gained in different ways (Q7, Q8).**
+   - **Qwen3.5-27B ("Consensus-Driven Program Synthesis", 9 worker calls,
+     16k tokens per task):** 6 worker agents with different roles and
+     temperatures write `transform` code, each run on the examples. A
+     cell-by-cell majority vote over their outputs builds a "consensus" grid
+     for every example. Candidates are ranked by examples passed plus
+     agreement with that consensus. The top two are refined with feedback,
+     then a final agent synthesises. All of its answers come through the
+     worker; the gain is a better *use* of Phi-4. On test it gives 91 correct
+     runs against Self-Refine's 49 (of 300).
+   - **gpt-oss-120b (generations 17–22, about 1 worker call per task):** the
+     designer wrote a hand-coded ARC program search: rotations, flips, colour
+     replacement, crops at separator lines, bounding boxes, and their
+     pairwise compositions. It tries every program against the examples; only
+     if none fits does it ask Phi-4 for the grid directly.
+     - This code alone, with no worker, answers 7 of the 60 test tasks, all
+       correctly: 11.7 points.
+     - On the other 53 tasks the worker fallback solves 22.3%, the same level
+       as the best seeds.
+     - So gpt-oss-120b's gain is the *designer* solving tasks in code. A
+       legitimate ADAS outcome, but a different claim: it measures the
+       designer's knowledge of ARC, not better scaffolding for the worker.
+     - Three of its designs (generations 12, 14, 15) answer every task without
+       the worker and score 5%. The deterministic part alone is weak; it works
+       as a pre-filter.
+3. **A simpler fixed pattern than any seed: just ask for the grid.**
+   gpt-oss-120b's first design asks Phi-4 for the output grid directly, with
+   no code and one call at about 0.9k tokens per task. It scores 25.0% on test.
+   - That is above all five code-writing seeds: +7.8 [−2.7, +18.3] over CoT
+     and +5.7 [−4.0, +15.8] over Self-Refine. Neither difference is
+     significant.
+   - At about one-eighth of Self-Refine's tokens, the seeds' code-writing
+     format is not obviously the right baseline for Phi-4.
+   - The searched designs still add 5–6 points over this direct-answer design.
+4. **Validation is noisy, as everywhere else.** Qwen3.5-27B's selected design
+   scored 40% on validation and 30.3% on test. Its best design by test,
+   generation 12 at 33.0%, scored 32% on validation. With 20 validation tasks,
+   one task is 5 points.
+
+Caveats:
+- One run per designer.
+- Public ARC training tasks (possible memorisation, by the worker and by the
+  designer's DSL).
+- 60 test tasks, so confidence intervals are wide.
+- Qwen3.5-35B-A3B's gain comes at about 11× Self-Refine's worker calls.
+  Spending was not penalised (as in ADAS), so cost-matched comparisons are
+  still open.

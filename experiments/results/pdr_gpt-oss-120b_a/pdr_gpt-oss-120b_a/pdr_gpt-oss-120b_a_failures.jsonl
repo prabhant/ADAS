@@ -1,0 +1,4 @@
+{"generation": 6, "attempt": 6, "stage": "evaluate", "category": "runtime_exception", "message": "3 things in namespace. Please only provide 1", "t": 1793511876.204396}
+{"generation": 6, "attempt": 6, "stage": "evaluate", "category": "runtime_exception", "message": "3 things in namespace. Please only provide 1", "t": 1793511886.066466}
+{"generation": 14, "attempt": 14, "stage": "evaluate", "category": "python_syntax_error", "message": "unmatched '}' (<string>, line 124)", "t": 1793513502.315957}
+{"generation": 15, "attempt": 15, "stage": "evaluate", "category": "python_syntax_error", "message": "unmatched '}' (<string>, line 164)", "t": 1793513762.392615}

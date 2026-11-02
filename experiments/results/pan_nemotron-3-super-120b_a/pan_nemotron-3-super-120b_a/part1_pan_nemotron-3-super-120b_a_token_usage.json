@@ -1,0 +1,668 @@
+{
+  "search|1|meta": {
+    "prompt_tokens": 20660,
+    "completion_tokens": 8314,
+    "reasoning_tokens": 5960,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 95.1564838886261,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|1|worker": {
+    "prompt_tokens": 387200,
+    "completion_tokens": 235972,
+    "reasoning_tokens": 0,
+    "n_calls": 1280,
+    "n_truncated": 10,
+    "latency_s": 2948.8948175907135,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|2|meta": {
+    "prompt_tokens": 26368,
+    "completion_tokens": 7947,
+    "reasoning_tokens": 3964,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 89.90363693237305,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|2|worker": {
+    "prompt_tokens": 733162,
+    "completion_tokens": 309771,
+    "reasoning_tokens": 0,
+    "n_calls": 1920,
+    "n_truncated": 11,
+    "latency_s": 4349.486518621445,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|3|meta": {
+    "prompt_tokens": 33117,
+    "completion_tokens": 9997,
+    "reasoning_tokens": 5021,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 114.21603488922119,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|3|worker": {
+    "prompt_tokens": 1182243,
+    "completion_tokens": 410815,
+    "reasoning_tokens": 0,
+    "n_calls": 2977,
+    "n_truncated": 7,
+    "latency_s": 5908.821569442749,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|4|meta": {
+    "prompt_tokens": 38486,
+    "completion_tokens": 10049,
+    "reasoning_tokens": 5881,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 115.2137598991394,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|4|worker": {
+    "prompt_tokens": 1539408,
+    "completion_tokens": 456279,
+    "reasoning_tokens": 0,
+    "n_calls": 3584,
+    "n_truncated": 8,
+    "latency_s": 6664.843845844269,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|5|meta": {
+    "prompt_tokens": 84931,
+    "completion_tokens": 25384,
+    "reasoning_tokens": 17512,
+    "n_calls": 6,
+    "n_truncated": 1,
+    "latency_s": 295.00295519828796,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|5|worker": {
+    "prompt_tokens": 1737955,
+    "completion_tokens": 505493,
+    "reasoning_tokens": 0,
+    "n_calls": 4096,
+    "n_truncated": 13,
+    "latency_s": 7493.365109920502,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|6|meta": {
+    "prompt_tokens": 47960,
+    "completion_tokens": 16698,
+    "reasoning_tokens": 12124,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 190.49509835243225,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|6|worker": {
+    "prompt_tokens": 1173494,
+    "completion_tokens": 386675,
+    "reasoning_tokens": 0,
+    "n_calls": 3072,
+    "n_truncated": 4,
+    "latency_s": 5562.284017562866,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|7|meta": {
+    "prompt_tokens": 86882,
+    "completion_tokens": 31673,
+    "reasoning_tokens": 23227,
+    "n_calls": 5,
+    "n_truncated": 1,
+    "latency_s": 371.4121878147125,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|7|worker": {
+    "prompt_tokens": 1330416,
+    "completion_tokens": 380908,
+    "reasoning_tokens": 0,
+    "n_calls": 3072,
+    "n_truncated": 7,
+    "latency_s": 5365.275554895401,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|8|meta": {
+    "prompt_tokens": 97887,
+    "completion_tokens": 30016,
+    "reasoning_tokens": 21319,
+    "n_calls": 5,
+    "n_truncated": 1,
+    "latency_s": 353.8631331920624,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|8|worker": {
+    "prompt_tokens": 1421889,
+    "completion_tokens": 369824,
+    "reasoning_tokens": 0,
+    "n_calls": 3072,
+    "n_truncated": 6,
+    "latency_s": 5432.721328258514,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|9|meta": {
+    "prompt_tokens": 65771,
+    "completion_tokens": 13702,
+    "reasoning_tokens": 7720,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 150.73124051094055,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|9|worker": {
+    "prompt_tokens": 1182237,
+    "completion_tokens": 393888,
+    "reasoning_tokens": 0,
+    "n_calls": 3072,
+    "n_truncated": 8,
+    "latency_s": 5752.964351892471,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|10|meta": {
+    "prompt_tokens": 71962,
+    "completion_tokens": 10364,
+    "reasoning_tokens": 5033,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 112.44999408721924,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|10|worker": {
+    "prompt_tokens": 1326665,
+    "completion_tokens": 432830,
+    "reasoning_tokens": 0,
+    "n_calls": 3200,
+    "n_truncated": 12,
+    "latency_s": 6400.980344772339,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|11|meta": {
+    "prompt_tokens": 77643,
+    "completion_tokens": 12183,
+    "reasoning_tokens": 5911,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 130.71675324440002,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|11|worker": {
+    "prompt_tokens": 2070376,
+    "completion_tokens": 572924,
+    "reasoning_tokens": 0,
+    "n_calls": 4648,
+    "n_truncated": 12,
+    "latency_s": 8152.930458068848,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|12|meta": {
+    "prompt_tokens": 167489,
+    "completion_tokens": 26826,
+    "reasoning_tokens": 17088,
+    "n_calls": 6,
+    "n_truncated": 1,
+    "latency_s": 290.8291394710541,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|12|worker": {
+    "prompt_tokens": 1809479,
+    "completion_tokens": 494491,
+    "reasoning_tokens": 0,
+    "n_calls": 4096,
+    "n_truncated": 9,
+    "latency_s": 7662.029606819153,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|13|meta": {
+    "prompt_tokens": 90796,
+    "completion_tokens": 14787,
+    "reasoning_tokens": 7948,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 159.0708384513855,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|13|worker": {
+    "prompt_tokens": 1767610,
+    "completion_tokens": 522321,
+    "reasoning_tokens": 0,
+    "n_calls": 4050,
+    "n_truncated": 13,
+    "latency_s": 7789.800125360489,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|14|meta": {
+    "prompt_tokens": 99927,
+    "completion_tokens": 9709,
+    "reasoning_tokens": 3054,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 104.53586959838867,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|14|worker": {
+    "prompt_tokens": 1817729,
+    "completion_tokens": 508647,
+    "reasoning_tokens": 0,
+    "n_calls": 4046,
+    "n_truncated": 10,
+    "latency_s": 7244.116451263428,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|15|meta": {
+    "prompt_tokens": 107570,
+    "completion_tokens": 14807,
+    "reasoning_tokens": 7902,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 154.0393409729004,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|15|worker": {
+    "prompt_tokens": 1831838,
+    "completion_tokens": 494604,
+    "reasoning_tokens": 0,
+    "n_calls": 4050,
+    "n_truncated": 8,
+    "latency_s": 7192.375347137451,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|16|meta": {
+    "prompt_tokens": 114285,
+    "completion_tokens": 13480,
+    "reasoning_tokens": 9084,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 142.55688881874084,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|16|worker": {
+    "prompt_tokens": 1592348,
+    "completion_tokens": 513976,
+    "reasoning_tokens": 0,
+    "n_calls": 3840,
+    "n_truncated": 14,
+    "latency_s": 7403.045191287994,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|17|meta": {
+    "prompt_tokens": 117119,
+    "completion_tokens": 11053,
+    "reasoning_tokens": 5602,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 120.81255197525024,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|17|worker": {
+    "prompt_tokens": 1898115,
+    "completion_tokens": 575639,
+    "reasoning_tokens": 0,
+    "n_calls": 4608,
+    "n_truncated": 7,
+    "latency_s": 8372.284392595291,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|18|meta": {
+    "prompt_tokens": 340362,
+    "completion_tokens": 38925,
+    "reasoning_tokens": 24588,
+    "n_calls": 8,
+    "n_truncated": 1,
+    "latency_s": 408.36002707481384,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|18|worker": {
+    "prompt_tokens": 2001229,
+    "completion_tokens": 584487,
+    "reasoning_tokens": 0,
+    "n_calls": 4608,
+    "n_truncated": 13,
+    "latency_s": 8477.198755264282,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|19|meta": {
+    "prompt_tokens": 127812,
+    "completion_tokens": 12598,
+    "reasoning_tokens": 6989,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 130.4185814857483,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|19|worker": {
+    "prompt_tokens": 1598902,
+    "completion_tokens": 507002,
+    "reasoning_tokens": 0,
+    "n_calls": 3840,
+    "n_truncated": 12,
+    "latency_s": 7413.677493095398,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|20|meta": {
+    "prompt_tokens": 135434,
+    "completion_tokens": 11765,
+    "reasoning_tokens": 3808,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 121.35772180557251,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|20|worker": {
+    "prompt_tokens": 2390226,
+    "completion_tokens": 635620,
+    "reasoning_tokens": 0,
+    "n_calls": 5324,
+    "n_truncated": 12,
+    "latency_s": 9586.686299324036,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|21|meta": {
+    "prompt_tokens": 145730,
+    "completion_tokens": 10259,
+    "reasoning_tokens": 4914,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 106.21831178665161,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|21|worker": {
+    "prompt_tokens": 1860515,
+    "completion_tokens": 598320,
+    "reasoning_tokens": 0,
+    "n_calls": 4480,
+    "n_truncated": 16,
+    "latency_s": 9721.833342313766,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|22|meta": {
+    "prompt_tokens": 148997,
+    "completion_tokens": 11252,
+    "reasoning_tokens": 4726,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 115.01344299316406,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|22|worker": {
+    "prompt_tokens": 2396438,
+    "completion_tokens": 702456,
+    "reasoning_tokens": 0,
+    "n_calls": 6001,
+    "n_truncated": 9,
+    "latency_s": 10664.229229927063,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|23|meta": {
+    "prompt_tokens": 156419,
+    "completion_tokens": 12095,
+    "reasoning_tokens": 6329,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 125.16885185241699,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|23|worker": {
+    "prompt_tokens": 2184694,
+    "completion_tokens": 730937,
+    "reasoning_tokens": 0,
+    "n_calls": 5704,
+    "n_truncated": 13,
+    "latency_s": 10478.933912038803,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|24|meta": {
+    "prompt_tokens": 163563,
+    "completion_tokens": 14672,
+    "reasoning_tokens": 9072,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 151.07549142837524,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|24|worker": {
+    "prompt_tokens": 3196394,
+    "completion_tokens": 1042068,
+    "reasoning_tokens": 0,
+    "n_calls": 7680,
+    "n_truncated": 29,
+    "latency_s": 17002.468978643417,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|25|meta": {
+    "prompt_tokens": 6339942,
+    "completion_tokens": 493865,
+    "reasoning_tokens": 267754,
+    "n_calls": 116,
+    "n_truncated": 0,
+    "latency_s": 5313.965960025787,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "test|initial|worker": {
+    "prompt_tokens": 8288535,
+    "completion_tokens": 2180465,
+    "reasoning_tokens": 0,
+    "n_calls": 21482,
+    "n_truncated": 37,
+    "latency_s": 48332.80477333069,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|1|worker": {
+    "prompt_tokens": 2533002,
+    "completion_tokens": 1570181,
+    "reasoning_tokens": 0,
+    "n_calls": 8000,
+    "n_truncated": 64,
+    "latency_s": 27358.424674272537,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|2|worker": {
+    "prompt_tokens": 4781576,
+    "completion_tokens": 1960341,
+    "reasoning_tokens": 0,
+    "n_calls": 12000,
+    "n_truncated": 59,
+    "latency_s": 38994.60337638855,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|3|worker": {
+    "prompt_tokens": 7718965,
+    "completion_tokens": 2761708,
+    "reasoning_tokens": 0,
+    "n_calls": 18646,
+    "n_truncated": 65,
+    "latency_s": 56874.235297203064,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|4|worker": {
+    "prompt_tokens": 9921315,
+    "completion_tokens": 2932731,
+    "reasoning_tokens": 0,
+    "n_calls": 22399,
+    "n_truncated": 58,
+    "latency_s": 58139.362305402756,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|5|worker": {
+    "prompt_tokens": 11155116,
+    "completion_tokens": 3216014,
+    "reasoning_tokens": 0,
+    "n_calls": 25600,
+    "n_truncated": 76,
+    "latency_s": 67492.69250869751,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|6|worker": {
+    "prompt_tokens": 7585646,
+    "completion_tokens": 2643813,
+    "reasoning_tokens": 0,
+    "n_calls": 19200,
+    "n_truncated": 65,
+    "latency_s": 57095.52491879463,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|7|worker": {
+    "prompt_tokens": 8658508,
+    "completion_tokens": 2480733,
+    "reasoning_tokens": 0,
+    "n_calls": 19200,
+    "n_truncated": 49,
+    "latency_s": 50607.26489686966,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|8|worker": {
+    "prompt_tokens": 9183592,
+    "completion_tokens": 2398906,
+    "reasoning_tokens": 0,
+    "n_calls": 19200,
+    "n_truncated": 50,
+    "latency_s": 49274.47348022461,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|9|worker": {
+    "prompt_tokens": 7611892,
+    "completion_tokens": 2566104,
+    "reasoning_tokens": 0,
+    "n_calls": 19200,
+    "n_truncated": 60,
+    "latency_s": 52869.448097229004,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|10|worker": {
+    "prompt_tokens": 8605701,
+    "completion_tokens": 2685914,
+    "reasoning_tokens": 0,
+    "n_calls": 20000,
+    "n_truncated": 60,
+    "latency_s": 55609.836676836014,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|11|worker": {
+    "prompt_tokens": 13610080,
+    "completion_tokens": 3671791,
+    "reasoning_tokens": 0,
+    "n_calls": 29148,
+    "n_truncated": 62,
+    "latency_s": 76846.24568080902,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|12|worker": {
+    "prompt_tokens": 11704060,
+    "completion_tokens": 3200839,
+    "reasoning_tokens": 0,
+    "n_calls": 25600,
+    "n_truncated": 60,
+    "latency_s": 67086.93262910843,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|13|worker": {
+    "prompt_tokens": 11337607,
+    "completion_tokens": 3253082,
+    "reasoning_tokens": 0,
+    "n_calls": 25292,
+    "n_truncated": 64,
+    "latency_s": 66525.48882246017,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|14|worker": {
+    "prompt_tokens": 11766418,
+    "completion_tokens": 3279797,
+    "reasoning_tokens": 0,
+    "n_calls": 25303,
+    "n_truncated": 79,
+    "latency_s": 67975.60541367531,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|15|worker": {
+    "prompt_tokens": 11816183,
+    "completion_tokens": 3271995,
+    "reasoning_tokens": 0,
+    "n_calls": 25317,
+    "n_truncated": 72,
+    "latency_s": 68106.83996939659,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|16|worker": {
+    "prompt_tokens": 10322138,
+    "completion_tokens": 3256859,
+    "reasoning_tokens": 0,
+    "n_calls": 24000,
+    "n_truncated": 73,
+    "latency_s": 67499.46971344948,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|17|worker": {
+    "prompt_tokens": 12303533,
+    "completion_tokens": 3877233,
+    "reasoning_tokens": 0,
+    "n_calls": 28800,
+    "n_truncated": 88,
+    "latency_s": 80896.08894848824,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|18|worker": {
+    "prompt_tokens": 13000130,
+    "completion_tokens": 3756718,
+    "reasoning_tokens": 0,
+    "n_calls": 28800,
+    "n_truncated": 78,
+    "latency_s": 76003.59777140617,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|19|worker": {
+    "prompt_tokens": 10310356,
+    "completion_tokens": 3269621,
+    "reasoning_tokens": 0,
+    "n_calls": 24000,
+    "n_truncated": 79,
+    "latency_s": 66013.779027462,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|20|worker": {
+    "prompt_tokens": 15540306,
+    "completion_tokens": 4110995,
+    "reasoning_tokens": 0,
+    "n_calls": 33296,
+    "n_truncated": 68,
+    "latency_s": 83975.97668170929,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|21|worker": {
+    "prompt_tokens": 11996919,
+    "completion_tokens": 3807670,
+    "reasoning_tokens": 0,
+    "n_calls": 28000,
+    "n_truncated": 94,
+    "latency_s": 76259.25901842117,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|22|worker": {
+    "prompt_tokens": 15543969,
+    "completion_tokens": 4505093,
+    "reasoning_tokens": 0,
+    "n_calls": 37511,
+    "n_truncated": 66,
+    "latency_s": 88535.14738249779,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|23|worker": {
+    "prompt_tokens": 14174863,
+    "completion_tokens": 4727730,
+    "reasoning_tokens": 0,
+    "n_calls": 35775,
+    "n_truncated": 100,
+    "latency_s": 94769.0860323906,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|24|worker": {
+    "prompt_tokens": 20628880,
+    "completion_tokens": 6558846,
+    "reasoning_tokens": 0,
+    "n_calls": 48000,
+    "n_truncated": 164,
+    "latency_s": 131541.88023614883,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  }
+}

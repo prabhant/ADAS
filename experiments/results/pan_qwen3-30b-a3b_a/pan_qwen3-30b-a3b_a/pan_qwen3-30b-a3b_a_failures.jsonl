@@ -1,0 +1,4 @@
+{"generation": 22, "attempt": 3, "stage": "evaluate", "category": "runtime_exception", "message": "too many values to unpack (expected 2)", "t": 1792013485.4280677}
+{"generation": 22, "attempt": 3, "stage": "evaluate", "category": "runtime_exception", "message": "too many values to unpack (expected 2)", "t": 1792013624.1884508}
+{"generation": 22, "attempt": 3, "stage": "evaluate", "category": "runtime_exception", "message": "too many values to unpack (expected 2)", "t": 1792013783.5555947}
+{"generation": 30, "attempt": 12, "stage": "evaluate", "category": "runtime_exception", "message": "'domain_thinking'", "t": 1792015408.3282757}

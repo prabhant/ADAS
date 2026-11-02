@@ -1,0 +1,18 @@
+{"generation": 2, "attempt": 2, "stage": "evaluate", "category": "all_zero_accuracy", "message": "All 0 accuracy", "t": 1793247251.9277976}
+{"generation": 2, "attempt": 2, "stage": "evaluate", "category": "all_zero_accuracy", "message": "All 0 accuracy", "t": 1793247270.0739875}
+{"generation": 2, "attempt": 2, "stage": "evaluate", "category": "all_zero_accuracy", "message": "All 0 accuracy", "t": 1793247286.2267234}
+{"generation": 7, "attempt": 8, "stage": "evaluate", "category": "runtime_exception", "message": "not enough values to unpack (expected 2, got 1)", "t": 1793247970.4729173}
+{"generation": 10, "attempt": 11, "stage": "evaluate", "category": "python_syntax_error", "message": "f-string: expecting '}' (<string>, line 124)", "t": 1793248393.4785228}
+{"generation": 11, "attempt": 12, "stage": "evaluate", "category": "all_zero_accuracy", "message": "All 0 accuracy", "t": 1793248701.6887236}
+{"generation": 11, "attempt": 12, "stage": "evaluate", "category": "python_syntax_error", "message": "unmatched '}' (<string>, line 78)", "t": 1793248718.486338}
+{"generation": 11, "attempt": 12, "stage": "evaluate", "category": "all_zero_accuracy", "message": "All 0 accuracy", "t": 1793248732.8070238}
+{"generation": 12, "attempt": 14, "stage": "evaluate", "category": "runtime_exception", "message": "list index out of range", "t": 1793249016.60318}
+{"generation": 12, "attempt": 14, "stage": "evaluate", "category": "runtime_exception", "message": "list index out of range", "t": 1793249157.9226892}
+{"generation": 12, "attempt": 14, "stage": "evaluate", "category": "runtime_exception", "message": "list index out of range", "t": 1793249302.1101449}
+{"generation": 13, "attempt": 16, "stage": "evaluate", "category": "runtime_exception", "message": "not enough values to unpack (expected 2, got 1)", "t": 1793249513.8525724}
+{"generation": 15, "attempt": 18, "stage": "evaluate", "category": "runtime_exception", "message": "list index out of range", "t": 1793249901.1507432}
+{"generation": 15, "attempt": 18, "stage": "evaluate", "category": "runtime_exception", "message": "list index out of range", "t": 1793249987.7608588}
+{"generation": 15, "attempt": 18, "stage": "evaluate", "category": "python_syntax_error", "message": "unmatched '}' (<string>, line 303)", "t": 1793250012.1668959}
+{"generation": 16, "attempt": 20, "stage": "evaluate", "category": "python_syntax_error", "message": "unmatched '}' (<string>, line 222)", "t": 1793250162.6483939}
+{"generation": 16, "attempt": 20, "stage": "debug", "category": "json_parse_error", "message": "Expecting ',' delimiter: line 6751 column 5 (char 24479)", "t": 1793250202.4479904}
+{"generation": 22, "attempt": 27, "stage": "propose", "category": "json_parse_error", "message": "Unterminated string starting at: line 6 column 11 (char 22842)", "t": 1793251584.2411335}

@@ -1,0 +1,713 @@
+{
+  "search|1|meta": {
+    "prompt_tokens": 21774,
+    "completion_tokens": 13563,
+    "reasoning_tokens": 10312,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 105.91837191581726,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|1|worker": {
+    "prompt_tokens": 458349,
+    "completion_tokens": 384418,
+    "reasoning_tokens": 0,
+    "n_calls": 1280,
+    "n_truncated": 40,
+    "latency_s": 10097.75904250145,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|2|meta": {
+    "prompt_tokens": 27196,
+    "completion_tokens": 14238,
+    "reasoning_tokens": 10779,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 104.35274744033813,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|2|worker": {
+    "prompt_tokens": 464048,
+    "completion_tokens": 380564,
+    "reasoning_tokens": 0,
+    "n_calls": 1280,
+    "n_truncated": 38,
+    "latency_s": 9840.161997795105,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|3|meta": {
+    "prompt_tokens": 33223,
+    "completion_tokens": 9137,
+    "reasoning_tokens": 3950,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 67.02056360244751,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|3|worker": {
+    "prompt_tokens": 1083431,
+    "completion_tokens": 632522,
+    "reasoning_tokens": 0,
+    "n_calls": 2534,
+    "n_truncated": 70,
+    "latency_s": 18347.113086938858,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|4|meta": {
+    "prompt_tokens": 49118,
+    "completion_tokens": 17857,
+    "reasoning_tokens": 7768,
+    "n_calls": 4,
+    "n_truncated": 1,
+    "latency_s": 130.1767361164093,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|4|worker": {
+    "prompt_tokens": 1088616,
+    "completion_tokens": 724856,
+    "reasoning_tokens": 0,
+    "n_calls": 2596,
+    "n_truncated": 92,
+    "latency_s": 21748.825947523117,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|5|meta": {
+    "prompt_tokens": 43452,
+    "completion_tokens": 8167,
+    "reasoning_tokens": 3465,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 59.92810130119324,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|5|worker": {
+    "prompt_tokens": 1153157,
+    "completion_tokens": 961097,
+    "reasoning_tokens": 0,
+    "n_calls": 3266,
+    "n_truncated": 124,
+    "latency_s": 29025.63627886772,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|6|meta": {
+    "prompt_tokens": 47506,
+    "completion_tokens": 11295,
+    "reasoning_tokens": 8526,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 82.73897171020508,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|6|worker": {
+    "prompt_tokens": 337296,
+    "completion_tokens": 268793,
+    "reasoning_tokens": 0,
+    "n_calls": 768,
+    "n_truncated": 23,
+    "latency_s": 7397.040463685989,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|7|meta": {
+    "prompt_tokens": 48989,
+    "completion_tokens": 6445,
+    "reasoning_tokens": 3211,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 47.40793514251709,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|7|worker": {
+    "prompt_tokens": 655660,
+    "completion_tokens": 465529,
+    "reasoning_tokens": 0,
+    "n_calls": 1408,
+    "n_truncated": 53,
+    "latency_s": 12875.963666200638,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|8|meta": {
+    "prompt_tokens": 90432,
+    "completion_tokens": 19789,
+    "reasoning_tokens": 11154,
+    "n_calls": 5,
+    "n_truncated": 1,
+    "latency_s": 145.07671332359314,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|8|worker": {
+    "prompt_tokens": 1409810,
+    "completion_tokens": 955949,
+    "reasoning_tokens": 0,
+    "n_calls": 3322,
+    "n_truncated": 117,
+    "latency_s": 29516.752583503723,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|9|meta": {
+    "prompt_tokens": 62843,
+    "completion_tokens": 9045,
+    "reasoning_tokens": 4730,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 66.58061408996582,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|9|worker": {
+    "prompt_tokens": 765160,
+    "completion_tokens": 549670,
+    "reasoning_tokens": 0,
+    "n_calls": 2048,
+    "n_truncated": 48,
+    "latency_s": 15542.01144862175,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|10|meta": {
+    "prompt_tokens": 185268,
+    "completion_tokens": 37572,
+    "reasoning_tokens": 24004,
+    "n_calls": 8,
+    "n_truncated": 1,
+    "latency_s": 275.4897186756134,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|10|worker": {
+    "prompt_tokens": 1930249,
+    "completion_tokens": 877463,
+    "reasoning_tokens": 0,
+    "n_calls": 3882,
+    "n_truncated": 96,
+    "latency_s": 28160.64293217659,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|11|meta": {
+    "prompt_tokens": 75419,
+    "completion_tokens": 12987,
+    "reasoning_tokens": 6907,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 95.20836734771729,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|11|worker": {
+    "prompt_tokens": 1400542,
+    "completion_tokens": 750818,
+    "reasoning_tokens": 0,
+    "n_calls": 2664,
+    "n_truncated": 95,
+    "latency_s": 23343.138694763184,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|12|meta": {
+    "prompt_tokens": 81331,
+    "completion_tokens": 11893,
+    "reasoning_tokens": 6289,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 87.39811515808105,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|12|worker": {
+    "prompt_tokens": 1686927,
+    "completion_tokens": 918054,
+    "reasoning_tokens": 0,
+    "n_calls": 3328,
+    "n_truncated": 119,
+    "latency_s": 29371.40003633499,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|13|meta": {
+    "prompt_tokens": 88759,
+    "completion_tokens": 10286,
+    "reasoning_tokens": 4745,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 75.81928396224976,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|13|worker": {
+    "prompt_tokens": 956695,
+    "completion_tokens": 756691,
+    "reasoning_tokens": 0,
+    "n_calls": 2688,
+    "n_truncated": 73,
+    "latency_s": 21656.34946322441,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|14|meta": {
+    "prompt_tokens": 91608,
+    "completion_tokens": 15027,
+    "reasoning_tokens": 10839,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 110.37018966674805,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|14|worker": {
+    "prompt_tokens": 1141009,
+    "completion_tokens": 374281,
+    "reasoning_tokens": 0,
+    "n_calls": 1408,
+    "n_truncated": 30,
+    "latency_s": 11229.125604867935,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|15|meta": {
+    "prompt_tokens": 96871,
+    "completion_tokens": 18453,
+    "reasoning_tokens": 11632,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 135.4223153591156,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|15|worker": {
+    "prompt_tokens": 1642517,
+    "completion_tokens": 883489,
+    "reasoning_tokens": 0,
+    "n_calls": 3295,
+    "n_truncated": 113,
+    "latency_s": 27645.133137464523,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|16|meta": {
+    "prompt_tokens": 210863,
+    "completion_tokens": 29401,
+    "reasoning_tokens": 20202,
+    "n_calls": 6,
+    "n_truncated": 1,
+    "latency_s": 216.26429319381714,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|16|worker": {
+    "prompt_tokens": 3724202,
+    "completion_tokens": 1272138,
+    "reasoning_tokens": 0,
+    "n_calls": 4352,
+    "n_truncated": 110,
+    "latency_s": 38979.79888796806,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|17|meta": {
+    "prompt_tokens": 107112,
+    "completion_tokens": 14019,
+    "reasoning_tokens": 9469,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 103.25078272819519,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|17|worker": {
+    "prompt_tokens": 6174354,
+    "completion_tokens": 2083113,
+    "reasoning_tokens": 0,
+    "n_calls": 7168,
+    "n_truncated": 182,
+    "latency_s": 66283.30060720444,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|18|meta": {
+    "prompt_tokens": 113598,
+    "completion_tokens": 10512,
+    "reasoning_tokens": 4184,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 77.6857259273529,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|18|worker": {
+    "prompt_tokens": 4477035,
+    "completion_tokens": 2138887,
+    "reasoning_tokens": 0,
+    "n_calls": 6272,
+    "n_truncated": 278,
+    "latency_s": 75481.40471839905,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|19|meta": {
+    "prompt_tokens": 120404,
+    "completion_tokens": 13251,
+    "reasoning_tokens": 7572,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 98.05329251289368,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|19|worker": {
+    "prompt_tokens": 5229366,
+    "completion_tokens": 1558568,
+    "reasoning_tokens": 0,
+    "n_calls": 6272,
+    "n_truncated": 136,
+    "latency_s": 51804.403698682785,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|20|meta": {
+    "prompt_tokens": 128203,
+    "completion_tokens": 12308,
+    "reasoning_tokens": 5162,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 90.89534497261047,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|20|worker": {
+    "prompt_tokens": 6143158,
+    "completion_tokens": 2685445,
+    "reasoning_tokens": 0,
+    "n_calls": 8192,
+    "n_truncated": 359,
+    "latency_s": 97655.44923329353,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|21|meta": {
+    "prompt_tokens": 132219,
+    "completion_tokens": 8553,
+    "reasoning_tokens": 4103,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 63.64362382888794,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|21|worker": {
+    "prompt_tokens": 6229923,
+    "completion_tokens": 1768352,
+    "reasoning_tokens": 0,
+    "n_calls": 5888,
+    "n_truncated": 166,
+    "latency_s": 56569.37466835976,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|22|meta": {
+    "prompt_tokens": 136091,
+    "completion_tokens": 9097,
+    "reasoning_tokens": 4036,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 67.52670550346375,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|22|worker": {
+    "prompt_tokens": 3690013,
+    "completion_tokens": 1985896,
+    "reasoning_tokens": 0,
+    "n_calls": 4352,
+    "n_truncated": 291,
+    "latency_s": 68654.43291258812,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|23|meta": {
+    "prompt_tokens": 142903,
+    "completion_tokens": 11670,
+    "reasoning_tokens": 5215,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 86.74405241012573,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|23|worker": {
+    "prompt_tokens": 5221427,
+    "completion_tokens": 1907990,
+    "reasoning_tokens": 0,
+    "n_calls": 8192,
+    "n_truncated": 175,
+    "latency_s": 64022.0047416687,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|24|meta": {
+    "prompt_tokens": 151789,
+    "completion_tokens": 13741,
+    "reasoning_tokens": 7109,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 101.60358715057373,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|24|worker": {
+    "prompt_tokens": 6110038,
+    "completion_tokens": 2822883,
+    "reasoning_tokens": 0,
+    "n_calls": 9344,
+    "n_truncated": 364,
+    "latency_s": 98486.24374055862,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|25|meta": {
+    "prompt_tokens": 215851,
+    "completion_tokens": 18640,
+    "reasoning_tokens": 11293,
+    "n_calls": 4,
+    "n_truncated": 0,
+    "latency_s": 138.2852921485901,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|25|worker": {
+    "prompt_tokens": 5350733,
+    "completion_tokens": 1544976,
+    "reasoning_tokens": 0,
+    "n_calls": 6272,
+    "n_truncated": 126,
+    "latency_s": 52035.500120162964,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|26|meta": {
+    "prompt_tokens": 163351,
+    "completion_tokens": 13107,
+    "reasoning_tokens": 7023,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 97.23280048370361,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|26|worker": {
+    "prompt_tokens": 9188189,
+    "completion_tokens": 2642883,
+    "reasoning_tokens": 0,
+    "n_calls": 11008,
+    "n_truncated": 211,
+    "latency_s": 90668.1018254757,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|27|meta": {
+    "prompt_tokens": 280413,
+    "completion_tokens": 26022,
+    "reasoning_tokens": 16710,
+    "n_calls": 5,
+    "n_truncated": 1,
+    "latency_s": 193.02264857292175,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|27|worker": {
+    "prompt_tokens": 5993157,
+    "completion_tokens": 2093617,
+    "reasoning_tokens": 0,
+    "n_calls": 7168,
+    "n_truncated": 194,
+    "latency_s": 66899.79698252678,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|28|meta": {
+    "prompt_tokens": 174727,
+    "completion_tokens": 7229,
+    "reasoning_tokens": 2236,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 54.05719518661499,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|28|worker": {
+    "prompt_tokens": 3646987,
+    "completion_tokens": 1350317,
+    "reasoning_tokens": 0,
+    "n_calls": 4352,
+    "n_truncated": 129,
+    "latency_s": 43175.08790922165,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|29|meta": {
+    "prompt_tokens": 180808,
+    "completion_tokens": 12987,
+    "reasoning_tokens": 7114,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 96.55391716957092,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|29|worker": {
+    "prompt_tokens": 3777919,
+    "completion_tokens": 1334170,
+    "reasoning_tokens": 0,
+    "n_calls": 4736,
+    "n_truncated": 122,
+    "latency_s": 42860.4506187439,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|30|meta": {
+    "prompt_tokens": 187388,
+    "completion_tokens": 9680,
+    "reasoning_tokens": 3963,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 72.34779047966003,
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8"
+  },
+  "search|30|worker": {
+    "prompt_tokens": 3709409,
+    "completion_tokens": 1331428,
+    "reasoning_tokens": 0,
+    "n_calls": 4352,
+    "n_truncated": 123,
+    "latency_s": 42037.58190727234,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|initial|worker": {
+    "prompt_tokens": 8985348,
+    "completion_tokens": 5389144,
+    "reasoning_tokens": 0,
+    "n_calls": 19534,
+    "n_truncated": 441,
+    "latency_s": 195205.48138451576,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|1|worker": {
+    "prompt_tokens": 2963134,
+    "completion_tokens": 2332044,
+    "reasoning_tokens": 0,
+    "n_calls": 8000,
+    "n_truncated": 257,
+    "latency_s": 90354.85168886185,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|2|worker": {
+    "prompt_tokens": 3086017,
+    "completion_tokens": 2218624,
+    "reasoning_tokens": 0,
+    "n_calls": 8000,
+    "n_truncated": 209,
+    "latency_s": 84837.51281356812,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|3|worker": {
+    "prompt_tokens": 7050303,
+    "completion_tokens": 3617548,
+    "reasoning_tokens": 0,
+    "n_calls": 15732,
+    "n_truncated": 368,
+    "latency_s": 152021.4183704853,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|4|worker": {
+    "prompt_tokens": 7204521,
+    "completion_tokens": 3970727,
+    "reasoning_tokens": 0,
+    "n_calls": 16340,
+    "n_truncated": 463,
+    "latency_s": 172499.6918978691,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|5|worker": {
+    "prompt_tokens": 7630559,
+    "completion_tokens": 5188958,
+    "reasoning_tokens": 0,
+    "n_calls": 20334,
+    "n_truncated": 589,
+    "latency_s": 219412.66968631744,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|6|worker": {
+    "prompt_tokens": 2197969,
+    "completion_tokens": 1769426,
+    "reasoning_tokens": 0,
+    "n_calls": 4800,
+    "n_truncated": 168,
+    "latency_s": 75866.04574465752,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|7|worker": {
+    "prompt_tokens": 4111988,
+    "completion_tokens": 2905449,
+    "reasoning_tokens": 0,
+    "n_calls": 8800,
+    "n_truncated": 365,
+    "latency_s": 133511.0693306923,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|8|worker": {
+    "prompt_tokens": 9225780,
+    "completion_tokens": 5342426,
+    "reasoning_tokens": 0,
+    "n_calls": 20642,
+    "n_truncated": 598,
+    "latency_s": 249811.35194468498,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|9|worker": {
+    "prompt_tokens": 5161372,
+    "completion_tokens": 3518006,
+    "reasoning_tokens": 0,
+    "n_calls": 12800,
+    "n_truncated": 335,
+    "latency_s": 145739.2202653885,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|10|worker": {
+    "prompt_tokens": 12857350,
+    "completion_tokens": 5216803,
+    "reasoning_tokens": 0,
+    "n_calls": 24302,
+    "n_truncated": 529,
+    "latency_s": 241916.40071558952,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|11|worker": {
+    "prompt_tokens": 8966866,
+    "completion_tokens": 4561264,
+    "reasoning_tokens": 0,
+    "n_calls": 16622,
+    "n_truncated": 569,
+    "latency_s": 239572.73985266685,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|12|worker": {
+    "prompt_tokens": 10933667,
+    "completion_tokens": 5223086,
+    "reasoning_tokens": 0,
+    "n_calls": 20800,
+    "n_truncated": 629,
+    "latency_s": 273517.6653997898,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|13|worker": {
+    "prompt_tokens": 6396815,
+    "completion_tokens": 4392049,
+    "reasoning_tokens": 0,
+    "n_calls": 16800,
+    "n_truncated": 368,
+    "latency_s": 179916.33851528168,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|14|worker": {
+    "prompt_tokens": 7324898,
+    "completion_tokens": 2483851,
+    "reasoning_tokens": 0,
+    "n_calls": 8800,
+    "n_truncated": 216,
+    "latency_s": 111034.32694005966,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|15|worker": {
+    "prompt_tokens": 10670194,
+    "completion_tokens": 4959501,
+    "reasoning_tokens": 0,
+    "n_calls": 20455,
+    "n_truncated": 587,
+    "latency_s": 260066.4147078991,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|16|worker": {
+    "prompt_tokens": 23028068,
+    "completion_tokens": 7449571,
+    "reasoning_tokens": 0,
+    "n_calls": 27200,
+    "n_truncated": 612,
+    "latency_s": 344652.33156871796,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|19|worker": {
+    "prompt_tokens": 33672103,
+    "completion_tokens": 9093395,
+    "reasoning_tokens": 0,
+    "n_calls": 39200,
+    "n_truncated": 679,
+    "latency_s": 435327.0219607353,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|21|worker": {
+    "prompt_tokens": 39623103,
+    "completion_tokens": 10065020,
+    "reasoning_tokens": 0,
+    "n_calls": 36800,
+    "n_truncated": 813,
+    "latency_s": 513955.60262203217,
+    "model": "Qwen/Qwen3-30B-A3B"
+  }
+}

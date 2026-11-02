@@ -1,0 +1,184 @@
+{
+  "Chain-of-Thought": {
+    "fitness": "95% Bootstrap Confidence Interval: (0.0%, 37.5%), Median: 12.5%",
+    "raw_median_accuracy": 0.125,
+    "valid_per_question": [
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "resource": {
+      "generation": "initial",
+      "n_questions": 8,
+      "worker_calls": 8,
+      "calls_per_question": 1.0,
+      "prompt_tokens": 2468,
+      "completion_tokens": 784,
+      "reasoning_tokens": 0,
+      "truncated_calls": 0,
+      "tokens_per_question": 406.5,
+      "wallclock_s": 2.943763256072998
+    }
+  },
+  "Self-Consistency with Chain-of-Thought": {
+    "fitness": "95% Bootstrap Confidence Interval: (0.0%, 37.5%), Median: 12.5%",
+    "raw_median_accuracy": 0.125,
+    "valid_per_question": [
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "resource": {
+      "generation": "initial",
+      "n_questions": 8,
+      "worker_calls": 40,
+      "calls_per_question": 5.0,
+      "prompt_tokens": 12340,
+      "completion_tokens": 8276,
+      "reasoning_tokens": 0,
+      "truncated_calls": 1,
+      "tokens_per_question": 2577.0,
+      "wallclock_s": 35.994595766067505
+    }
+  },
+  "Self-Refine (Reflexion)": {
+    "fitness": "95% Bootstrap Confidence Interval: (0.0%, 0.0%), Median: 0.0%",
+    "raw_median_accuracy": 0.0,
+    "valid_per_question": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "resource": {
+      "generation": "initial",
+      "n_questions": 8,
+      "worker_calls": 31,
+      "calls_per_question": 3.875,
+      "prompt_tokens": 16874,
+      "completion_tokens": 2850,
+      "reasoning_tokens": 0,
+      "truncated_calls": 0,
+      "tokens_per_question": 2465.5,
+      "wallclock_s": 9.135320901870728
+    }
+  },
+  "LLM Debate": {
+    "fitness": "95% Bootstrap Confidence Interval: (0.0%, 0.0%), Median: 0.0%",
+    "raw_median_accuracy": 0.0,
+    "valid_per_question": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "resource": {
+      "generation": "initial",
+      "n_questions": 8,
+      "worker_calls": 56,
+      "calls_per_question": 7.0,
+      "prompt_tokens": 28363,
+      "completion_tokens": 9862,
+      "reasoning_tokens": 0,
+      "truncated_calls": 1,
+      "tokens_per_question": 4778.125,
+      "wallclock_s": 39.821518421173096
+    }
+  },
+  "Step-back Abstraction": {
+    "fitness": "95% Bootstrap Confidence Interval: (0.0%, 37.5%), Median: 12.5%",
+    "raw_median_accuracy": 0.125,
+    "valid_per_question": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    "resource": {
+      "generation": "initial",
+      "n_questions": 8,
+      "worker_calls": 16,
+      "calls_per_question": 2.0,
+      "prompt_tokens": 6471,
+      "completion_tokens": 2013,
+      "reasoning_tokens": 0,
+      "truncated_calls": 0,
+      "tokens_per_question": 1060.5,
+      "wallclock_s": 4.822720050811768
+    }
+  },
+  "Quality-Diversity": {
+    "fitness": "95% Bootstrap Confidence Interval: (0.0%, 37.5%), Median: 12.5%",
+    "raw_median_accuracy": 0.125,
+    "valid_per_question": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    "resource": {
+      "generation": "initial",
+      "n_questions": 8,
+      "worker_calls": 40,
+      "calls_per_question": 5.0,
+      "prompt_tokens": 23408,
+      "completion_tokens": 12271,
+      "reasoning_tokens": 0,
+      "truncated_calls": 2,
+      "tokens_per_question": 4459.875,
+      "wallclock_s": 37.74743151664734
+    }
+  },
+  "Dynamic Assignment of Roles": {
+    "fitness": "95% Bootstrap Confidence Interval: (0.0%, 0.0%), Median: 0.0%",
+    "raw_median_accuracy": 0.0,
+    "valid_per_question": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "resource": {
+      "generation": "initial",
+      "n_questions": 8,
+      "worker_calls": 16,
+      "calls_per_question": 2.0,
+      "prompt_tokens": 4920,
+      "completion_tokens": 4862,
+      "reasoning_tokens": 0,
+      "truncated_calls": 1,
+      "tokens_per_question": 1222.75,
+      "wallclock_s": 33.44516611099243
+    }
+  }
+}

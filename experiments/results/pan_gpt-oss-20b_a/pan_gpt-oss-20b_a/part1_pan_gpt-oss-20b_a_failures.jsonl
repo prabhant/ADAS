@@ -1,0 +1,7 @@
+{"generation": 5, "attempt": 5, "stage": "evaluate", "category": "runtime_exception", "message": "'N'", "t": 1791934327.5087745}
+{"generation": 8, "attempt": 8, "stage": "evaluate", "category": "runtime_exception", "message": "sequence item 1: expected str instance, float found", "t": 1791934597.7919705}
+{"generation": 11, "attempt": 11, "stage": "evaluate", "category": "runtime_exception", "message": "float division by zero", "t": 1791935027.2048333}
+{"generation": 11, "attempt": 11, "stage": "evaluate", "category": "python_syntax_error", "message": "invalid syntax. Perhaps you forgot a comma? (<string>, line 46)", "t": 1791935035.893273}
+{"generation": 11, "attempt": 11, "stage": "evaluate", "category": "runtime_exception", "message": "float() argument must be a string or a real number, not 'dict'", "t": 1791935110.6239996}
+{"generation": 20, "attempt": 21, "stage": "evaluate", "category": "runtime_exception", "message": "can't set attribute", "t": 1791936107.5844464}
+{"generation": 30, "attempt": 31, "stage": "test", "category": "runtime_exception", "message": "unhashable type: 'list'", "t": 1791942417.4883943}

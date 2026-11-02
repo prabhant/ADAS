@@ -19,7 +19,7 @@ if [[ -s "$BATCH" && "${FORCE:-0}" != "1" ]]; then
     exit 1
 fi
 
-[[ -z "$(git status --porcelain -- _mgsm _mmlu _drop experiments/adas_ext experiments/analysis \
+[[ -z "$(git status --porcelain -- _mgsm _mmlu _drop _arc experiments/adas_ext experiments/analysis \
           experiments/serving experiments/slurm experiments/config experiments/env experiments/tests)" ]] \
     || { echo "commit code changes first: results must map to a commit" >&2; exit 1; }
 COMMIT="$(git rev-parse --short HEAD)"
@@ -111,6 +111,53 @@ sys.exit(0 if paths and len(json.load(open(paths[0]))) == 7 else 1)" \
         after="--dependency=afterok:$(awk -F'\t' '$1 == "e2e_cpu" {print $2}' "$BATCH")"
         submit mgsm_tests       "$after" --array=2,3,5,6 --gpus=1 --cpus-per-task=16 --time=36:00:00 \
                                 experiments/slurm/stage2_main.slurm panel_mgsm
+        ;;
+    batch11)
+        # ARC ported: e2e now covers mgsm, drop and arc; the ARC worker screen (the
+        # 5 ARC seeds on 5 workers, 20 tasks x 5 runs) waits for it.
+        submit e2e_cpu          experiments/slurm/sanity/07_e2e_cpu.slurm
+        after="--dependency=afterok:$(awk -F'\t' '$1 == "e2e_cpu" {print $2}' "$BATCH")"
+        submit arc_screen       "$after" --array=0-4 experiments/slurm/stage05_baselines.slurm arc_screen
+        ;;
+    batch12)
+        # ARC screen of the three reasoning workers, reasoning natively (their own
+        # channel, JSON only for the agent's fields). Full-length reasoning on 2,000
+        # calls per worker: hours, not minutes. Finished seeds are cached as they
+        # complete, so a job that runs out of time resumes when resubmitted.
+        submit e2e_cpu          experiments/slurm/sanity/07_e2e_cpu.slurm
+        after="--dependency=afterok:$(awk -F'\t' '$1 == "e2e_cpu" {print $2}' "$BATCH")"
+        submit arc_screen_r     "$after" --array=0-2 --time=24:00:00 \
+                                experiments/slurm/stage05_baselines.slurm arc_screen_r
+        ;;
+    batch13)
+        # ARC designer panel with Phi-4 as worker: production CoT baseline first
+        # (20 tasks x 5, the number informed designers are told), then 3 designers.
+        python3 -c "
+import json, sys
+d = json.load(open('experiments/results/_seed_cache/microsoft_phi-4__arc__valid20__shuffle0__rep5__None.json'))
+sys.exit(0 if len(d) == 5 else 1)" \
+            || { echo "Phi-4 ARC seed archive missing or incomplete" >&2; rm -f "$BATCH"; exit 1; }
+        submit arc_baseline     --array=10 experiments/slurm/stage05_baselines.slurm 0.5
+        after="--dependency=afterok:$(awk -F'\t' '$1 == "arc_baseline" {print $2}' "$BATCH")"
+        submit designers_1gpu   "$after" --array=0 --gpus=2 --cpus-per-task=32 \
+                                experiments/slurm/stage2_main.slurm panel_arc
+        submit designers_2gpu   "$after" --array=1-2 --gpus=3 --cpus-per-task=48 \
+                                experiments/slurm/stage2_main.slurm panel_arc
+        ;;
+    batch14)
+        # DROP designer panel with Mistral-7B as worker: production CoT baseline first
+        # (128 x 5, the F1 informed designers are told), then 3 designers.
+        python3 -c "
+import json, sys
+d = json.load(open('experiments/results/_seed_cache/mistralai_Mistral-7B-Instruct-v0.2__drop__valid128__shuffle0__rep1__None.json'))
+sys.exit(0 if len(d) == 7 else 1)" \
+            || { echo "Mistral-7B DROP seed archive missing or incomplete" >&2; rm -f "$BATCH"; exit 1; }
+        submit drop_baseline    --array=11 experiments/slurm/stage05_baselines.slurm 0.5
+        after="--dependency=afterok:$(awk -F'\t' '$1 == "drop_baseline" {print $2}' "$BATCH")"
+        submit designers_1gpu   "$after" --array=0 --gpus=2 --cpus-per-task=32 \
+                                experiments/slurm/stage2_main.slurm panel_drop
+        submit designers_2gpu   "$after" --array=1-2 --gpus=3 --cpus-per-task=48 \
+                                experiments/slurm/stage2_main.slurm panel_drop
         ;;
     batch5)
         # The designer panel. Refuses to start without what every cell needs.

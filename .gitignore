@@ -2,7 +2,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+*.err
+*.out
 # C extensions
 *.so
 
@@ -161,5 +162,12 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
+<<<<<<< HEAD
 # Copilot SDK arm: raw results, ledgers and probe reports stay local
 experiments/results_copilot/
+=======
+experiments/results/_slurm/s0_smoke_27952334.err
+
+# Raw per-call worker logs: 80-310 MB each, over GitHub's 100 MB limit. Kept on Snellius only.
+*_call_log.jsonl
+>>>>>>> 9d8ea9ad364ca26ff2bc9bb372aa009d0f845d39

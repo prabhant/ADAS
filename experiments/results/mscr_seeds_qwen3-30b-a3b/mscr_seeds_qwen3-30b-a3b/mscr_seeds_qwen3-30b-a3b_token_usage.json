@@ -1,0 +1,65 @@
+{
+  "search|initial:Chain-of-Thought|worker": {
+    "prompt_tokens": 26947,
+    "completion_tokens": 61875,
+    "reasoning_tokens": 0,
+    "n_calls": 128,
+    "n_truncated": 6,
+    "latency_s": 1471.2734553813934,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|initial:Self-Consistency with Chain-of-Thought|worker": {
+    "prompt_tokens": 134735,
+    "completion_tokens": 277295,
+    "reasoning_tokens": 0,
+    "n_calls": 640,
+    "n_truncated": 26,
+    "latency_s": 6808.6743948459625,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|initial:Self-Refine (Reflexion)|worker": {
+    "prompt_tokens": 123690,
+    "completion_tokens": 98052,
+    "reasoning_tokens": 0,
+    "n_calls": 299,
+    "n_truncated": 11,
+    "latency_s": 2343.8298201560974,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|initial:LLM Debate|worker": {
+    "prompt_tokens": 515447,
+    "completion_tokens": 265496,
+    "reasoning_tokens": 0,
+    "n_calls": 896,
+    "n_truncated": 26,
+    "latency_s": 7181.361323356628,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|initial:Step-back Abstraction|worker": {
+    "prompt_tokens": 88835,
+    "completion_tokens": 62391,
+    "reasoning_tokens": 0,
+    "n_calls": 256,
+    "n_truncated": 3,
+    "latency_s": 1649.905667066574,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|initial:Quality-Diversity|worker": {
+    "prompt_tokens": 411096,
+    "completion_tokens": 137420,
+    "reasoning_tokens": 0,
+    "n_calls": 640,
+    "n_truncated": 9,
+    "latency_s": 3871.568736553192,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "search|initial:Dynamic Assignment of Roles|worker": {
+    "prompt_tokens": 53390,
+    "completion_tokens": 64837,
+    "reasoning_tokens": 0,
+    "n_calls": 256,
+    "n_truncated": 7,
+    "latency_s": 1492.8101036548615,
+    "model": "Qwen/Qwen3-30B-A3B"
+  }
+}

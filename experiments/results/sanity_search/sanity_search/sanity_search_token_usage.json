@@ -1,0 +1,101 @@
+{
+  "search|initial:Chain-of-Thought|worker": {
+    "prompt_tokens": 1261,
+    "completion_tokens": 457,
+    "reasoning_tokens": 0,
+    "n_calls": 4,
+    "n_truncated": 0,
+    "latency_s": 9.444953918457031,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:Self-Consistency with Chain-of-Thought|worker": {
+    "prompt_tokens": 6305,
+    "completion_tokens": 2106,
+    "reasoning_tokens": 0,
+    "n_calls": 20,
+    "n_truncated": 0,
+    "latency_s": 17.835395097732544,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:Self-Refine (Reflexion)|worker": {
+    "prompt_tokens": 4096,
+    "completion_tokens": 941,
+    "reasoning_tokens": 0,
+    "n_calls": 10,
+    "n_truncated": 0,
+    "latency_s": 8.858179092407227,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:LLM Debate|worker": {
+    "prompt_tokens": 14897,
+    "completion_tokens": 3235,
+    "reasoning_tokens": 0,
+    "n_calls": 28,
+    "n_truncated": 0,
+    "latency_s": 27.457945823669434,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:Step-back Abstraction|worker": {
+    "prompt_tokens": 3425,
+    "completion_tokens": 1413,
+    "reasoning_tokens": 0,
+    "n_calls": 8,
+    "n_truncated": 0,
+    "latency_s": 12.391964435577393,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:Quality-Diversity|worker": {
+    "prompt_tokens": 11848,
+    "completion_tokens": 2300,
+    "reasoning_tokens": 0,
+    "n_calls": 20,
+    "n_truncated": 0,
+    "latency_s": 19.75402307510376,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|initial:Dynamic Assignment of Roles|worker": {
+    "prompt_tokens": 2514,
+    "completion_tokens": 643,
+    "reasoning_tokens": 0,
+    "n_calls": 8,
+    "n_truncated": 0,
+    "latency_s": 6.404828786849976,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "search|1|meta": {
+    "prompt_tokens": 34125,
+    "completion_tokens": 8081,
+    "reasoning_tokens": 0,
+    "n_calls": 4,
+    "n_truncated": 0,
+    "latency_s": 34.47263741493225,
+    "model": "openai/gpt-oss-20b"
+  },
+  "search|1|worker": {
+    "prompt_tokens": 2842,
+    "completion_tokens": 3004,
+    "reasoning_tokens": 0,
+    "n_calls": 8,
+    "n_truncated": 2,
+    "latency_s": 24.57432270050049,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|initial|worker": {
+    "prompt_tokens": 40295,
+    "completion_tokens": 11590,
+    "reasoning_tokens": 0,
+    "n_calls": 98,
+    "n_truncated": 3,
+    "latency_s": 100.73414778709412,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  },
+  "test|1|worker": {
+    "prompt_tokens": 2734,
+    "completion_tokens": 3619,
+    "reasoning_tokens": 0,
+    "n_calls": 8,
+    "n_truncated": 3,
+    "latency_s": 29.329124212265015,
+    "model": "mistralai/Mistral-7B-Instruct-v0.2"
+  }
+}

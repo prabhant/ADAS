@@ -1,0 +1,762 @@
+{
+  "search|1|meta": {
+    "prompt_tokens": 26980,
+    "completion_tokens": 3374,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 6462,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 20.18200421333313,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|1|worker": {
+    "prompt_tokens": 81805,
+    "completion_tokens": 10178,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 100,
+    "n_truncated": 0,
+    "latency_s": 279.1009919643402,
+    "model": "microsoft/phi-4"
+  },
+  "search|2|meta": {
+    "prompt_tokens": 89726,
+    "completion_tokens": 14489,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 29096,
+    "n_calls": 8,
+    "n_truncated": 0,
+    "latency_s": 77.77889323234558,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|2|worker": {
+    "prompt_tokens": 874687,
+    "completion_tokens": 442946,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 961,
+    "n_truncated": 1,
+    "latency_s": 9998.937839984894,
+    "model": "microsoft/phi-4"
+  },
+  "search|3|meta": {
+    "prompt_tokens": 37192,
+    "completion_tokens": 6221,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 9313,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 29.893699169158936,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|3|worker": {
+    "prompt_tokens": 485682,
+    "completion_tokens": 102098,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 473,
+    "n_truncated": 0,
+    "latency_s": 2494.198077440262,
+    "model": "microsoft/phi-4"
+  },
+  "search|4|meta": {
+    "prompt_tokens": 42340,
+    "completion_tokens": 7199,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 11036,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 34.204877853393555,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|4|worker": {
+    "prompt_tokens": 766955,
+    "completion_tokens": 171567,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 700,
+    "n_truncated": 0,
+    "latency_s": 4124.571429491043,
+    "model": "microsoft/phi-4"
+  },
+  "search|5|meta": {
+    "prompt_tokens": 48092,
+    "completion_tokens": 8297,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 14996,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 39.03454852104187,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|5|worker": {
+    "prompt_tokens": 614817,
+    "completion_tokens": 129782,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 538,
+    "n_truncated": 0,
+    "latency_s": 3415.0880286693573,
+    "model": "microsoft/phi-4"
+  },
+  "search|6|meta": {
+    "prompt_tokens": 53421,
+    "completion_tokens": 7097,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 9062,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 32.9413366317749,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|6|worker": {
+    "prompt_tokens": 670364,
+    "completion_tokens": 149032,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 567,
+    "n_truncated": 0,
+    "latency_s": 3827.3332476615906,
+    "model": "microsoft/phi-4"
+  },
+  "search|7|meta": {
+    "prompt_tokens": 87437,
+    "completion_tokens": 12271,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 17664,
+    "n_calls": 4,
+    "n_truncated": 0,
+    "latency_s": 56.93234586715698,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|7|worker": {
+    "prompt_tokens": 680525,
+    "completion_tokens": 180477,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 700,
+    "n_truncated": 0,
+    "latency_s": 3992.43660736084,
+    "model": "microsoft/phi-4"
+  },
+  "search|8|meta": {
+    "prompt_tokens": 70857,
+    "completion_tokens": 11341,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 11406,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 53.1904137134552,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|8|worker": {
+    "prompt_tokens": 627222,
+    "completion_tokens": 137589,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 537,
+    "n_truncated": 0,
+    "latency_s": 3463.2586584091187,
+    "model": "microsoft/phi-4"
+  },
+  "search|9|meta": {
+    "prompt_tokens": 80832,
+    "completion_tokens": 11853,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 12805,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 54.80474901199341,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|9|worker": {
+    "prompt_tokens": 678515,
+    "completion_tokens": 176203,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 700,
+    "n_truncated": 0,
+    "latency_s": 3997.7373452186584,
+    "model": "microsoft/phi-4"
+  },
+  "search|10|meta": {
+    "prompt_tokens": 130429,
+    "completion_tokens": 15257,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 12682,
+    "n_calls": 4,
+    "n_truncated": 0,
+    "latency_s": 71.82364964485168,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|10|worker": {
+    "prompt_tokens": 979024,
+    "completion_tokens": 326673,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 906,
+    "n_truncated": 0,
+    "latency_s": 7676.840233325958,
+    "model": "microsoft/phi-4"
+  },
+  "search|11|meta": {
+    "prompt_tokens": 290008,
+    "completion_tokens": 33286,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 44308,
+    "n_calls": 8,
+    "n_truncated": 0,
+    "latency_s": 157.97634029388428,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|11|worker": {
+    "prompt_tokens": 1445615,
+    "completion_tokens": 356347,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1500,
+    "n_truncated": 0,
+    "latency_s": 8100.725933790207,
+    "model": "microsoft/phi-4"
+  },
+  "search|12|meta": {
+    "prompt_tokens": 318146,
+    "completion_tokens": 38469,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 33919,
+    "n_calls": 8,
+    "n_truncated": 0,
+    "latency_s": 181.66322827339172,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|12|worker": {
+    "prompt_tokens": 657920,
+    "completion_tokens": 165715,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 665,
+    "n_truncated": 0,
+    "latency_s": 3610.8722660541534,
+    "model": "microsoft/phi-4"
+  },
+  "search|13|meta": {
+    "prompt_tokens": 173747,
+    "completion_tokens": 14979,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 15143,
+    "n_calls": 4,
+    "n_truncated": 0,
+    "latency_s": 72.17104887962341,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|13|worker": {
+    "prompt_tokens": 647125,
+    "completion_tokens": 161927,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 665,
+    "n_truncated": 0,
+    "latency_s": 3572.3178808689117,
+    "model": "microsoft/phi-4"
+  },
+  "search|14|meta": {
+    "prompt_tokens": 135189,
+    "completion_tokens": 15422,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 13942,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 73.3116660118103,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|14|worker": {
+    "prompt_tokens": 744615,
+    "completion_tokens": 189218,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 765,
+    "n_truncated": 0,
+    "latency_s": 4221.234730005264,
+    "model": "microsoft/phi-4"
+  },
+  "search|15|meta": {
+    "prompt_tokens": 409372,
+    "completion_tokens": 33104,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 35104,
+    "n_calls": 8,
+    "n_truncated": 0,
+    "latency_s": 157.71620273590088,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|15|worker": {
+    "prompt_tokens": 471540,
+    "completion_tokens": 67959,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 570,
+    "n_truncated": 0,
+    "latency_s": 1318.244192123413,
+    "model": "microsoft/phi-4"
+  },
+  "search|16|meta": {
+    "prompt_tokens": 362286,
+    "completion_tokens": 31280,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 25136,
+    "n_calls": 7,
+    "n_truncated": 1,
+    "latency_s": 152.76783990859985,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|16|worker": {
+    "prompt_tokens": 1250710,
+    "completion_tokens": 256985,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1395,
+    "n_truncated": 0,
+    "latency_s": 5642.134292602539,
+    "model": "microsoft/phi-4"
+  },
+  "search|17|meta": {
+    "prompt_tokens": 163956,
+    "completion_tokens": 11699,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 13423,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 59.363826513290405,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|17|worker": {
+    "prompt_tokens": 70420,
+    "completion_tokens": 7942,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 80,
+    "n_truncated": 0,
+    "latency_s": 234.07605862617493,
+    "model": "microsoft/phi-4"
+  },
+  "search|18|meta": {
+    "prompt_tokens": 177118,
+    "completion_tokens": 16858,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 13012,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 82.31801080703735,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|18|worker": {
+    "prompt_tokens": 655065,
+    "completion_tokens": 105762,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 740,
+    "n_truncated": 0,
+    "latency_s": 2192.3815500736237,
+    "model": "microsoft/phi-4"
+  },
+  "search|19|meta": {
+    "prompt_tokens": 196175,
+    "completion_tokens": 17823,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 13218,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 89.10382580757141,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|19|worker": {
+    "prompt_tokens": 1009285,
+    "completion_tokens": 363880,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1075,
+    "n_truncated": 0,
+    "latency_s": 8348.831776380539,
+    "model": "microsoft/phi-4"
+  },
+  "search|20|meta": {
+    "prompt_tokens": 211496,
+    "completion_tokens": 17624,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 13603,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 87.92439103126526,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|20|worker": {
+    "prompt_tokens": 1373665,
+    "completion_tokens": 447146,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1364,
+    "n_truncated": 0,
+    "latency_s": 10503.851867675781,
+    "model": "microsoft/phi-4"
+  },
+  "search|21|meta": {
+    "prompt_tokens": 227387,
+    "completion_tokens": 18906,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 13264,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 95.84710097312927,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|21|worker": {
+    "prompt_tokens": 1835361,
+    "completion_tokens": 823576,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1928,
+    "n_truncated": 0,
+    "latency_s": 18660.181678533554,
+    "model": "microsoft/phi-4"
+  },
+  "search|22|meta": {
+    "prompt_tokens": 317407,
+    "completion_tokens": 28241,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 16559,
+    "n_calls": 4,
+    "n_truncated": 1,
+    "latency_s": 141.56750965118408,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|22|worker": {
+    "prompt_tokens": 1923323,
+    "completion_tokens": 876416,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1998,
+    "n_truncated": 0,
+    "latency_s": 20223.678517580032,
+    "model": "microsoft/phi-4"
+  },
+  "search|23|meta": {
+    "prompt_tokens": 255716,
+    "completion_tokens": 13031,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 16655,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 66.72225761413574,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|23|worker": {
+    "prompt_tokens": 901055,
+    "completion_tokens": 190516,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1100,
+    "n_truncated": 2,
+    "latency_s": 4121.202855587006,
+    "model": "microsoft/phi-4"
+  },
+  "search|24|meta": {
+    "prompt_tokens": 257057,
+    "completion_tokens": 12854,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 9004,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 67.00415873527527,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|24|worker": {
+    "prompt_tokens": 650440,
+    "completion_tokens": 94873,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 800,
+    "n_truncated": 0,
+    "latency_s": 1842.6624689102173,
+    "model": "microsoft/phi-4"
+  },
+  "search|25|meta": {
+    "prompt_tokens": 285897,
+    "completion_tokens": 13322,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 10743,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 69.93200397491455,
+    "model": "openai/gpt-oss-120b"
+  },
+  "search|25|worker": {
+    "prompt_tokens": 1715133,
+    "completion_tokens": 615855,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1900,
+    "n_truncated": 1,
+    "latency_s": 14374.539383649826,
+    "model": "microsoft/phi-4"
+  },
+  "test|initial|worker": {
+    "prompt_tokens": 8868267,
+    "completion_tokens": 3345967,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 6000,
+    "n_truncated": 0,
+    "latency_s": 159850.35911607742,
+    "model": "microsoft/phi-4"
+  },
+  "test|1|worker": {
+    "prompt_tokens": 256820,
+    "completion_tokens": 32641,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 300,
+    "n_truncated": 0,
+    "latency_s": 1232.5015120506287,
+    "model": "microsoft/phi-4"
+  },
+  "test|2|worker": {
+    "prompt_tokens": 2030498,
+    "completion_tokens": 1156891,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2027,
+    "n_truncated": 0,
+    "latency_s": 42411.06362628937,
+    "model": "microsoft/phi-4"
+  },
+  "test|3|worker": {
+    "prompt_tokens": 1510917,
+    "completion_tokens": 308719,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1418,
+    "n_truncated": 0,
+    "latency_s": 11971.920940876007,
+    "model": "microsoft/phi-4"
+  },
+  "test|4|worker": {
+    "prompt_tokens": 2352775,
+    "completion_tokens": 509513,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2100,
+    "n_truncated": 0,
+    "latency_s": 19565.796095609665,
+    "model": "microsoft/phi-4"
+  },
+  "test|5|worker": {
+    "prompt_tokens": 2006740,
+    "completion_tokens": 411487,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1632,
+    "n_truncated": 0,
+    "latency_s": 19230.150849103928,
+    "model": "microsoft/phi-4"
+  },
+  "test|6|worker": {
+    "prompt_tokens": 2086529,
+    "completion_tokens": 478969,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1679,
+    "n_truncated": 0,
+    "latency_s": 22222.740227222443,
+    "model": "microsoft/phi-4"
+  },
+  "test|7|worker": {
+    "prompt_tokens": 2115255,
+    "completion_tokens": 529900,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2100,
+    "n_truncated": 0,
+    "latency_s": 18657.15296959877,
+    "model": "microsoft/phi-4"
+  },
+  "test|8|worker": {
+    "prompt_tokens": 2017479,
+    "completion_tokens": 455067,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1655,
+    "n_truncated": 0,
+    "latency_s": 21204.209527492523,
+    "model": "microsoft/phi-4"
+  },
+  "test|9|worker": {
+    "prompt_tokens": 2116990,
+    "completion_tokens": 521222,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2100,
+    "n_truncated": 0,
+    "latency_s": 18283.847190380096,
+    "model": "microsoft/phi-4"
+  },
+  "test|10|worker": {
+    "prompt_tokens": 3320285,
+    "completion_tokens": 1040795,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2880,
+    "n_truncated": 0,
+    "latency_s": 41817.49402117729,
+    "model": "microsoft/phi-4"
+  },
+  "test|11|worker": {
+    "prompt_tokens": 2086515,
+    "completion_tokens": 508929,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2065,
+    "n_truncated": 0,
+    "latency_s": 17803.180100679398,
+    "model": "microsoft/phi-4"
+  },
+  "test|12|worker": {
+    "prompt_tokens": 2004185,
+    "completion_tokens": 489488,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1960,
+    "n_truncated": 0,
+    "latency_s": 17156.94866490364,
+    "model": "microsoft/phi-4"
+  },
+  "test|13|worker": {
+    "prompt_tokens": 2120880,
+    "completion_tokens": 527120,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2100,
+    "n_truncated": 0,
+    "latency_s": 18525.11165857315,
+    "model": "microsoft/phi-4"
+  },
+  "test|14|worker": {
+    "prompt_tokens": 2305150,
+    "completion_tokens": 570844,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2295,
+    "n_truncated": 0,
+    "latency_s": 20029.90537762642,
+    "model": "microsoft/phi-4"
+  },
+  "test|15|worker": {
+    "prompt_tokens": 1432200,
+    "completion_tokens": 221193,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1650,
+    "n_truncated": 1,
+    "latency_s": 5676.153776407242,
+    "model": "microsoft/phi-4"
+  },
+  "test|16|worker": {
+    "prompt_tokens": 3892240,
+    "completion_tokens": 787285,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 4175,
+    "n_truncated": 0,
+    "latency_s": 26844.124017715454,
+    "model": "microsoft/phi-4"
+  },
+  "test|17|worker": {
+    "prompt_tokens": 232750,
+    "completion_tokens": 31758,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 265,
+    "n_truncated": 0,
+    "latency_s": 1097.7777347564697,
+    "model": "microsoft/phi-4"
+  },
+  "test|18|worker": {
+    "prompt_tokens": 2148520,
+    "completion_tokens": 349123,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2420,
+    "n_truncated": 1,
+    "latency_s": 10104.54614686966,
+    "model": "microsoft/phi-4"
+  },
+  "test|19|worker": {
+    "prompt_tokens": 3126315,
+    "completion_tokens": 1003658,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 3315,
+    "n_truncated": 0,
+    "latency_s": 36203.333040714264,
+    "model": "microsoft/phi-4"
+  },
+  "test|20|worker": {
+    "prompt_tokens": 4392652,
+    "completion_tokens": 1321987,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 4249,
+    "n_truncated": 0,
+    "latency_s": 52139.70799565315,
+    "model": "microsoft/phi-4"
+  },
+  "test|21|worker": {
+    "prompt_tokens": 5732718,
+    "completion_tokens": 2227381,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 5800,
+    "n_truncated": 0,
+    "latency_s": 83672.68246269226,
+    "model": "microsoft/phi-4"
+  },
+  "test|22|worker": {
+    "prompt_tokens": 6063922,
+    "completion_tokens": 2413288,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 6067,
+    "n_truncated": 1,
+    "latency_s": 92090.97105693817,
+    "model": "microsoft/phi-4"
+  },
+  "test|23|worker": {
+    "prompt_tokens": 2828620,
+    "completion_tokens": 572155,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 3300,
+    "n_truncated": 2,
+    "latency_s": 17869.80619287491,
+    "model": "microsoft/phi-4"
+  },
+  "test|24|worker": {
+    "prompt_tokens": 2042560,
+    "completion_tokens": 298976,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2400,
+    "n_truncated": 0,
+    "latency_s": 7861.406942605972,
+    "model": "microsoft/phi-4"
+  },
+  "test|25|worker": {
+    "prompt_tokens": 5364415,
+    "completion_tokens": 1779588,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 5700,
+    "n_truncated": 2,
+    "latency_s": 63883.553323984146,
+    "model": "microsoft/phi-4"
+  }
+}

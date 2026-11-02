@@ -1,0 +1,3 @@
+{"generation": 24, "attempt": 2, "stage": "evaluate", "category": "runtime_exception", "message": "sequence item 0: expected str instance, Info found", "t": 1792025892.5503967}
+{"generation": 26, "attempt": 4, "stage": "propose", "category": "json_parse_error", "message": "Expecting ',' delimiter: line 11419 column 2 (char 18154)", "t": 1792026084.6289322}
+{"generation": 26, "attempt": 5, "stage": "propose", "category": "json_parse_error", "message": "Expecting ',' delimiter: line 9470 column 2 (char 14931)", "t": 1792026159.3003793}

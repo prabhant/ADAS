@@ -1,0 +1,64 @@
+{
+  "worker": {
+    "url": "http://127.0.0.1:8000/v1",
+    "model": "mistralai/Mistral-7B-Instruct-v0.2",
+    "healthy": true,
+    "json_mode": {
+      "parsed_keys": [
+        "code",
+        "name",
+        "thought"
+      ],
+      "finish_reason": "stop",
+      "completion_tokens": 31,
+      "reasoning_tokens": null,
+      "reasoning_split_exposed": false
+    },
+    "guided_json": false,
+    "reasoning_effort": {
+      "accepted": true,
+      "observed": {
+        "low": {
+          "completion_tokens": 60,
+          "reasoning_tokens": 0
+        },
+        "high": {
+          "completion_tokens": 60,
+          "reasoning_tokens": 0
+        }
+      },
+      "load_bearing": false
+    }
+  },
+  "meta": {
+    "url": "http://127.0.0.1:8001/v1",
+    "model": "openai/gpt-oss-20b",
+    "healthy": true,
+    "json_mode": {
+      "parsed_keys": [
+        "code",
+        "name",
+        "thought"
+      ],
+      "finish_reason": "stop",
+      "completion_tokens": 107,
+      "reasoning_tokens": 0,
+      "reasoning_split_exposed": true
+    },
+    "guided_json": false,
+    "reasoning_effort": {
+      "accepted": true,
+      "observed": {
+        "low": {
+          "completion_tokens": 48,
+          "reasoning_tokens": 0
+        },
+        "high": {
+          "completion_tokens": 2048,
+          "reasoning_tokens": 0
+        }
+      },
+      "load_bearing": true
+    }
+  }
+}

@@ -623,6 +623,7 @@ Inspect with: bash experiments/slurm/status.sh
 - 02:28: batch10 gate e2e 28200441 PASSED at 07de224 (mgsm + drop, 136 checks,
   0 failures). mgsm_tests 28200442 [2,3,5,6] is now eligible (queued, no start
   estimate yet).
+<<<<<<< HEAD
 - 2026-10-28: Copilot SDK arm added (local machine, not Snellius). Plan:
   experimental_plan_copilot.md. Gateway experiments/serving/copilot_gateway.py,
   runner experiments/local/run_cell.py, probes experiments/serving/copilot_probe.py,
@@ -656,3 +657,369 @@ Inspect with: bash experiments/slurm/status.sh
   max_retry_wait 3000 s (lid-close outages, no failed calls), run_cell
   --max_calls_per_minute; stop a cell with SIGINT, not SIGTERM. Spend 8,724 credits total.
   Nothing committed. NEXT (optional): more designers from the reserve, the hybrid arm.
+=======
+
+### 2026-10-19 - batch10 done; MGSM panel complete
+
+- 28200442 tasks 2,3,5,6 COMPLETED first try (6.7 h, 10.3 h, 2.2 h, 12.8 h),
+  all evaluation-only on 1 GPU. evaluation_summary: 37/37 tested, 0 test
+  errors, stopped_on_deadline false in all four cells.
+- Qwen3.5-27B's selected design (gen 17, val 90.6, 54 calls / 75.7k tokens per
+  q) tests 89.4%: -1.5 [-3.1, +0.1] vs LLM Debate, +2.9 [+0.9, +5.0] vs CoT-SC.
+- MGSM final: 0/237 designs significantly better than Debate, 200/237
+  significantly worse; best-per-cell picked on test +0.9 at most; no design
+  cheaper than Debate without being worse. Seed union solves 94.2% of test
+  (Debate 90.9%). ADAS paper (GPT-3.5): MGSM 53.4 vs Debate 39.0.
+- MMLU: 12/240 designs significantly above CoT-SC on test (~6 expected by
+  chance); oracle-on-test up to +4.6; validation selection finds none.
+- Panels cost ~390 H100 GPU-hours (MGSM ~310 incl. batch10, MMLU ~85).
+- findings.md updated with the final numbers.
+
+### 2026-10-20 - fidelity audit vs stock ADAS (d0acd49)
+
+- Same as stock: 30 gens, 128/800 split + shuffle, 7 seeds, archive with fitness
+  shown, 2 reflexion rounds, debug_max 3 (code default; paper says 5), "All 0
+  accuracy" rejection, temps 0.8/0.5, worker json_object + 4096 cap.
+- Deviations that only help the search: equal-successes budget (stock `n -= 1`
+  in a for loop is a no-op, failed gens are lost); score_mgsm accepts numbers
+  (stock scored them wrong); crash-tolerant test; _as_text; prompt-field leak fix;
+  shared seed cache.
+- REAL DEVIATIONS:
+  1. Informed meta: worker name + CoT accuracy + nudge ("earn its extra calls",
+     "scaffolding ... wasted on a model that already reasons well"). Stock is blind.
+  2. Strict designer schema (thought, name, code) - verified with xgrammar
+     strict_mode that `reflection` and `debug_thought` are rejected, though the
+     stock reflexion/debug prompts ask for them. Designers still reason privately
+     (traces in 30/30 designs everywhere except Qwen3-14B 24-25/28-30), but
+     reflections are no longer carried into the next turn.
+- Unlikely to explain the MGSM null (Debate ~91%, seed union 94.2%). To rule
+  out: optional reflection/debug_thought in the schema (stock order) + blind
+  meta, ideally on Mistral-7B/MGSM. Awaiting user decision.
+
+### 2026-10-20 15:55 - batch11 submitted at commit 4eb7a11
+
+```
+e2e_cpu	28378098
+arc_screen	28378099
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-20 - ARC ported (4eb7a11); batch11 = e2e -> ARC worker screen
+
+- _arc/search.py from the reviewed _mgsm/search.py; ARC parts as stock ADAS:
+  worker prompt (FORMAT_INST/CODE_INST), AgentSystem feedback/test-output API,
+  exact match on test[0] only (some tasks have 2-3 test inputs; all shown, first
+  scored, as stock), fixed splits dataset/sampled_arc_{val,test}_data.pkl
+  (20 / 60 tasks), n_repreat 5 on both, 25 generations, 5 seeds (CoT,
+  Self-Refine, LLM Debate, CoT-SC, QD). Per-question vectors are questions x
+  passes (stock: each task's 5 runs consecutive; order changes no score).
+- Stock ARC harness bugs fixed (all verified before fixing):
+  exec(code, {}, locals) hid top-level imports/helpers from transform (NameError);
+  no time limit on worker code (10 s per transform call now, trace-based, also
+  the code's top level); numpy results crashed the example comparison; transforms
+  could mutate the shared task grids; AgentSystem stored `test_iuput` but the
+  designer is told `test_input`; eval() -> ast.literal_eval; sandbox RLIMIT_AS
+  64 GiB. Deviation kept from the other domains: worker output cap 4096 (stock
+  ARC 1024).
+- answer_kinds histogram per evaluation (resource.answer_kinds,
+  test_answer_kinds): correct / wrong_grid / code_error / runtime_error /
+  transform_timeout / no_transform / unparseable / ...
+- Designer prompt with 5 seeds is ~32k chars (~9k tokens); +~2k tokens per
+  design -> ~60k by generation 25. Qwen3-14B (65,536 YaRN, 4096 out) may
+  overflow near the end, as on MGSM (28/30).
+- ADAS reference (Table 3, test, 60 x 5): GPT-3.5 CoT 6.0, CoT-SC 8.0,
+  Self-Refine 6.7, QD 7.0, Debate 4.0; best searched 13.7. Claude-Sonnet:
+  Self-Refine 39.3, best transferred 48.3.
+- ARC-only e2e 28377511 PASSED (68 checks; stub transforms use a top-level
+  import + helper + numpy, which stock exec would have scored 0).
+- batch11: e2e 28378098 (mgsm, drop, arc) -> arc_screen 28378099 (array 0-4:
+  mistral-7b, phi-4, qwen3-30b-a3b, nemotron-nano, qwen3.5-27b; 1 GPU, 4 h).
+- NEXT: inspect the screen (validation accuracy per seed, answer_kinds, CoT vs
+  best seed); pick the ARC worker with scaffold headroom; then batch12 =
+  s05_cot_arc_<worker> baseline -> 8-designer ARC panel (25 gens, 20/60 x 5).
+- 16:17: batch11 gate e2e 28378098 PASSED at 4eb7a11 (mgsm + drop + arc, 204
+  checks, 0 failures). arc_screen 28378099 [0-4] eligible, pending on Priority
+  (gpu_h100 83/87 nodes allocated).
+- 18:00: arc_screen 28378099 still PENDING (Priority) after 1h40m. panel_arc
+  stage defaults committed (a04e4ad); panel/baseline cells are added once the
+  worker is chosen. Screen summary (accuracy per seed, best-CoT headroom, tasks
+  solved by any seed, answer kinds) once it has run:
+  python ~/.copilot/session-state/b051b37d-35d0-4a6e-8863-387617810de7/files/arc_screen_summary.py experiments/results
+  Choice rule as for MGSM: largest seed gain over CoT, CoT neither ~0 nor near
+  ceiling (ADAS GPT-3.5: CoT 6.0, best seed 8.0, search 13.7).
+
+### 2026-10-28 - ARC screen (28378099, 2026-10-21) analysed
+
+- All 5 tasks COMPLETED (8-59 min). Results committed by user (3b6a3a9).
+- CoT / best seed (val, 20 tasks x 5): Mistral 0/0, Phi-4 11/20 (Refine),
+  Qwen3-30B-A3B 23/42 (CoT-SC), Nemotron-Nano 11/39 (CoT-SC), Qwen3.5-27B 63/80
+  (Debate).
+- MAIN FINDING: the 4096-token worker cap truncates the reasoning workers'
+  JSON (thinking fills it before code): 42% of Qwen3-30B calls, ~45% (+13%
+  missing fields) Nemotron, 22% Qwen3.5-27B; Phi-4/Mistral <1%. Most of the
+  reasoning workers' scaffold gain is recovered truncations (Qwen3.5-27B:
+  +17 correct, -18 no-code, +1 wrong grid).
+- Size: neither total nor active params orders the workers; reasoning-trained
+  generation does (3.5B-active MoEs > 14.7B dense Phi-4). Capability nested
+  (Qwen3.5-27B solves a superset). Written up in findings.md "ARC worker screen".
+- NEXT (needs user decision): ARC panel on Phi-4 (clean, ADAS-like), and/or
+  re-screen reasoning workers with worker max_tokens 16384 on ARC.
+
+### 2026-10-28 09:22 - batch12 submitted at commit df44cf0
+
+```
+e2e_cpu	28650191
+arc_screen_r	28650192
+```
+
+Inspect with: bash experiments/slurm/status.sh
+- (batch12 details) Workers can now reason natively (df44cf0): stage option
+  worker_native_reasoning serves the worker with its reasoning parser (qwen3 /
+  nemotron_v3); vLLM 0.28 enforces JSON only after </think>
+  (enable_in_reasoning=False), so the agent's JSON holds only its fields and the
+  trace stays out of every Info. max_tokens 32768 (vLLM clips to context left),
+  request_timeout 3600, sandbox_timeout 21600. Seed cache key gets "__native";
+  existing caches and cells unchanged (verified offline). reasoning_chars now
+  recorded per call. e2e section L; working-tree e2e 28649584 PASSED (216).
+  batch12: e2e 28650191 -> arc_screen_r 28650192 [0-2] (qwen3-30b-a3b,
+  nemotron-nano, qwen3.5-27b; 1 GPU, 24 h).
+- What to check: .out shows the worker launched with "reasoning parser qwen3"
+  / "nemotron_v3"; truncated_calls far below the 4k screen; reasoning_chars > 0;
+  answer_kinds no_transform mostly gone. Risk: Qwen3-30B at 40,960 context has
+  KV room for only ~10 full-length sequences per GPU -> slow; seeds cache as they
+  finish, so a timed-out task resumes on resubmit.
+- 09:45: batch12 gate 28650191 PASSED (216). 09:46-09:51: all three tasks started;
+  workers launched with "reasoning parser qwen3 / nemotron_v3 / qwen3" and passed
+  the JSON health probe.
+- 10:01 FIRST RESULT (verifies the fix): Qwen3-30B-A3B CoT, native reasoning:
+  57% (was 23% JSON-forced at 4k), truncated 0/100 (was 71), no_transform 0
+  (was 71), 42 wrong grids, 1 runtime error. ~26k reasoning chars and ~8.8k
+  completion tokens per call: the reasoning needs about twice the old 4k cap.
+  CoT took 13 min (100 calls); the multi-call seeds will take hours.
+
+### 2026-10-29 - batch12 (native worker reasoning, ARC screen) analysed
+
+- 28650192 tasks 0-2 COMPLETED (3.6 h, 7.6 h, 12.2 h).
+- Native CoT / best seed: Nemotron-Nano 65 / 79 (Debate), Qwen3-30B-A3B 57 / 61
+  (CoT-SC, CI incl. 0), Qwen3.5-27B 90 / 96 (Debate). Native single-call CoT
+  beats the best 4k-JSON scaffold for all three (+26, +15, +10) at under half
+  the tokens. Per-task oracle over seeds 85 / 67 / 98.
+- Truncation still: Nemotron CoT 13/100 at the 32k budget; Qwen3.5-27B CoT-SC
+  108/600 (final-decision prompt with 5 prior solutions leaves less context).
+- findings.md: new section; batch-11 reasoning-worker rows superseded.
+- No ARC search run yet. Candidates for one: Phi-4 (ADAS-like room, cheap) and
+  Qwen3-30B-A3B native (does search beat a reasoning model's own CoT?).
+
+### 2026-10-29 01:29 - batch13 submitted at commit c1af459
+
+```
+arc_baseline	28689966
+designers_1gpu	28689967
+designers_2gpu	28689968
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-29 - batch13: ARC designer panel, Phi-4 worker
+
+- User: run only the Phi-4 ARC search. Commit c1af459: stage panel_arc (25 gens,
+  20/60 tasks x 5 runs, 75 attempts), cells par_qwen3.5-27b_a (idx 0, 2 GPU),
+  par_gpt-oss-120b_a (1, 3 GPU), par_qwen3.5-35b-a3b_a (2, 3 GPU); baseline
+  cell s05_cot_arc_phi-4 (stage 0.5 idx 10). ARC --baseline path checked
+  offline against the e2e stub (exact ground truth). No code change since the
+  df44cf0 e2e (216 checks), so no e2e gate.
+- 28689966 baseline COMPLETED 01:32: Phi-4 ARC CoT 9.0% [4.0, 15.0] (screen
+  11%). Designers 28689967 [0] + 28689968 [1-2] released, PENDING (Priority)
+  at 02:27.
+- What to check when they run: .out shows "Initial Archive (cached)" x5, then
+  generation 1; designer prompt starts ~9k tokens (5 ARC seeds), grows per
+  design. Phi-4's 16k context (like GPT-3.5's) may overflow on agents that
+  pass many solutions to a final agent -> "context is too long" goes to the
+  debug loop, as in stock ADAS.
+- Compare against: CoT 9-11%, best seed Self-Refine 20%, per-task seed oracle
+  28% (validation). ADAS/GPT-3.5 test: 6.0 / 8.0 -> 13.7 searched.
+
+### 2026-10-29 12:40 - batch13 partial results (ARC panel, Phi-4)
+
+- 28689968_1 gpt-oss-120b COMPLETED 05:01-08:36 (25 gens in 31 attempts, 30/30
+  tested). 28689967_0 qwen3.5-27b RUNNING since 05:59: search 25/25 in 28
+  attempts, test 19/30. 28689968_2 qwen3.5-35b PENDING (Priority).
+- Selected designs on test: gpt-oss-120b gen 18 31.3%, qwen3.5-27b gen 10 30.3%;
+  pooled seeds 17.2-22.0%. Qwen3.5-27B +8.3 [+3.7, +13.5] vs the best seed on
+  test (QD) -> first clear ADAS gain in the project.
+- gpt-oss-120b's gens 17-22 contain a hand-coded DSL program search that answers
+  7/60 test tasks correctly without any worker call (checked by running the code
+  with a stubbed worker); its worker fallback scores like the seeds.
+- Direct-answer design (gpt-oss gen 1, no code, 1 call): 25.0% test, above all
+  code-writing seeds (n.s.).
+- Seed re-evaluation differs across cells (Self-Refine 22.3 vs 16.3, CI excl. 0)
+  -> compare against seeds pooled over cells.
+- findings.md: "ARC designer panel, Phi-4 worker" (partial).
+
+### 2026-10-30 - batch13 complete (ARC panel, Phi-4)
+
+- 28689967_0 qwen3.5-27b COMPLETED (7.9 h; 29/30 tested, 1 timeout);
+  28689968_2 qwen3.5-35b-a3b COMPLETED 2026-10-30 14:55 (15.2 h, 25 gens in 27
+  attempts, 30/30 tested).
+- Selected designs on test vs best pooled seed (QD 20.9%, 15 runs/task):
+  qwen3.5-35b-a3b gen 17 36.0% +15.1 [+9.4, +21.1] (45 calls/task, no
+  worker-free answers); gpt-oss-120b 31.3% +10.4 [-0.4, +21.4]; qwen3.5-27b
+  30.3% +9.4 [+4.8, +14.6]. findings.md ARC section updated to final.
+
+### 2026-10-30 - DROP panel prepared for another session; DROP baseline bug fixed
+
+- BUG FIXED: _drop/search.py run_baseline printed s['correct'], but DROP samples
+  carry 'f1' -> KeyError after the first pass of any DROP CoT baseline (never
+  run before). e2e section M now runs --baseline cot in all three domains;
+  28777636 PASSED (222 checks).
+- Prompt for the DROP designer panel (Mistral-7B worker; Qwen3.5-27B,
+  gpt-oss-120b, Qwen3.5-35B-A3B designers; ADAS DROP protocol 30 gens, 128/800,
+  1 pass; cells pdr_*; baseline s05_cot_drop_mistral-7b at stage 0.5 idx 11;
+  batch14) saved at
+  ~/.copilot/session-state/b051b37d-35d0-4a6e-8863-387617810de7/files/drop_panel_prompt.md
+
+### 2026-10-30 17:37 - batch14 submitted at commit 33df850
+
+```
+drop_baseline	28779455
+designers_1gpu	28779456
+designers_2gpu	28779457
+```
+
+Inspect with: bash experiments/slurm/status.sh
+
+### 2026-10-30 - batch14: DROP designer panel, Mistral-7B worker
+
+- Commit 33df850 (config only): stage panel_drop (ADAS DROP protocol: 30 gens,
+  128 val / 800 test, 1 pass, 90 attempts, debug 3, require_seed_cache); cells
+  pdr_qwen3.5-27b_a (idx 0, 2 GPU), pdr_gpt-oss-120b_a (1, 3 GPU),
+  pdr_qwen3.5-35b-a3b_a (2, 3 GPU), worker mistral-7b; baseline cell
+  s05_cot_drop_mistral-7b (stage 0.5 idx 11, 128 x 5). No code change since
+  the b2ca802 e2e (28777636, 222 checks), so no e2e gate.
+- Seed archive reused from the batch-9 screen
+  (mistralai_Mistral-7B-Instruct-v0.2__drop__valid128__shuffle0__rep1__None.json,
+  7 seeds, 2026-10-14). DROP code changed since only in deadline/test-cap
+  handling, instrumentation and the baseline print, not in scoring, so it is
+  still valid.
+- Dry run (session script dryrun_batch14.sh, throwaway results root): each new
+  cell resolved and parsed by _drop/search.py build_parser. Domain drop,
+  128/800, rep 1, 30 gens / 90 attempts, --require_seed_cache, seed-cache name
+  equals the cached file and its 7 seed names equal get_init_archive(); meta
+  Qwen3.5-27B tp1, gpt-oss-120b tp2, Qwen3.5-35B-A3B tp2; informed with
+  --worker_cot_accuracy. Without the DROP baseline the designers refuse; an
+  MGSM baseline file is refused for DROP. Existing stage indices unchanged.
+- scontrol: 28779456 and 28779457 Dependency=afterok:28779455_*; ReqTRES gpu
+  1 / 2 / 3, cpu 16 / 32 / 48.
+- What to check: baseline F1 vs screen CoT 44.6 (1 pass) and cot_baseline.json
+  domain drop; each designer .out shows "Initial Archive (cached)" x7 then
+  Generation 1. Expect "context is too long" debug rounds (Mistral 32k).
+- Compare against (screen, val F1): CoT 44.6, CoT-SC 46.7, Self-Refine 42.8,
+  Debate 49.9 (best), Step-back 25.1, QD 39.2, Role Assignment 45.9. ADAS with
+  GPT-3.5: CoT 64.2, best seed 65.8, searched 79.4 (+13.6).
+- 2026-10-31 10:40: 28779455 (baseline) still PENDING (Priority) after 17 h;
+  gpu_h100 83/84 nodes allocated; SLURM estimated start 2026-10-31 16:11.
+  Designers PENDING (Dependency). Shortening the baseline's 4 h limit (past
+  baselines ran 2-5 min) to help backfill is not allowed for users
+  (scontrol update: Access/permission denied); not resubmitted, to keep its
+  accrued age priority and the afterok chain.
+- 2026-10-31 10:42-10:44: 28779455_11 baseline COMPLETED (backfilled, 2.5 min,
+  gcn128). Mistral-7B DROP CoT F1 42.3% [38.9, 45.8] (128 x 5 = 640 calls;
+  per pass 40.1 / 42.6 / 45.4 / 43.1 / 40.5); screen 44.6 (1 pass) is inside
+  that spread. 20/640 empty answers, 0 failed calls. cot_baseline.json domain
+  drop, accuracy 0.4234: the informed designers are told 42.3%. Designers
+  28779456 [0] and 28779457 [1-2] released from the dependency, PENDING.
+- 2026-10-31 16:53: designers 28779456 [0] and 28779457 [1-2] PENDING
+  (Priority); no designer output yet. SLURM's estimated start is 2026-11-02
+  15:20-15:50 (gpu_h100 83/84 nodes allocated).
+- 2026-11-01 00:05: designers 28779456 [0] and 28779457 [1-2] still PENDING
+  (Priority) 13 h after release; gpu_h100 full. SLURM's estimated start has
+  drifted between 2026-11-01 02:37 and 2026-11-02 18:00; latest ~11:00 Nov 1.
+- 2026-11-01 06:19: 28779457_1 pdr_gpt-oss-120b_a STARTED (gcn129; worker
+  port 8598 GPU 0, meta tp=2 port 8599 GPUs 1-2). .out: "Initial Archive
+  (cached)" x7, then Generation 1 (attempt 1/90) at ~06:33; gen 1 F1 39.0%
+  [31.6, 46.5], 3 empty answers, 0 failed calls of 128.
+  28779456_0 (qwen3.5-27b) and 28779457_2 (qwen3.5-35b-a3b) still PENDING.
+- Health-probe note: this job printed guided_json=False for worker and meta
+  (ARC panel: True). That probe asks for a whole design JSON at temperature 0
+  in 4,096 tokens and configures nothing: worker calls use json_object (no
+  schema), and the designer's schema calls only fall back on a server
+  BadRequest. No errors in _serving_logs/{worker_8598,meta_8599}.log; gen 1's
+  design parsed. Past logs: worker probe False in 37, True in 38 jobs.
+- 2026-11-01 07:02: 28779456_0 pdr_qwen3.5-27b_a STARTED (gcn124; meta tp=1,
+  reasoning parser qwen3). 10:05: 28779457_2 pdr_qwen3.5-35b-a3b_a STARTED
+  (gcn89; meta tp=2). Both .out: "Initial Archive (cached)" x7 (0 uncached),
+  then Generation 1; health probes guided_json=True. No context-overflow
+  messages so far in any cell.
+- 2026-11-01 10:25 snapshot (interim, validation only, n=128, 1 pass; Debate
+  49.9 is the best seed): DROP search is fast.
+  - gpt-oss-120b: search done, 30 gens in 30 attempts; best val 47.8 (gen 27,
+    "Self-Consistent Ranker"), none above Debate; 11/30 below 30 F1; test 22/37.
+  - Qwen3.5-27B: search done, 30 gens in 32 attempts; best val 53.2 (gen 28,
+    "Adaptive Type-Aware Debate"), 3 above Debate; 9/30 below 30; test 1/37.
+  - Qwen3.5-35B-A3B: generation 2.
+- NEXT (follow-up session): partial findings when the first cell completes,
+  final when all three do (plan: validation-only selection + ties; seeds
+  pooled over the 3 cells; paired bootstrap on per-question F1 vs pooled
+  Debate, best pooled seed on test, CoT; upper bound; worker-free stub check;
+  answer-before-reasoning; cost). Reusable scripts:
+  ~/.copilot/session-state/b051b37d-35d0-4a6e-8863-387617810de7/files/
+  {panel_summary.py, report_tables.py}; this session's plan and dry run:
+  ~/.copilot/session-state/dbfc01f3-fe65-4ebd-9662-20f07f93008e/{plan.md, files/}.
+- 2026-11-01: designers started. 28779457_1 gpt-oss-120b 06:19 (gcn129),
+  28779456_0 qwen3.5-27b 07:02 (gcn124), 28779457_2 qwen3.5-35b-a3b 10:05
+  (gcn89). Each .out: correct worker/meta and TP, "Initial Archive (cached)"
+  x7, uncached 0, then "Generation 1 (attempt 1/90)". No "context is too
+  long" so far.
+- gpt-oss-120b cell's probe printed guided_json=False for both servers (True
+  in the other cells). Harmless: worker calls send no schema (json_object
+  mode, as stock ADAS), and the meta server answered all 98 requests 200 (the
+  json_schema fallback needs a 400) and ran the grammar-bitmask kernel. Likely
+  the probe's 4,096-token budget spent on gpt-oss reasoning. The same probe
+  read False on pan_gpt-oss-120b_a's worker before.
+- 10:25 snapshot (validation F1, 128 q): qwen3.5-27b 30 gens in 32 attempts
+  (2 json_parse_error), best gen 28 "Adaptive Type-Aware Debate" 53.2
+  [45.4, 61.0], 7 calls/q; 3/30 above Debate's 49.9, 9/30 below 30, median
+  39.8. gpt-oss-120b 30 gens in 30 attempts, best gen 27 "Self-Consistent
+  Ranker" 47.8, 24 calls/q; 0/30 above Debate, 11/30 below 30; its designs are
+  mostly extract -> code/expression -> verify. Both in test evaluation
+  (gpt-oss 21/37 tested). Seeds re-scored on test in the gpt-oss cell: CoT
+  39.0, CoT-SC 42.6, Refine 37.1, Debate 40.5, Step-back 29.0, QD 39.4,
+  Roles 39.8 (Debate's 49.9 on validation was partly selection luck). Best
+  tested design so far: gen 9 "Extract-Generate-Code-Verify" 47.1 (val 46.8).
+  Code-executing designs: run the worker-free check before crediting them.
+- worker calls log JSON errors in all cells ("not returning enough fields"
+  13-20%, as in the seed screen): Mistral output, not a server difference.
+
+### 2026-11-02 - batch14 complete (DROP panel, Mistral-7B worker): headline
+
+- All three COMPLETED 2026-11-01, no resubmissions: gpt-oss-120b 06:19-12:43
+  (6.4 h), qwen3.5-27b 07:02-13:58 (6.9 h), qwen3.5-35b-a3b 10:06-14:33
+  (4.5 h). 30 gens each (30 / 32 / 30 attempts); 37/37 designs tested in
+  every cell, 0 test errors.
+- Seeds re-scored on the 800 test questions, per cell / pooled: CoT
+  41.1/39.0/39.8 -> 40.0, CoT-SC 43.4 (best pooled), Self-Refine 38.5,
+  Debate 40.5 (best on val, 49.9), Step-back 28.5, QD 38.8, Roles 40.6.
+  Every agent scores ~5 F1 lower on test than on validation. Seed oracle
+  (max F1 over the 21 seed runs) 79.4.
+- Validation-selected designs (no ties), test F1 and paired bootstrap over
+  the 800 questions vs pooled seeds (95% CI):
+  - qwen3.5-27b gen 28 "Adaptive Type-Aware Debate": val 53.2, test 46.1;
+    vs Debate +5.6 [+2.6, +8.5], vs CoT-SC +2.7 [-0.2, +5.8], vs CoT +6.1
+    [+3.1, +9.2]; 7 calls / 8.5k tokens per question (Debate 7 / 6.8k).
+  - gpt-oss-120b gen 27 "Self-Consistent Ranker": val 47.8, test 40.2;
+    vs Debate -0.3, vs CoT-SC -3.2 [-6.3, +0.1], vs CoT +0.3; 25 calls /
+    24.5k tokens.
+  - qwen3.5-35b-a3b gen 8 "Confidence-Gated Debate": val 47.8, test 41.4;
+    vs Debate +0.9, vs CoT-SC -2.0, vs CoT +1.4; 3 calls / 3.2k tokens.
+    18/30 of its designs score below 30 F1 on validation.
+- Upper bound (best design by test) vs pooled CoT-SC: qwen3.5-27b gen 29
+  46.6 (+3.2 [+0.2, +6.2]), gpt-oss-120b gen 9 47.1 (+3.6 [+0.2, +7.1]);
+  1/30 significantly above CoT-SC in each; none for qwen3.5-35b-a3b.
+  Spearman val~test 0.94 / 0.94 / 0.86.
+- Reading so far: at most a small gain (+3 F1 over the best seed on test,
+  CI touching 0), nothing like ADAS's +13.6 on DROP or this project's ARC
+  result. Script: session dbfc01f3 files/drop_headline.py.
+- Still to do before findings.md: worker-free check (gpt-oss-120b's gen 9 is
+  extract -> code -> verify), answer-before-reasoning split, full table.
+>>>>>>> 9d8ea9ad364ca26ff2bc9bb372aa009d0f845d39

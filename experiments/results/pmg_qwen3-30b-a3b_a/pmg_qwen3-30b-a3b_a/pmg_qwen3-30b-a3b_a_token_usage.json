@@ -1,0 +1,38 @@
+{
+  "test|17|worker": {
+    "prompt_tokens": 40751770,
+    "completion_tokens": 8943605,
+    "reasoning_tokens": 0,
+    "n_calls": 86150,
+    "n_truncated": 707,
+    "latency_s": 351304.2609574795,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|18|worker": {
+    "prompt_tokens": 27969004,
+    "completion_tokens": 6785915,
+    "reasoning_tokens": 0,
+    "n_calls": 59401,
+    "n_truncated": 579,
+    "latency_s": 259362.5130367279,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|19|worker": {
+    "prompt_tokens": 43823321,
+    "completion_tokens": 8387951,
+    "reasoning_tokens": 0,
+    "n_calls": 90440,
+    "n_truncated": 535,
+    "latency_s": 335928.87951755524,
+    "model": "Qwen/Qwen3-30B-A3B"
+  },
+  "test|20|worker": {
+    "prompt_tokens": 49420607,
+    "completion_tokens": 12748813,
+    "reasoning_tokens": 0,
+    "n_calls": 96744,
+    "n_truncated": 798,
+    "latency_s": 410823.06606578827,
+    "model": "Qwen/Qwen3-30B-A3B"
+  }
+}
