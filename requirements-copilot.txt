@@ -1,0 +1,4 @@
+# GitHub Copilot SDK arm (experiments/serving/copilot_gateway.py). Python 3.11+.
+# Install together with requirements.txt.
+github-copilot-sdk==1.0.24
+pyyaml

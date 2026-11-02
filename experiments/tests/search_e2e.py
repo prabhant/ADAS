@@ -37,6 +37,12 @@ if DOMAIN == "drop":
 
     def load_examples():
         return load_drop(os.path.join(ROOT, "dataset", "drop_v0_dev.jsonl.gz"))[1:-1]
+elif DOMAIN == "gpqa":
+    from utils import format_gpqa_question, load_questions  # noqa: E402
+
+    def load_examples():
+        return [{"inputs": format_gpqa_question(q), "targets": "ABCD"[q.correct_index]}
+                for q in load_questions(os.path.join(ROOT, "dataset", "gpqa_diamond.csv"), seed=0)]
 else:
     from utils import get_all_examples  # noqa: E402
 
@@ -68,8 +74,9 @@ def answered_correctly(question: str) -> bool:
 def split():
     """Replicates evaluate_forward_fn's selection exactly."""
     examples = load_examples()
-    random.seed(SEED)
-    random.shuffle(examples)
+    if DOMAIN != "gpqa":  # GPQA keeps file order, as stock ADAS does
+        random.seed(SEED)
+        random.shuffle(examples)
     return examples[:VALID], examples[VALID:VALID + TEST]
 
 
@@ -85,17 +92,31 @@ class Stub:
         self.chains = 0
         self.meta_calls = 0
         self.meta_prompts = []
+        # The OpenAI `user` field of each designer call, and when each chain began.
+        self.meta_users = []
+        self.chain_starts = []
+        self.tag_chains = {}
         # A slow worker makes an evaluation outlast a deadline or a cap on cue.
         self.worker_delay = 0.0
         self.worker_calls = 0
 
-    def meta(self, messages):
+    def meta(self, messages, user=None):
         with self.lock:
             self.meta_calls += 1
             self.meta_prompts.append("\n".join(str(m["content"]) for m in messages))
-            if len(messages) == 2:
-                self.chains += 1
-            chain = self.chains - 1
+            self.meta_users.append(user)
+            if user is not None:
+                # Concurrent proposals (batch rounds) interleave; their tag says which chain.
+                if user not in self.tag_chains:
+                    self.tag_chains[user] = self.chains
+                    self.chains += 1
+                    self.chain_starts.append(time.time())
+                chain = self.tag_chains[user]
+            else:
+                if len(messages) == 2:
+                    self.chains += 1
+                    self.chain_starts.append(time.time())
+                chain = self.chains - 1
         debugging = str(messages[-1]["content"]).startswith("Error during evaluation")
         # chain 0: broken, then fixed by debugging -> success with debug_attempts=1
         # chain 1: broken through every debug round -> abandoned
@@ -126,6 +147,11 @@ class Stub:
                     # The gold span scores F1 1.0; a token sharing nothing with any answer scores 0.
                     gold = next(t for t in example["targets"] if t.strip())
                     body[field] = gold if answered_correctly(example["inputs"]) else "zzqx"
+                    continue
+                if DOMAIN == "gpqa":
+                    letter = example["targets"]
+                    wrong = "ABCD"[("ABCD".index(letter) + 1) % 4]
+                    body[field] = letter if answered_correctly(example["inputs"]) else wrong
                     continue
                 target = int(example["targets"].replace(",", ""))
                 # A JSON number, not a string: the exact shape that once made
@@ -160,7 +186,7 @@ def serve(stub: Stub):
         def do_POST(self):
             request = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
             if request["model"] == "stub-meta":
-                body, reasoning = stub.meta(request["messages"])
+                body, reasoning = stub.meta(request["messages"], request.get("user"))
             else:
                 with stub.lock:
                     stub.worker_calls += 1
@@ -470,6 +496,95 @@ def main() -> int:
     check(len(archive) == 8 and len(generated) == 1 and generated[0]["valid_per_question"] == expected_valid,
           "the next job completes the generation")
     server.shutdown()
+
+    print("\n=== L: lean protocol tests the seeds and the top-k designs, and widens on rerun ===")
+    stub = Stub()
+    server = serve(stub)
+    url = f"http://127.0.0.1:{server.server_address[1]}/v1"
+    l_dir, l_id = os.path.join(workdir, "L"), "e2eL"
+    os.makedirs(l_dir)
+    l_designs = load(os.path.join(a_dir, f"{a_id}_run_archive.json"))
+    check(all("credits" in (e.get("resource") or {}) and e["resource"]["credits"] == 0.0 for e in l_designs),
+          "resources carry an AI-credit field (0 outside the Copilot gateway)")
+    # Distinct validation scores, so the top-k choice is checkable: generation 2 best, then 3, then 1.
+    for entry, score in zip([e for e in l_designs if isinstance(e.get("generation"), int)], (0.2, 0.9, 0.5)):
+        entry["raw_median_accuracy"] = score
+    with open(os.path.join(l_dir, f"{l_id}_run_archive.json"), "w") as handle:
+        json.dump(l_designs, handle)
+    l_eval = os.path.join(l_dir, f"{l_id}_run_archive_evaluate.json")
+    check(run_search(url, l_dir, l_id, target=3, extra=["--evaluate_only", "--test_top_k", "1"]) == 0, "exit 0")
+    evaluated = load(l_eval)
+    tested = [e.get("generation") for e in evaluated if e.get("test_per_question") == expected_test]
+    check(len(evaluated) == 10 and tested == ["initial"] * 7 + [2],
+          f"seven seeds and the best generated design tested (got {tested})")
+    check([e.get("generation") for e in evaluated if e.get("test_skipped")] == [1, 3],
+          "the others are aligned placeholders")
+    summary = load(os.path.join(l_dir, l_id, "evaluation_summary.json"))
+    check(summary.get("tested") == 8 and summary.get("skipped") == 2, f"summary counts skips (got {summary})")
+    check(run_search(url, l_dir, l_id, target=3, extra=["--evaluate_only", "--test_top_k", "2"]) == 0, "exit 0")
+    evaluated = load(l_eval)
+    check([e.get("generation") for e in evaluated if e.get("test_skipped")] == [1]
+          and evaluated[9].get("test_per_question") == expected_test,
+          "raising k tests the next design in place and keeps the rest")
+    server.shutdown()
+
+    if DOMAIN == "drop":
+        print("\n=== M: batch rounds propose concurrently from one snapshot and book in order ===")
+        stub = Stub()
+        server = serve(stub)
+        url = f"http://127.0.0.1:{server.server_address[1]}/v1"
+        m_dir, m_id = os.path.join(workdir, "M"), "e2eM"
+        # Slow enough that sequential proposals would start seconds apart.
+        stub.worker_delay = 0.5
+        check(run_search(url, m_dir, m_id, target=5,
+                         extra=["--search_only", *shared_args, "--proposals_per_round", "3"]) == 0,
+              "batch search exit 0")
+        archive = load(os.path.join(m_dir, f"{m_id}_run_archive.json"))
+        generated = [e for e in archive if isinstance(e.get("generation"), int)]
+        check(len(archive) == 12 and [e["generation"] for e in generated] == [1, 2, 3, 4, 5],
+              f"7 seeds + 5 designs numbered in order (got {[e.get('generation') for e in generated]})")
+        check([e.get("round") for e in generated] == [1, 1, 2, 2, 2]
+              and all(e.get("proposals_per_round") == 3 for e in generated),
+              f"round 1 keeps 2 of 3 (one abandoned), round 2 fills the remaining 3 "
+              f"(got {[e.get('round') for e in generated]})")
+        check([len(e["archive_context"]) for e in generated] == [7, 7, 9, 9, 9],
+              "every proposal in a round saw the same archive snapshot")
+        check(all(e["valid_per_question"] == expected_valid for e in generated), "scores are ground truth")
+        check(all(e.get("meta_reasoning") == STUB_REASONING for e in generated), "meta reasoning captured per thread")
+        check(all((e.get("meta_usage") or {}).get("n_calls", 0) >= 3 for e in generated),
+              "each design carries its own designer usage")
+        ids = [e.get("design_id") for e in archive]
+        check(all(ids) and len(set(ids)) == len(ids), "design ids present and unique")
+        check(len(stub.chain_starts) >= 3 and stub.chain_starts[2] - stub.chain_starts[0] < 1.0,
+              "round 1's three proposals started together")
+        tags = [u for u in stub.meta_users]
+        check(all(tags) and len(set(tags)) == 6,
+              f"every designer call is tagged, one tag per proposal (got {len(set(tags))} tags)")
+        run_dir = os.path.join(m_dir, m_id)
+        budget = load(os.path.join(run_dir, "budget_summary.json"))
+        check(budget["successes"] == 5 and budget["attempts"] == 6
+              and budget["failure_histogram"] == {"python_syntax_error": 1}, f"budget (got {budget})")
+        abandoned = load(os.path.join(run_dir, f"{m_id}_abandoned_generations.json"))
+        check(len(abandoned) == 1 and "/r1/" in abandoned[0]["design_id"]
+              and abandoned[0]["debug_attempts"] == 3, "the abandoned proposal is kept")
+        usage = load(os.path.join(run_dir, f"{m_id}_token_usage.json"))
+        with open(os.path.join(run_dir, f"{m_id}_call_log.jsonl")) as handle:
+            call_generations = {json.loads(line).get("generation") for line in handle}
+        check(not any("round" in key for key in usage) and not any("round" in str(g) for g in call_generations),
+              "provisional labels are relabelled to generation numbers")
+        check({str(g) for g in range(1, 6)} <= {key.split("|")[1] for key in usage if key.startswith("search|")},
+              "usage recorded under every generation")
+        before = stub.meta_calls
+        check(run_search(url, m_dir, m_id, target=7,
+                         extra=["--search_only", *shared_args, "--proposals_per_round", "3"]) == 0,
+              "resumed batch search exit 0")
+        archive = load(os.path.join(m_dir, f"{m_id}_run_archive.json"))
+        added = [e for e in archive if isinstance(e.get("generation"), int)][5:]
+        check(len(archive) == 14 and [e.get("round") for e in added] == [3, 3]
+              and [e["generation"] for e in added] == [6, 7],
+              "a rerun resumes with the next round, shrunk to the remaining target")
+        check(stub.meta_calls - before == 6, "two proposals, three designer calls each")
+        server.shutdown()
 
     print(f"\n{'PASSED' if not check.failed else f'{check.failed} CHECK(S) FAILED'}  (artifacts in {workdir})")
     return 1 if check.failed else 0

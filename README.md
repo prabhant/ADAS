@@ -87,6 +87,84 @@ variables; both the meta-agent and generated agents therefore use the selected
 local model. To use an already-running OpenAI-compatible endpoint instead, set
 those variables manually and pass its model name through `--model`.
 
+### GitHub Copilot models (experimental)
+
+The same pipeline can run on models served through the
+[GitHub Copilot SDK](https://github.com/github/copilot-sdk), billed in GitHub AI
+Credits (1 credit = $0.01), on a local machine with no GPU. A gateway in front of
+the SDK serves the OpenAI chat API that the search already uses, so the search,
+sandbox and instrumentation are unchanged. The phases, gates, budget and protocol
+deviations (notably: temperature cannot be set) are in
+[experimental_plan_copilot.md](experimental_plan_copilot.md).
+
+Create an environment (Python 3.11 or newer):
+
+```bash
+uv venv .venv --python 3.12
+uv pip install --python .venv/bin/python -r requirements.txt -r requirements-copilot.txt
+source .venv/bin/activate
+```
+
+Authenticate with one of these; when several are present, the SDK uses the first
+in this order:
+
+* export a fine-grained personal access token with the Copilot Requests
+  permission as `COPILOT_GITHUB_TOKEN` (classic `ghp_` tokens are not supported)
+* sign in with the Copilot CLI (`copilot`, then `/login`)
+* sign in with the GitHub CLI (`gh auth login`)
+
+The gateway uses the SDK's `copilot-cli` client mode by default, the only mode
+that sees a stored login. Each session is deleted after use. With a token you
+can pass `--client_mode empty` to isolate the runtime in `~/.cache/adas-copilot`.
+
+Check what your account offers, run the overhead gate, then run cells:
+
+```bash
+python experiments/serving/copilot_probe.py inventory
+python experiments/serving/copilot_probe.py audit --model claude-haiku-5.5
+python experiments/local/run_cell.py --list
+python experiments/local/run_cell.py cp0_smoke
+```
+
+Models and prices live in `experiments/config/copilot_models.yaml`, cells and
+per-cell credit caps in `experiments/config/copilot_cells.yaml`, and results in
+`experiments/results_copilot/`. A rerun resumes a cell. When a cell reaches its
+cap, the gateway holds further requests and the runner stops the search with
+exit code 3; raise the cap and rerun to continue. Keep the Mac on AC power with
+the lid open: the runner holds `caffeinate -s`, which prevents idle sleep only on
+AC, and closing the lid still sleeps the machine. To stop a cell, press Ctrl+C (or
+send SIGINT or SIGTERM), which also stops its gateway and search; `--max_calls_per_minute N`
+overrides the cell's pace on the next run. Results are in
+[findings_copilot.md](findings_copilot.md).
+
+To run several cells at once, use the parallel driver. Cells wait for the cells in
+their `after:` list, and every gateway draws call starts from one account-wide pace
+(`pace_rates` in `copilot_cells.yaml`; the Copilot rate limit is per account, so the
+default is a single `all` budget; override it with `--run_cell_args --pace_rates all=450`),
+so parallel cells share the rate limit rather than exceed it. Rerunning skips finished
+cells and resumes the rest; Ctrl+C stops every running cell cleanly.
+
+```bash
+python experiments/local/run_parallel.py --group luna --dry_run
+python experiments/local/run_parallel.py --group luna
+```
+
+DROP cells can also propose several designs per round from one archive snapshot
+(`proposals_per_round` in the cell grid, `--proposals_per_round` for `_drop/search.py`);
+the default of 1 is the ADAS loop.
+
+> [!WARNING]
+> These runs spend real AI credits. Keep the caps in `copilot_cells.yaml` and run
+> the Phase 0 probes before any search.
+
+Offline tests, no credentials or credits needed:
+
+```bash
+python experiments/tests/copilot_gateway_test.py
+python experiments/tests/copilot_e2e.py
+python experiments/tests/search_e2e.py gpqa
+```
+
 ## Running Instructions
 
 ### Running Meta Agent Search

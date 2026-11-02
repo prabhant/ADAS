@@ -282,6 +282,9 @@ def _attach_fitness(args, solution, result, generation):
         "reasoning_tokens": worker_usage.get("reasoning_tokens", 0),
         "truncated_calls": worker_usage.get("n_truncated", 0),
         "tokens_per_question": total_tokens / n_questions,
+        # AI credits, non-zero only behind the Copilot gateway: cost in money, not tokens.
+        "credits": worker_usage.get("credits", 0.0),
+        "credits_per_question": worker_usage.get("credits", 0.0) / n_questions,
         "wallclock_s": result.get("wallclock_s"),
     }
 
@@ -623,9 +626,24 @@ def evaluate(args):
             archive = json.load(json_file)
         sol = archive[current_idx]
         cap = _test_timeout(args, sol)
+        selected = _selected_for_test(args, archive, current_idx)
         # Designs whose test run failed are retried in place; results are matched by position.
-        if current_idx < len(eval_archive) and not _should_retest(eval_archive[current_idx], cap):
+        if current_idx < len(eval_archive) and not _should_retest(eval_archive[current_idx], cap) \
+                and not (selected and eval_archive[current_idx].get('test_skipped')):
             current_idx += 1
+            continue
+        if not selected:
+            # Lean protocol: a placeholder keeps results aligned by position.
+            skipped = {k: v for k, v in sol.items() if not k.startswith('test_')}
+            skipped['test_skipped'] = True
+            if current_idx < len(eval_archive):
+                eval_archive[current_idx] = skipped
+            else:
+                eval_archive.append(skipped)
+            current_idx += 1
+            os.makedirs(os.path.dirname(eval_file_path), exist_ok=True)
+            with open(eval_file_path, 'w') as json_file:
+                json.dump(eval_archive, json_file, indent=4)
             continue
         if args.deadline_epoch and time.time() >= args.deadline_epoch:
             print(f"stopping test evaluation before design {current_idx}: within the walltime safety margin")
@@ -671,6 +689,21 @@ def evaluate(args):
     _write_evaluation_summary(args, eval_archive, len(archive), stopped_on_deadline)
 
 
+def _selected_for_test(args, archive, idx):
+    """Whether design ``idx`` gets a test run.
+
+    ``--test_top_k`` 0 tests every design (the ADAS protocol). Otherwise only the
+    seed agents and the k best generated designs by validation accuracy, earliest
+    generation first on ties, so selection never looks at test results.
+    """
+    top_k = getattr(args, "test_top_k", 0) or 0
+    if top_k <= 0 or archive[idx].get('generation') == 'initial':
+        return True
+    generated = [i for i, e in enumerate(archive) if e.get('generation') != 'initial']
+    ranked = sorted(generated, key=lambda i: (-archive[i].get('raw_median_accuracy', 0.0), i))
+    return idx in ranked[:top_k]
+
+
 def _test_timeout(args, sol):
     """Wall-clock cap for one design's test run.
 
@@ -705,7 +738,8 @@ def _write_evaluation_summary(args, eval_archive, n_designs, stopped_on_deadline
     """Read by maybe_resubmit: a test evaluation stopped by the deadline needs another job."""
     summary = {
         "designs": n_designs,
-        "tested": sum(1 for e in eval_archive if not e.get('test_error')),
+        "tested": sum(1 for e in eval_archive if not e.get('test_error') and not e.get('test_skipped')),
+        "skipped": sum(1 for e in eval_archive if e.get('test_skipped')),
         "test_errors": sum(1 for e in eval_archive if e.get('test_error')),
         "untested": n_designs - len(eval_archive),
         "stopped_on_deadline": stopped_on_deadline,
@@ -748,7 +782,9 @@ def run_evaluation(args, forward_str, timeout=None):
     if args.no_sandbox:
         result = _sandboxed_evaluate(**kwargs)
     else:
-        policy = SandboxPolicy.from_args(args, [args.worker_base_url, args.meta_base_url])
+        # Worker only: behind the Copilot gateway the meta port bills the designer
+        # model, and generated code has no business reaching it.
+        policy = SandboxPolicy.from_args(args, [args.worker_base_url])
         policy.timeout_s = limit
         try:
             result = run_sandboxed(_ENTRY_MODULE, "_sandboxed_evaluate", kwargs, policy)
@@ -942,6 +978,9 @@ def build_parser():
 
     parser.add_argument('--search_only', action='store_true', default=False)
     parser.add_argument('--evaluate_only', action='store_true', default=False)
+    parser.add_argument('--test_top_k', type=int, default=0,
+                        help="Test only the seed agents and the k best generated designs by "
+                             "validation accuracy; 0 tests every design (the ADAS protocol).")
     parser.add_argument('--seed_cache_dir', type=str, default=None,
                         help="Shared seed-fitness cache; default is per cell under --save_dir.")
     parser.add_argument('--require_seed_cache', action='store_true', default=False)

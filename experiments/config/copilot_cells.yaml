@@ -1,0 +1,338 @@
+# Cell grid for the GitHub Copilot SDK arm. Run cells with
+#     python experiments/local/run_cell.py <cell_id>
+# and list them (with progress and spend) with
+#     python experiments/local/run_cell.py --list
+#
+# Separate from cells.yaml so the SLURM resolver, its array indices and the
+# sanity checks never see these cells. Results go to experiments/results_copilot/
+# (override with ADAS_COPILOT_RESULTS_ROOT), never next to the vLLM campaign.
+#
+# Merge order for one cell: common < domains[<domain>] < stage_defaults[<stage>] < cell.
+# Model keys refer to experiments/config/copilot_models.yaml.
+#
+# Strings may use {worker}, {domain}, {effort_worker}, {transfer_workers[0]} ...
+# from `selection`. Those cells refuse to run until the Phase 1 screen has been
+# read and `selection` filled in by the pre-registered rule
+# (experimental_plan_copilot.md, Phase 1): CoT accuracy between 30% and 85%,
+# then the most seed agents at >= CoT + 5 points; ties go to claude-haiku-5.5.
+#
+# `max_credits` is the AI-credit cap per cell (1 credit = $0.01). It survives
+# restarts: the gateway reads the cell's ledger back. `global_max_credits` caps
+# the sum of every ledger under the results root.
+
+global_max_credits: 21000   # 50,000 budget; raised from 8,724 spent for the Luna replication (cap 12,000)
+
+selection:
+  # Filled 2026-10-29 by experiments/local/screen_report.py, mechanically: only the three
+  # DROP pairs had CoT in 30-85%; all had 0/6 seeds at >= CoT + 5; the tie went to
+  # claude-haiku-5.5. No pair on any domain had a seed at CoT + 5 or more.
+  worker: claude-haiku-5.5
+  domain: drop
+  transfer_workers: [gpt-6-luna, gpt-5.6-luna]
+  # Phase 0: effort changes output tokens for all three workers (Haiku 145 -> 351 from
+  # low to high); the Phase 2 worker keeps the effort contrast within one model.
+  effort_worker: claude-haiku-5.5
+
+common:
+  shuffle_seed: 0
+  # Phase 0 throughput (claude-haiku-5.5, 2026-10-29): 64 in flight -> ~490 calls/min,
+  # p50 5.8 s, no 429s; 128 -> ~530 calls/min with 10% rate-limited. Run cells one at
+  # a time: the rate limit is per account.
+  max_workers: 64
+  max_concurrency: 64        # gateway in-flight calls per port; keep >= max_workers
+  # Phase 1 saw short account rate limits ("reset in under a minute", tens per cell at
+  # ~500 calls/min); pacing call starts keeps them rare. (Its long ~15 min stalls were
+  # the Mac sleeping, not throttling: run_cell.py now holds caffeinate -s, on AC.)
+  max_calls_per_minute: 200
+  # Account-wide pace shared by every running cell: each gateway draws call starts from
+  # one slot file per pace group under <results_root>/_pace, so cells run side by side
+  # without exceeding the account rate limit. Groups are a model id, a provider family,
+  # or `all`. The Copilot limit is per account (2026-10-30: GPT-6 Luna alone sustained
+  # ~560 calls/min with no 429s, and ~1,050/min for 30 s; GPT-6 Luna and Claude Haiku
+  # 5.5 together at ~1,000/min drew 25% 429s each), so one `all` budget it is.
+  # max_calls_per_minute above still caps each cell on top; the Luna replication
+  # stages set it to 0 and rely on this alone.
+  pace_rates: {all: 550}
+  meta_temperature: 0.8      # sent and logged, but inert: the SDK has no temperature
+  worker_temperature: 0.5
+  informed_meta: true
+  request_timeout: 900       # designer calls, and the client-side limit in search.py
+  # Long worker calls in Phase 1 waited out system sleep and then succeeded; cutting
+  # them early would only add retries and double billing.
+  worker_request_timeout: 900
+  # Closing the laptop lid sleeps the Mac whatever caffeinate holds (Phase 2: twice,
+  # 15-20 min). The gateway keeps retrying through an outage for up to 50 min instead
+  # of failing calls, and search.py waits up to 60 min per call so it never resends.
+  max_retry_wait: 3000
+  client_request_timeout: 3600
+  max_credits: 500
+
+# ADAS's per-domain protocol. Seed-screen cells use these sizes so the shared seed
+# cache they write is exactly the one the designer cells require.
+domains:
+  mgsm: {valid_size: 128, test_size: 800, n_repreat: 1}
+  mmlu: {valid_size: 128, test_size: 800, n_repreat: 1}
+  drop: {valid_size: 128, test_size: 800, n_repreat: 1}
+  gpqa: {valid_size: 32, test_size: 166, n_repreat: 5}
+
+stage_defaults:
+  cp0_smoke:
+    domain: mgsm
+    n_generation: 2
+    valid_size: 8
+    test_size: 8
+    n_repreat: 1
+    max_attempts: 6
+    debug_max: 3
+    allow_missing_baseline: true
+    max_credits: 50
+  # Phase 1: where does a hosted worker leave a scaffold room to help?
+  cp1_bare: {n_generation: 0, test_size: 0, n_repreat: 3, max_credits: 150}
+  cp1_cot: {n_generation: 0, test_size: 0, n_repreat: 3, max_credits: 150}
+  cp1_seeds: {n_generation: 0, max_credits: 600}
+  # The number the informed designer is told (validation split, 5 passes).
+  cp1_baseline: {n_generation: 0, test_size: 0, n_repreat: 5, max_credits: 300}
+  # Phase 2: the ADAS panel protocol, with the lean test the Phase 0 gate prescribes
+  # (sustained ~200 calls/min, below the ~1,000/min bar for full testing): validation
+  # as in the panels, test = seeds + the 5 best designs by validation on 300 questions.
+  # Every later cell uses the same 300 test questions so results stay comparable.
+  cp2_panel:
+    n_generation: 30
+    max_attempts: 90
+    debug_max: 3
+    require_seed_cache: true
+    test_top_k: 5
+    test_size: 300
+    max_calls_per_minute: 175   # two replicates run side by side: 350/min together
+    max_credits: 7000
+  # Phase 3.
+  cp3_random:
+    n_generation: 40
+    max_attempts: 120
+    debug_max: 3
+    require_seed_cache: true
+    test_top_k: 5
+    test_size: 300
+    max_calls_per_minute: 175
+    max_credits: 2500
+  cp3_plain: {n_generation: 0, test_size: 300, max_credits: 2000}
+  cp3_effort:
+    n_generation: 20
+    max_attempts: 60
+    debug_max: 3
+    test_top_k: 5
+    test_size: 300
+    max_calls_per_minute: 175
+    max_credits: 3000
+  cp3_effort_baseline: {n_generation: 0, test_size: 0, n_repreat: 5, max_credits: 300}
+  cp3_transfer: {n_generation: 0, test_size: 300, max_credits: 1500}
+  # Replication with GPT-6 Luna as worker (experimental_plan_copilot.md, "Replication with
+  # GPT-6 Luna"): 15 generations, the same lean test on the same 300 questions, paced only
+  # by the shared account pace, so these cells run side by side (run_parallel.py --group luna).
+  cpl_smoke:
+    domain: drop
+    n_generation: 2
+    valid_size: 8
+    test_size: 8
+    n_repreat: 1
+    max_attempts: 6
+    debug_max: 3
+    allow_missing_baseline: true
+    max_calls_per_minute: 0
+    max_credits: 50
+  # Every cpl cell shares the account pace with up to a dozen others, so evaluations run
+  # several times longer than alone: 4 h per evaluation instead of search.py's 1 h, so a
+  # costly design or LLM Debate on 300 test questions is not cut off by contention.
+  cpl_baseline: {n_generation: 0, test_size: 0, n_repreat: 5, max_calls_per_minute: 0, max_credits: 300,
+                 sandbox_timeout: 14400}
+  cpl_rep15: &cpl_search
+    n_generation: 15
+    max_attempts: 45
+    debug_max: 3
+    require_seed_cache: true
+    test_top_k: 5
+    test_size: 300
+    max_calls_per_minute: 0
+    max_credits: 1500
+    sandbox_timeout: 14400
+  # K designs per round from one archive snapshot, evaluated concurrently (_drop/search.py
+  # --proposals_per_round); 5 rounds of 3 make the same 15 designs.
+  cpl_batch3:
+    <<: *cpl_search
+    proposals_per_round: 3
+    max_concurrency: 192
+  cpl_random: {<<: *cpl_search, n_generation: 40, max_attempts: 120}
+  # Effort cells evaluate their own seeds at that effort (no shared cache exists for it).
+  cpl_effort: {<<: *cpl_search, require_seed_cache: false}
+  cpl_test: {n_generation: 0, test_size: 300, max_calls_per_minute: 0, max_credits: 1000,
+             sandbox_timeout: 14400}
+
+# Each list-valued field expands into one cell per combination.
+matrices:
+  - {id: "cp1_bare_{domain}_{worker}", stage: cp1_bare, condition: bare_model, meta: null,
+     worker: [claude-haiku-5.5, gpt-6-luna, gpt-5.6-luna], domain: [mgsm, mmlu, drop, gpqa]}
+  - {id: "cp1_cot_{domain}_{worker}", stage: cp1_cot, condition: solo_cot, meta: null,
+     worker: [claude-haiku-5.5, gpt-6-luna, gpt-5.6-luna], domain: [mgsm, mmlu, drop, gpqa]}
+  - {id: "cp1_seeds_{domain}_{worker}", stage: cp1_seeds, condition: seed_eval, meta: null,
+     worker: [claude-haiku-5.5, gpt-6-luna, gpt-5.6-luna], domain: [mgsm, mmlu, drop, gpqa]}
+  # Luna replication, Phase L2: two designers x two search modes x two replicates, all
+  # with GPT-6 Luna as worker on DROP. `after` is a string here (lists are matrix axes).
+  - {id: "cpl_seq_{meta}_drop_gpt-6-luna_{seed}", stage: cpl_rep15, group: luna,
+     meta: [gpt-6-luna, claude-haiku-5.5], worker: gpt-6-luna, domain: drop, seed: [a, b],
+     after: cp1_baseline_cot_drop_gpt-6-luna}
+  - {id: "cpl_batch3_{meta}_drop_gpt-6-luna_{seed}", stage: cpl_batch3, group: luna,
+     meta: [gpt-6-luna, claude-haiku-5.5], worker: gpt-6-luna, domain: drop, seed: [a, b],
+     after: cp1_baseline_cot_drop_gpt-6-luna}
+
+cells:
+  # Phase 0: two generations end to end, Claude Haiku 5.5 as designer and worker.
+  - {id: cp0_smoke, stage: cp0_smoke, meta: claude-haiku-5.5, worker: claude-haiku-5.5}
+
+  # Phase 1b: production baseline for the selected pair.
+  - {id: "cp1_baseline_cot_{domain}_{worker}", stage: cp1_baseline, condition: solo_cot,
+     meta: null, worker: "{worker}", domain: "{domain}"}
+
+  # Phase 2: two replicates; their spread is the noise floor for every later designer.
+  - {id: "cp2_claude-haiku-5.5_{domain}_{worker}_a", stage: cp2_panel,
+     meta: claude-haiku-5.5, worker: "{worker}", domain: "{domain}", seed: a}
+  - {id: "cp2_claude-haiku-5.5_{domain}_{worker}_b", stage: cp2_panel,
+     meta: claude-haiku-5.5, worker: "{worker}", domain: "{domain}", seed: b}
+
+  # Phase 3.1: the design-space baseline. No designer.
+  - {id: "cp3_random_{domain}_{worker}", stage: cp3_random, condition: random_recombination,
+     meta: null, worker: "{worker}", domain: "{domain}"}
+
+  # Phase 3.2b: the format control. Both Phase 2 replicates converged on answers in the
+  # DROP F1 metric's own form (bare digits, verbatim spans, nothing else). This is the
+  # stock CoT seed with only that answer instruction added, on the same 300 test
+  # questions, to separate a format gain from a reasoning gain.
+  - id: "cp3_formatcot_{domain}_{worker}"
+    stage: cp3_plain
+    condition: test_archive
+    meta: null
+    worker: "{worker}"
+    domain: "{domain}"
+    test_agents: &cot_and_format_control
+      seeds: [Chain-of-Thought]
+      agents:
+        - name: Chain-of-Thought, minimal answer format
+          thought: The CoT seed with one change, the answer format both Phase 2 searches converged on.
+          code: |
+            def forward(self, taskInfo):
+                cot_instruction = ("Please think step by step and then solve the task. Give the final answer "
+                                   "in the minimal form the question expects: numbers as bare digits with no "
+                                   "commas or units, spans copied verbatim from the passage, nothing else.")
+                cot_agent = LLMAgentBase(['thinking', 'answer'], 'Chain-of-Thought Agent')
+                thinking, answer = cot_agent([taskInfo], cot_instruction)
+                return answer
+
+  # Phase 3.2: frontier models used plainly, on the Phase 2 test questions (Q1/Q2), with
+  # the stock CoT and the format-controlled CoT, since both pay or avoid the same penalty.
+  # Claude Sonnet and Opus share the Anthropic rate limit with the Haiku worker: paced low.
+  - {id: "cp3_plain_{domain}_gpt-6.1-sol", stage: cp3_plain, condition: test_archive,
+     meta: null, worker: gpt-6.1-sol, domain: "{domain}", test_agents: *cot_and_format_control}
+  - {id: "cp3_plain_{domain}_claude-sonnet-5.5", stage: cp3_plain, condition: test_archive,
+     meta: null, worker: claude-sonnet-5.5, domain: "{domain}", test_agents: *cot_and_format_control,
+     max_calls_per_minute: 30, max_workers: 8}
+  # Disabled: through Copilot, Claude Opus 5.5 answers "400 The requested model is not
+  # supported" whenever the ADAS worker system prompt (its JSON-format block) is present;
+  # minimal and long plain prompts work (2026-10-29). Changing the prompt would break
+  # comparability, so Opus is left out of the crossover.
+  - {id: "cp3_plain_{domain}_claude-opus-5.5", stage: cp3_plain, condition: test_archive,
+     meta: null, worker: claude-opus-5.5, domain: "{domain}", test_agents: *cot_and_format_control,
+     max_calls_per_minute: 30, max_workers: 8, enabled: false}
+
+  # Phase 3.3: reasoning effort with the worker fixed (Q4). Enable only after the
+  # Phase 0 capability matrix shows effort changes reasoning tokens for effort_worker.
+  - {id: "cp3_effort_baseline_{domain}_{effort_worker}_low", stage: cp3_effort_baseline,
+     condition: solo_cot, meta: null, worker: "{effort_worker}", domain: "{domain}",
+     worker_reasoning_effort: low}
+  - {id: "cp3_effort_baseline_{domain}_{effort_worker}_high", stage: cp3_effort_baseline,
+     condition: solo_cot, meta: null, worker: "{effort_worker}", domain: "{domain}",
+     worker_reasoning_effort: high}
+  - {id: "cp3_effort_{domain}_{effort_worker}_low", stage: cp3_effort, meta: claude-haiku-5.5,
+     worker: "{effort_worker}", domain: "{domain}", worker_reasoning_effort: low}
+  - {id: "cp3_effort_{domain}_{effort_worker}_high", stage: cp3_effort, meta: claude-haiku-5.5,
+     worker: "{effort_worker}", domain: "{domain}", worker_reasoning_effort: high}
+
+  # Phase 3.3b: effort with no search (Q4 without the format confound): CoT, the format
+  # control and replicate a's selected design, re-evaluated at low and at high effort
+  # on the same 300 test questions. Reasoning tokens against extra calls, model fixed.
+  - {id: "cp3_effortcontrast_{domain}_{effort_worker}_low", stage: cp3_plain, condition: test_archive,
+     meta: null, worker: "{effort_worker}", domain: "{domain}", worker_reasoning_effort: low,
+     test_agents: {<<: *cot_and_format_control, best_of: "cp2_claude-haiku-5.5_{domain}_{worker}_a"}}
+  - {id: "cp3_effortcontrast_{domain}_{effort_worker}_high", stage: cp3_plain, condition: test_archive,
+     meta: null, worker: "{effort_worker}", domain: "{domain}", worker_reasoning_effort: high,
+     test_agents: {<<: *cot_and_format_control, best_of: "cp2_claude-haiku-5.5_{domain}_{worker}_a"}}
+
+  # Phase 3.4: transfer (Q5). The best-on-validation design of replicate a, beside the
+  # hand-designed references and the format control, evaluated under the other workers.
+  - {id: "cp3_transfer_{domain}_{transfer_workers[0]}", stage: cp3_transfer, condition: test_archive,
+     meta: null, worker: "{transfer_workers[0]}", domain: "{domain}",
+     test_agents: {<<: *cot_and_format_control, best_of: "cp2_claude-haiku-5.5_{domain}_{worker}_a",
+                   seeds: [Chain-of-Thought, Self-Consistency with Chain-of-Thought, LLM Debate]}}
+  - {id: "cp3_transfer_{domain}_{transfer_workers[1]}", stage: cp3_transfer, condition: test_archive,
+     meta: null, worker: "{transfer_workers[1]}", domain: "{domain}",
+     test_agents: {<<: *cot_and_format_control, best_of: "cp2_claude-haiku-5.5_{domain}_{worker}_a",
+                   seeds: [Chain-of-Thought, Self-Consistency with Chain-of-Thought, LLM Debate]}}
+
+  # ---------------------------------------------------------------------------------
+  # Replication with GPT-6 Luna as worker (group: luna). Literal ids: `selection` stays
+  # the Haiku study's. Run with  python experiments/local/run_parallel.py --group luna
+  # after the gate cells (L0). The L2 designer searches are the matrices above.
+  # ---------------------------------------------------------------------------------
+
+  # L0 gate: GPT-6 Luna as designer (never used as one before), and the batch path end to
+  # end through the real gateway. Run these two by hand before the group.
+  - {id: cpl_smoke_seq_gpt-6-luna, stage: cpl_smoke, group: luna_gate,
+     meta: gpt-6-luna, worker: gpt-6-luna}
+  - {id: cpl_smoke_batch3_claude-haiku-5.5, stage: cpl_smoke, group: luna_gate,
+     meta: claude-haiku-5.5, worker: gpt-6-luna, n_generation: 3, proposals_per_round: 3}
+
+  # L1: the informed designers' number (validation CoT, 5 passes), at default, low and
+  # high worker effort; ids are the ones find_cot_baseline looks for.
+  - {id: cp1_baseline_cot_drop_gpt-6-luna, stage: cpl_baseline, group: luna,
+     condition: solo_cot, meta: null, worker: gpt-6-luna, domain: drop}
+  - {id: cp3_effort_baseline_drop_gpt-6-luna_low, stage: cpl_baseline, group: luna,
+     condition: solo_cot, meta: null, worker: gpt-6-luna, domain: drop, worker_reasoning_effort: low}
+  - {id: cp3_effort_baseline_drop_gpt-6-luna_high, stage: cpl_baseline, group: luna,
+     condition: solo_cot, meta: null, worker: gpt-6-luna, domain: drop, worker_reasoning_effort: high}
+  # L1: CoT and the format control on the 300 test questions, twice: with
+  # cp3_transfer_drop_gpt-6-luna (Phase 3.4) that is three runs, the re-run noise floor.
+  - {id: cpl_formatcot_drop_gpt-6-luna, stage: cpl_test, group: luna, condition: test_archive,
+     meta: null, worker: gpt-6-luna, domain: drop, test_agents: *cot_and_format_control}
+  - {id: cpl_formatcot_drop_gpt-6-luna_rerun, stage: cpl_test, group: luna, condition: test_archive,
+     meta: null, worker: gpt-6-luna, domain: drop, test_agents: *cot_and_format_control}
+
+  # L3: random recombination (no designer), 40 generations as in the Haiku study.
+  - {id: cpl_random_drop_gpt-6-luna, stage: cpl_random, group: luna,
+     condition: random_recombination, meta: null, worker: gpt-6-luna, domain: drop}
+  # L3: Luna designing for itself with the worker at low and at high effort.
+  - {id: cpl_effort_gpt-6-luna_drop_gpt-6-luna_low, stage: cpl_effort, group: luna,
+     meta: gpt-6-luna, worker: gpt-6-luna, domain: drop, worker_reasoning_effort: low,
+     after: [cp3_effort_baseline_drop_gpt-6-luna_low]}
+  - {id: cpl_effort_gpt-6-luna_drop_gpt-6-luna_high, stage: cpl_effort, group: luna,
+     meta: gpt-6-luna, worker: gpt-6-luna, domain: drop, worker_reasoning_effort: high,
+     after: [cp3_effort_baseline_drop_gpt-6-luna_high]}
+  # L3: CoT, the format control and self-design replicate a's selected design, re-run at
+  # low and at high worker effort (no search).
+  - {id: cpl_effortcontrast_drop_gpt-6-luna_low, stage: cpl_test, group: luna,
+     condition: test_archive, meta: null, worker: gpt-6-luna, domain: drop, worker_reasoning_effort: low,
+     test_agents: {<<: *cot_and_format_control, best_of: cpl_seq_gpt-6-luna_drop_gpt-6-luna_a},
+     after: [cpl_seq_gpt-6-luna_drop_gpt-6-luna_a]}
+  - {id: cpl_effortcontrast_drop_gpt-6-luna_high, stage: cpl_test, group: luna,
+     condition: test_archive, meta: null, worker: gpt-6-luna, domain: drop, worker_reasoning_effort: high,
+     test_agents: {<<: *cot_and_format_control, best_of: cpl_seq_gpt-6-luna_drop_gpt-6-luna_a},
+     after: [cpl_seq_gpt-6-luna_drop_gpt-6-luna_a]}
+  # L3: transfer (Q5). Self-design replicate a's selected design, beside the hand-designed
+  # references and the format control, under the two other screened workers.
+  - {id: cpl_transfer_drop_claude-haiku-5.5_from_gpt-6-luna, stage: cpl_test, group: luna,
+     condition: test_archive, meta: null, worker: claude-haiku-5.5, domain: drop,
+     test_agents: {<<: *cot_and_format_control, best_of: cpl_seq_gpt-6-luna_drop_gpt-6-luna_a,
+                   seeds: [Chain-of-Thought, Self-Consistency with Chain-of-Thought, LLM Debate]},
+     after: [cpl_seq_gpt-6-luna_drop_gpt-6-luna_a]}
+  - {id: cpl_transfer_drop_gpt-5.6-luna_from_gpt-6-luna, stage: cpl_test, group: luna,
+     condition: test_archive, meta: null, worker: gpt-5.6-luna, domain: drop,
+     test_agents: {<<: *cot_and_format_control, best_of: cpl_seq_gpt-6-luna_drop_gpt-6-luna_a,
+                   seeds: [Chain-of-Thought, Self-Consistency with Chain-of-Thought, LLM Debate]},
+     after: [cpl_seq_gpt-6-luna_drop_gpt-6-luna_a]}

@@ -1,4 +1,5 @@
 import random
+import re
 import string
 from collections import namedtuple
 from typing import List
@@ -7,6 +8,49 @@ import numpy as np
 import pandas as pd
 
 Example = namedtuple('Example', ['question', 'choice1', 'choice2', 'choice3', 'choice4', 'correct_index'])
+
+
+# Uppercase letters only, so an article ("a") or a word ("Apple") is never read as a choice.
+_BARE_CHOICE = re.compile(r"^[\s\"'*`(\[]*([A-D])[\s\"'*`)\].:]*$")
+_LEADING_CHOICE = re.compile(r"^[\s\"'*`]*[(\[]?([A-D])[)\].:,]")
+# "A, B or D" names several options, so it is not one choice.
+_SEVERAL_CHOICES = re.compile(r"^[\s\"'*`(\[]*[A-D][)\].:]?\s*(?:,|/|\bor\b|\band\b)\s*[(\[]?[A-D](?![A-Za-z])")
+_STATED_CHOICE = re.compile(r"(?i:\b(?:answer|option|choice)\b)\s*(?:is|:|=)?\s*"
+                            r"(?i:(?:option|choice)\s+)?[(\[]?([A-D])(?![A-Za-z])")
+
+
+def _normalise(text):
+    return re.sub(r"\W+", " ", str(text)).strip().lower()
+
+
+def extract_choice(text, options=None):
+    """Index 0-3 of the chosen option, or None when no single choice can be read.
+
+    Stock ADAS accepts only a bare letter or "X)", which scores answers such as
+    "D. Mass and acceleration", "(D)" or "The answer is D" as wrong.
+    """
+    text = str(text).strip()
+    if _SEVERAL_CHOICES.search(text):
+        return None
+    for pattern in (_BARE_CHOICE, _LEADING_CHOICE, _STATED_CHOICE):
+        match = pattern.search(text)
+        if match:
+            return "ABCD".index(match.group(1))
+    if options:
+        hits = [i for i, option in enumerate(options)
+                if _normalise(option) and _normalise(option) == _normalise(text)]
+        if len(hits) == 1:
+            return hits[0]
+    for index, letter in enumerate("ABCD"):  # the stock ADAS rule, last
+        if f"{letter})" in text:
+            return index
+    return None
+
+def format_gpqa_question(example):
+    """The task text stock ADAS GPQA shows the agent."""
+    return (f"What is the correct answer to this question: {example.question}"
+            f"\n\nChoices:\n(A) {example.choice1}\n(B) {example.choice2}"
+            f"\n(C) {example.choice3}\n(D) {example.choice4}")
 
 
 def random_id(length=4):

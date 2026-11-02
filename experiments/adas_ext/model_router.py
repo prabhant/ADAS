@@ -20,7 +20,9 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 import time
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -29,6 +31,25 @@ import openai
 from .instrumentation import get_instrumentation
 
 DUMMY_API_KEY = "local-vllm"
+
+# Per-thread conversation tag, sent as the OpenAI ``user`` field. The Copilot gateway
+# keys designer sessions on it, so concurrent proposals whose prompts are identical
+# (one batch round) keep their Reflexion and debug turns apart.
+_CALL_TAG = threading.local()
+
+
+@contextmanager
+def conversation_tag(tag: Optional[str]):
+    previous = getattr(_CALL_TAG, "value", None)
+    _CALL_TAG.value = tag
+    try:
+        yield
+    finally:
+        _CALL_TAG.value = previous
+
+
+def current_conversation_tag() -> Optional[str]:
+    return getattr(_CALL_TAG, "value", None)
 
 # Response schema for every meta-agent turn. vLLM honours this through guided
 # decoding when the backend supports it; the json_object response_format is kept
@@ -83,9 +104,10 @@ class RoleClient:
     max_retries: int = 4
     retry_backoff: float = 2.0
     client: openai.OpenAI = field(init=False, repr=False)
-    # Reasoning content from the most recent call. Token counts alone cannot
+    # Reasoning content from the most recent call, per thread (batch rounds run
+    # proposals concurrently on one client). Token counts alone cannot
     # distinguish a designer that deliberated from one that emitted filler.
-    last_reasoning: Optional[str] = field(init=False, default=None, repr=False)
+    _thread_state: threading.local = field(init=False, repr=False, default_factory=threading.local)
 
     def __post_init__(self) -> None:
         self.client = openai.OpenAI(
@@ -94,6 +116,14 @@ class RoleClient:
             timeout=self.timeout,
             max_retries=0,  # retries are handled here so failures stay classifiable
         )
+
+    @property
+    def last_reasoning(self) -> Optional[str]:
+        return getattr(self._thread_state, "last_reasoning", None)
+
+    @last_reasoning.setter
+    def last_reasoning(self, value: Optional[str]) -> None:
+        self._thread_state.last_reasoning = value
 
     # -- request construction -------------------------------------------------
 
@@ -127,6 +157,9 @@ class RoleClient:
             extra_body["reasoning_effort"] = self.reasoning_effort
         if extra_body:
             kwargs["extra_body"] = extra_body
+        tag = current_conversation_tag()
+        if tag:
+            kwargs["user"] = tag
         return kwargs
 
     # -- instrumentation ------------------------------------------------------
@@ -142,6 +175,9 @@ class RoleClient:
         finish_reason = None
         if response.choices:
             finish_reason = response.choices[0].finish_reason
+        # Set by the Copilot gateway (experiments/serving/copilot_gateway.py).
+        copilot = getattr(response, "x_copilot", None) or {}
+        credits = copilot.get("credits") if isinstance(copilot, dict) else None
         get_instrumentation().add_usage(
             role=self.role,
             model=self.model,
@@ -150,6 +186,7 @@ class RoleClient:
             reasoning_tokens=reasoning_tokens,
             latency_s=latency,
             truncated=finish_reason == "length",
+            credits=float(credits or 0.0),
         )
 
     # -- public API -----------------------------------------------------------
@@ -215,6 +252,10 @@ class RoleClient:
             parsed = json.loads(content)
             if parsed is None:
                 raise ValueError("Model returned JSON null")
+            if not isinstance(parsed, dict):
+                # A bare number or string, possible without a provider JSON mode: a
+                # format failure for the caller to score, not a crash in its handler.
+                raise ValueError(f"Model returned a JSON {type(parsed).__name__}, not an object")
             return parsed
 
         raise last_error if last_error is not None else RuntimeError("chat_json exhausted retries")

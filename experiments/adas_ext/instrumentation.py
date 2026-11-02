@@ -20,6 +20,7 @@ import threading
 import time
 import uuid
 from collections import defaultdict
+from contextlib import contextmanager
 from typing import Any, Dict, List, Optional
 
 # The seven categories from the operational definitions. Q6 is answered from the
@@ -81,9 +82,11 @@ class Instrumentation:
         self._lock = threading.Lock()
         self.run_id = run_id
         self.output_dir = output_dir
-        self.generation: Any = "initial"
-        self.attempt: int = 0
-        self.phase: str = "search"
+        # Context is shared by default (the evaluation thread pool reads what the main
+        # thread set). A thread inside thread_context() sees its own instead, so
+        # concurrent proposals in a batch round each bill their own generation.
+        self._shared_context: Dict[str, Any] = {"generation": "initial", "attempt": 0, "phase": "search"}
+        self._local = threading.local()
 
         self.usage: Dict[str, Dict[str, float]] = defaultdict(
             lambda: {
@@ -93,6 +96,7 @@ class Instrumentation:
                 "n_calls": 0,
                 "n_truncated": 0,
                 "latency_s": 0.0,
+                "credits": 0.0,
             }
         )
         self.call_log: List[dict] = []
@@ -101,15 +105,66 @@ class Instrumentation:
 
     # -- context --------------------------------------------------------------
 
+    def _context(self) -> Dict[str, Any]:
+        override = getattr(self._local, "context", None)
+        return override if override is not None else self._shared_context
+
+    @property
+    def generation(self) -> Any:
+        return self._context()["generation"]
+
+    @property
+    def attempt(self) -> int:
+        return self._context()["attempt"]
+
+    @property
+    def phase(self) -> str:
+        return self._context()["phase"]
+
     def set_context(self, generation: Any = None, attempt: Optional[int] = None,
                     phase: Optional[str] = None) -> None:
         with self._lock:
+            context = self._context()
             if generation is not None:
-                self.generation = generation
+                context["generation"] = generation
             if attempt is not None:
-                self.attempt = attempt
+                context["attempt"] = attempt
             if phase is not None:
-                self.phase = phase
+                context["phase"] = phase
+
+    @contextmanager
+    def thread_context(self, generation: Any, attempt: int, phase: Optional[str] = None):
+        """Give the calling thread its own generation, attempt and phase."""
+        previous = getattr(self._local, "context", None)
+        self._local.context = {"generation": generation, "attempt": attempt,
+                               "phase": phase if phase is not None else self._shared_context["phase"]}
+        try:
+            yield
+        finally:
+            self._local.context = previous
+
+    def relabel_generation(self, old: Any, new: Any) -> None:
+        """Move everything recorded under generation ``old`` to ``new``.
+
+        Batch rounds bill each proposal to a provisional label, because which
+        generation number a proposal fills is known only once the round's results
+        are appended in order.
+        """
+        old_s = str(old)
+        with self._lock:
+            for key in [k for k in self.usage if k.split("|", 2)[1] == old_s]:
+                phase, _, role = key.split("|", 2)
+                source = self.usage.pop(key)
+                target = self.usage[f"{phase}|{new}|{role}"]
+                for field, value in source.items():
+                    if field == "model":
+                        target["model"] = value
+                    else:
+                        target[field] = target.get(field, 0) + value
+            for records in (self.call_log, self.failures):
+                for record in records:
+                    if str(record.get("generation")) == old_s:
+                        record["generation"] = new
 
     def _key(self, role: str) -> str:
         return f"{self.phase}|{self.generation}|{role}"
@@ -118,7 +173,7 @@ class Instrumentation:
 
     def add_usage(self, role: str, model: str, prompt_tokens: int, completion_tokens: int,
                   reasoning_tokens: int = 0, latency_s: float = 0.0,
-                  truncated: bool = False) -> None:
+                  truncated: bool = False, credits: float = 0.0) -> None:
         with self._lock:
             bucket = self.usage[self._key(role)]
             bucket["prompt_tokens"] += prompt_tokens
@@ -127,6 +182,8 @@ class Instrumentation:
             bucket["n_calls"] += 1
             bucket["n_truncated"] += int(truncated)
             bucket["latency_s"] += latency_s
+            # GitHub AI Credits charged for the call; 0 for self-served vLLM models.
+            bucket["credits"] = bucket.get("credits", 0.0) + credits
             bucket["model"] = model
 
     def log_call(self, agent_name: str, agent_id: str, role: str, output_fields: List[str],

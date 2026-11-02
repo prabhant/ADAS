@@ -623,3 +623,36 @@ Inspect with: bash experiments/slurm/status.sh
 - 02:28: batch10 gate e2e 28200441 PASSED at 07de224 (mgsm + drop, 136 checks,
   0 failures). mgsm_tests 28200442 [2,3,5,6] is now eligible (queued, no start
   estimate yet).
+- 2026-10-28: Copilot SDK arm added (local machine, not Snellius). Plan:
+  experimental_plan_copilot.md. Gateway experiments/serving/copilot_gateway.py,
+  runner experiments/local/run_cell.py, probes experiments/serving/copilot_probe.py,
+  grid experiments/config/copilot_cells.yaml. Shared changes: resources carry
+  credits/credits_per_question; --test_top_k lean protocol; the sandbox may reach
+  only the worker endpoint; GPQA ported to the instrumented pipeline. Offline
+  tests passed (search_e2e mgsm/drop/gpqa, copilot_gateway_test, copilot_e2e).
+  NEXT: Copilot login, then Phase 0 (inventory, audit gate, capabilities,
+  throughput, cp0_smoke). No credits spent yet.
+- 2026-10-29: Copilot arm Phases 0 and 1 done (local Mac; details and tables in
+  findings_copilot.md). Login works only in the SDK's copilot-cli client mode (now the
+  default). Audit gate passed (claude-haiku-5.5, gpt-6-luna, gpt-5.6-luna: one call per
+  request, <= 54 billed tokens for a minimal prompt, reported cost == price table).
+  gpt-5.4-nano not offered -> gpt-5.6-luna. Fixes: Haiku answer parsing (Python-dict
+  and unescaped-apostrophe replies; Haiku cells rerun, first run kept as
+  _superseded_v1_*), bare JSON number crash (RoleClient), DROP run_baseline KeyError,
+  call pacing 200/min, caffeinate -s (the Mac idle-slept under -i).
+  Screen: 0/6 seeds at CoT+5 on all 12 worker x domain pairs; mean seed-CoT -0.1.
+  Pick (pre-registered): DROP + claude-haiku-5.5; cp1_baseline_cot 74.7% F1.
+  Spend 2,289 credits. NEXT: decide Phase 2 protocol (gate says lean) and scope.
+- 2026-10-29 (later): Copilot arm Phases 2 and 3 done, Phase 4 layers run
+  (findings_copilot.md). Lean protocol (test_top_k 5, 300 test questions).
+  cp2 a/b: selected designs 95.1/93.4% test, +14.7/+12.8 vs SC; format-CoT (CoT plus a
+  minimal-answer instruction, one call) 94.8%, so the gain is answer format. cp3_random:
+  0/40 designs above the best seed, selected -1.8 vs SC. cp3_plain: GPT-6.1 Sol and Sonnet
+  5.5 add +1.6/-0.8 over Haiku format-CoT at 8x/23x cost; Opus 5.5 rejects the ADAS
+  worker prompt (cell disabled). cp3_effortcontrast: high-low within +/-0.5 for CoT,
+  format-CoT, design a. cp3_effort searches: low 90.8% (-3.6 vs format-CoT), high 94.8%
+  (0.0). cp3_transfer: design a is -10/-7 vs format-CoT on gpt-6-luna/gpt-5.6-luna.
+  Fixes and ops: rate_limit_backoff (Sonnet rate-limited calls are billed: 339 credits),
+  max_retry_wait 3000 s (lid-close outages, no failed calls), run_cell
+  --max_calls_per_minute; stop a cell with SIGINT, not SIGTERM. Spend 8,724 credits total.
+  Nothing committed. NEXT (optional): more designers from the reserve, the hybrid arm.

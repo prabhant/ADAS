@@ -47,6 +47,10 @@ class BudgetController:
     def should_continue(self) -> bool:
         return self.successes < self.target_generations and self.attempts < self.max_attempts
 
+    def remaining_slots(self) -> int:
+        """Attempts that may still start without overshooting the target or the cap."""
+        return max(0, min(self.target_generations - self.successes, self.max_attempts - self.attempts))
+
     def begin_attempt(self) -> tuple:
         """Return ``(generation_index, attempt_index)`` for the attempt starting now."""
         self.attempts += 1
@@ -61,10 +65,13 @@ class BudgetController:
     # -- outcomes -------------------------------------------------------------
 
     def record_success(self, debug_attempts: int = 0,
-                       failure_trace: Optional[List[dict]] = None) -> GenerationOutcome:
+                       failure_trace: Optional[List[dict]] = None,
+                       attempt: Optional[int] = None) -> GenerationOutcome:
+        """``attempt`` names the attempt explicitly when several were begun at once
+        (batch rounds); by default it is the one begun last."""
         outcome = GenerationOutcome(
             generation=self.successes + 1,
-            attempt=self._current_attempt,
+            attempt=self._current_attempt if attempt is None else attempt,
             success=True,
             debug_attempts=debug_attempts,
             failure_trace=list(failure_trace or []),
@@ -74,10 +81,11 @@ class BudgetController:
         return outcome
 
     def record_failure(self, terminal_failure: str, debug_attempts: int = 0,
-                       failure_trace: Optional[List[dict]] = None) -> GenerationOutcome:
+                       failure_trace: Optional[List[dict]] = None,
+                       attempt: Optional[int] = None) -> GenerationOutcome:
         outcome = GenerationOutcome(
             generation=self.successes + 1,
-            attempt=self._current_attempt,
+            attempt=self._current_attempt if attempt is None else attempt,
             success=False,
             terminal_failure=terminal_failure,
             debug_attempts=debug_attempts,

@@ -31,6 +31,7 @@ from experiments.adas_ext.model_router import (
     AGENT_DESIGN_SCHEMA,
     ContextOverflowError,
     build_role_clients,
+    conversation_tag,
     role_client_from_config,
     worker_client_config,
 )
@@ -281,6 +282,9 @@ def _attach_fitness(args, solution, result, generation):
         "reasoning_tokens": worker_usage.get("reasoning_tokens", 0),
         "truncated_calls": worker_usage.get("n_truncated", 0),
         "tokens_per_question": total_tokens / n_questions,
+        # AI credits, non-zero only behind the Copilot gateway: cost in money, not tokens.
+        "credits": worker_usage.get("credits", 0.0),
+        "credits_per_question": worker_usage.get("credits", 0.0) / n_questions,
         "wallclock_s": result.get("wallclock_s"),
     }
 
@@ -387,19 +391,150 @@ def search(args):
     # the stock `for n in range(...)` with `n -= 1` silently skips failed
     # generations, making search budget correlate with meta-agent capability.
     budget = BudgetController(args.target_generations, args.max_attempts, completed=start)
-    stopped_on_deadline = False
+    if args.proposals_per_round > 1:
+        stopped_on_deadline = _search_batched(args, archive, budget, file_path)
+    else:
+        stopped_on_deadline = _search_sequential(args, archive, budget, file_path)
+
+    summary = budget.summary()
+    summary["stopped_on_deadline"] = stopped_on_deadline
+    print(f"search budget summary: {json.dumps(summary)}")
+    os.makedirs(os.path.join(args.save_dir, args.run_id), exist_ok=True)
+    with open(os.path.join(args.save_dir, args.run_id, "budget_summary.json"), 'w') as handle:
+        json.dump(summary, handle, indent=2)
+    instrumentation.write(os.path.join(args.save_dir, args.run_id))
+
+
+def _run_attempt(args, archive, msg_list, generation):
+    """Propose one design and evaluate it, debugging it up to --debug_max times.
+
+    Touches no shared search state, so a batch round runs several at once; the
+    caller books the returned outcome.
+    """
+    instrumentation = get_instrumentation()
+    failure_trace = []
+    try:
+        next_solution = _propose_solution(args, archive, msg_list, generation)
+    except Exception as e:
+        category = classify_failure(e)
+        print(f"During LLM generate new solution [{category}]:")
+        print(e)
+        instrumentation.record_failure(category, str(e), stage="propose")
+        failure_trace.append({"stage": "propose", "category": category, "message": str(e)[:2000]})
+        return {"status": "failure", "terminal_failure": category, "debug_attempts": 0,
+                "solution": None, "failure_trace": failure_trace, "meta_reasoning": _meta_reasoning()}
+
+    result = None
+    debug_attempts = 0
+    terminal_failure = None
+    failed_solution = None
+    for debug_round in range(args.debug_max):
+        try:
+            result = run_evaluation(args, next_solution["code"])
+            if np.mean(result["acc_list"]) < 0.01 and SEARCHING_MODE:
+                raise Exception("All 0 accuracy")
+            break
+        except DeadlineReached as e:
+            return {"status": "deadline", "error": e}
+        except Exception as e:
+            result = None
+            debug_attempts += 1
+            terminal_failure = classify_failure(e)
+            # Keep the source that actually failed. next_solution is about to
+            # be replaced by a revision, and pairing a failure category with
+            # code that was never run would corrupt Q6 and Q9.
+            failed_solution = copy.deepcopy(next_solution)
+            print(f"During evaluation [{terminal_failure}]:")
+            print(e)
+            instrumentation.record_failure(terminal_failure, str(e), stage="evaluate")
+            failure_trace.append({"stage": "evaluate", "category": terminal_failure, "message": str(e)[:2000]})
+            msg_list.append({"role": "assistant", "content": str(next_solution)})
+            msg_list.append({"role": "user", "content": f"Error during evaluation:\n{e}\nCarefully consider where you went wrong in your latest implementation. Using insights from previous attempts, try to debug the current code to implement the same thought. Repeat your previous thought in 'thought', and put your thinking for debugging in 'debug_thought'"})
+            if args.search_mode == "random":
+                break
+            if debug_round == args.debug_max - 1:
+                break  # nothing would evaluate the revision
+            try:
+                next_solution = get_json_response_from_gpt_reflect(msg_list, args.model)
+            except Exception as e:
+                terminal_failure = classify_failure(e)
+                print(f"During LLM generate new solution [{terminal_failure}]:")
+                print(e)
+                instrumentation.record_failure(terminal_failure, str(e), stage="debug")
+                failure_trace.append({"stage": "debug", "category": terminal_failure, "message": str(e)[:2000]})
+                break
+
+    if result is None:
+        return {"status": "failure", "terminal_failure": terminal_failure or "runtime_exception",
+                "debug_attempts": debug_attempts, "solution": failed_solution or next_solution,
+                "failure_trace": failure_trace, "meta_reasoning": _meta_reasoning()}
+    return {"status": "success", "solution": next_solution, "result": result,
+            "debug_attempts": debug_attempts, "failure_trace": failure_trace,
+            "meta_reasoning": _meta_reasoning()}
+
+
+def _record_outcome(args, archive, budget, outcome, generation, attempt, design_id,
+                    archive_context, file_path, extra=None):
+    """Book one finished attempt at ``generation``: a failure is kept as abandoned, a
+    success joins the archive, which is saved so a stopped search resumes."""
+    instrumentation = get_instrumentation()
+    if outcome["status"] != "success":
+        budget.record_failure(outcome["terminal_failure"], outcome["debug_attempts"],
+                              outcome["failure_trace"], attempt=attempt)
+        # Failed designs are kept. Discarding them biases every downstream
+        # metric toward the subset each model could successfully produce.
+        instrumentation.record_abandoned(generation, attempt, outcome["terminal_failure"],
+                                         outcome["debug_attempts"], outcome["solution"],
+                                         outcome["failure_trace"], design_id=design_id,
+                                         archive_context=archive_context,
+                                         meta_reasoning=outcome["meta_reasoning"])
+        return False
+
+    next_solution = outcome["solution"]
+    budget.record_success(outcome["debug_attempts"], outcome["failure_trace"], attempt=attempt)
+    _attach_fitness(args, next_solution, outcome["result"], generation)
+    next_solution['generation'] = generation
+    next_solution['attempt'] = attempt
+    next_solution['debug_attempts'] = outcome["debug_attempts"]
+    next_solution['failure_trace'] = outcome["failure_trace"]
+    next_solution['meta_model'] = args.model
+    next_solution['worker_model'] = args.worker_model
+    next_solution['run_id'] = args.run_id
+    next_solution['design_id'] = design_id
+    next_solution['archive_context'] = archive_context
+    next_solution['meta_reasoning'] = outcome["meta_reasoning"]
+    next_solution['meta_usage'] = instrumentation.usage_for(generation, phase="search").get("meta", {})
+    next_solution.update(extra or {})
+
+    if 'debug_thought' in next_solution:
+        del next_solution['debug_thought']
+    if 'reflection' in next_solution:
+        del next_solution['reflection']
+    archive.append(next_solution)
+
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    with open(file_path, 'w') as json_file:
+        json.dump(archive, json_file, indent=4)
+    instrumentation.write(os.path.join(args.save_dir, args.run_id))
+    return True
+
+
+def _search_sequential(args, archive, budget, file_path):
+    """The ADAS loop: one proposal per generation, each seeing every earlier result.
+
+    Returns True when it stopped on the walltime deadline.
+    """
+    instrumentation = get_instrumentation()
     while budget.should_continue():
         # Stop between generations rather than being SIGKILLed inside one. The
         # archive is written after every success, so a clean stop resumes.
         if args.deadline_epoch and time.time() >= args.deadline_epoch:
             print(f"stopping before generation {budget.successes + 1}: within "
                   f"the walltime safety margin")
-            stopped_on_deadline = True
-            break
+            return True
         generation, attempt = budget.begin_attempt()
         print(f"============Generation {generation + 1} (attempt {attempt}/{budget.max_attempts})=================")
         instrumentation.set_context(generation=generation + 1, attempt=attempt, phase="search")
-        failure_trace = []
 
         system_prompt, prompt = get_prompt(archive)
         design_id = f"{args.run_id}/g{generation + 1}/a{attempt}"
@@ -410,115 +545,74 @@ def search(args):
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt},
         ]
-        try:
-            next_solution = _propose_solution(args, archive, msg_list, generation)
-        except Exception as e:
-            category = classify_failure(e)
-            print(f"During LLM generate new solution [{category}]:")
-            print(e)
-            instrumentation.record_failure(category, str(e), stage="propose")
-            failure_trace.append({"stage": "propose", "category": category, "message": str(e)[:2000]})
-            budget.record_failure(category, debug_attempts=0, failure_trace=failure_trace)
-            instrumentation.record_abandoned(generation + 1, attempt, category, 0, None,
-                                             failure_trace, design_id=design_id,
-                                             archive_context=archive_context,
-                                             meta_reasoning=_meta_reasoning())
-            continue
-
-        result = None
-        debug_attempts = 0
-        terminal_failure = None
-        failed_solution = None
-        deadline_hit = None
-        for debug_round in range(args.debug_max):
-            try:
-                result = run_evaluation(args, next_solution["code"])
-                if np.mean(result["acc_list"]) < 0.01 and SEARCHING_MODE:
-                    raise Exception("All 0 accuracy")
-                break
-            except DeadlineReached as e:
-                result, deadline_hit = None, e
-                break
-            except Exception as e:
-                result = None
-                debug_attempts += 1
-                terminal_failure = classify_failure(e)
-                # Keep the source that actually failed. next_solution is about to
-                # be replaced by a revision, and pairing a failure category with
-                # code that was never run would corrupt Q6 and Q9.
-                failed_solution = copy.deepcopy(next_solution)
-                print(f"During evaluation [{terminal_failure}]:")
-                print(e)
-                instrumentation.record_failure(terminal_failure, str(e), stage="evaluate")
-                failure_trace.append({"stage": "evaluate", "category": terminal_failure, "message": str(e)[:2000]})
-                msg_list.append({"role": "assistant", "content": str(next_solution)})
-                msg_list.append({"role": "user", "content": f"Error during evaluation:\n{e}\nCarefully consider where you went wrong in your latest implementation. Using insights from previous attempts, try to debug the current code to implement the same thought. Repeat your previous thought in 'thought', and put your thinking for debugging in 'debug_thought'"})
-                if args.search_mode == "random":
-                    break
-                if debug_round == args.debug_max - 1:
-                    break  # nothing would evaluate the revision
-                try:
-                    next_solution = get_json_response_from_gpt_reflect(msg_list, args.model)
-                except Exception as e:
-                    terminal_failure = classify_failure(e)
-                    print(f"During LLM generate new solution [{terminal_failure}]:")
-                    print(e)
-                    instrumentation.record_failure(terminal_failure, str(e), stage="debug")
-                    failure_trace.append({"stage": "debug", "category": terminal_failure, "message": str(e)[:2000]})
-                    break
-
-        if deadline_hit is not None:
+        outcome = _run_attempt(args, archive, msg_list, generation)
+        if outcome["status"] == "deadline":
             # Not counted against the designer; the resubmitted job redoes this generation.
-            print(f"stopping during generation {generation + 1}: {deadline_hit}")
+            print(f"stopping during generation {generation + 1}: {outcome['error']}")
             budget.void_attempt()
-            stopped_on_deadline = True
-            break
+            return True
+        _record_outcome(args, archive, budget, outcome, generation + 1, attempt, design_id,
+                        archive_context, file_path)
+    return False
 
-        if result is None:
-            budget.record_failure(terminal_failure or "runtime_exception", debug_attempts, failure_trace)
-            # Failed designs are kept. Discarding them biases every downstream
-            # metric toward the subset each model could successfully produce.
-            instrumentation.record_abandoned(generation + 1, attempt,
-                                             terminal_failure or "runtime_exception",
-                                             debug_attempts,
-                                             failed_solution or next_solution, failure_trace,
-                                             design_id=design_id,
-                                             archive_context=archive_context,
-                                             meta_reasoning=_meta_reasoning())
-            continue
 
-        outcome = budget.record_success(debug_attempts, failure_trace)
-        _attach_fitness(args, next_solution, result, generation + 1)
-        next_solution['generation'] = generation + 1
-        next_solution['attempt'] = attempt
-        next_solution['debug_attempts'] = debug_attempts
-        next_solution['failure_trace'] = failure_trace
-        next_solution['meta_model'] = args.model
-        next_solution['worker_model'] = args.worker_model
-        next_solution['run_id'] = args.run_id
-        next_solution['design_id'] = design_id
-        next_solution['archive_context'] = archive_context
-        next_solution['meta_reasoning'] = _meta_reasoning()
-        next_solution['meta_usage'] = instrumentation.usage_for(generation + 1).get("meta", {})
+def _search_batched(args, archive, budget, file_path):
+    """Batch rounds: --proposals_per_round designs proposed from one archive snapshot,
+    designed and evaluated concurrently, then booked in proposal order.
 
-        if 'debug_thought' in next_solution:
-            del next_solution['debug_thought']
-        if 'reflection' in next_solution:
-            del next_solution['reflection']
-        archive.append(next_solution)
+    Every proposal in a round sees the same archive, so the designer learns from
+    results once per round instead of once per design; that staleness is the
+    condition this mode measures. Returns True when it stopped on the deadline.
+    """
+    instrumentation = get_instrumentation()
+    round_index = max([e.get('round', 0) for e in archive if isinstance(e.get('round'), int)] or [0])
+    while budget.should_continue():
+        if args.deadline_epoch and time.time() >= args.deadline_epoch:
+            print(f"stopping before generation {budget.successes + 1}: within "
+                  f"the walltime safety margin")
+            return True
+        round_index += 1
+        n = min(args.proposals_per_round, budget.remaining_slots())
+        generation_index = budget.successes
+        system_prompt, prompt = get_prompt(archive)
+        archive_context = [e.get('design_id') or e.get('name') for e in archive]
+        slots = []
+        for index in range(n):
+            _, attempt = budget.begin_attempt()
+            # Usage is billed to a provisional label until booking fixes the generation.
+            slots.append({"index": index, "attempt": attempt, "label": f"round{round_index}:p{index}",
+                          "design_id": f"{args.run_id}/r{round_index}/p{index}/a{attempt}"})
+        print(f"============Round {round_index}: {n} proposals from generation {generation_index + 1} "
+              f"(attempts {slots[0]['attempt']}-{slots[-1]['attempt']}/{budget.max_attempts})=================")
 
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, 'w') as json_file:
-            json.dump(archive, json_file, indent=4)
-        instrumentation.write(os.path.join(args.save_dir, args.run_id))
+        def propose_and_evaluate(slot):
+            msg_list = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ]
+            with instrumentation.thread_context(slot["label"], slot["attempt"], phase="search"), \
+                    conversation_tag(slot["design_id"]):
+                return _run_attempt(args, archive, msg_list, generation_index)
 
-    summary = budget.summary()
-    summary["stopped_on_deadline"] = stopped_on_deadline
-    print(f"search budget summary: {json.dumps(summary)}")
-    os.makedirs(os.path.join(args.save_dir, args.run_id), exist_ok=True)
-    with open(os.path.join(args.save_dir, args.run_id, "budget_summary.json"), 'w') as handle:
-        json.dump(summary, handle, indent=2)
-    instrumentation.write(os.path.join(args.save_dir, args.run_id))
+        with ThreadPoolExecutor(max_workers=n) as pool:
+            outcomes = list(pool.map(propose_and_evaluate, slots))
+
+        stopped = False
+        for slot, outcome in zip(slots, outcomes):
+            generation = budget.successes + 1
+            instrumentation.relabel_generation(slot["label"], generation)
+            if outcome["status"] == "deadline":
+                print(f"stopping during round {round_index}: {outcome['error']}")
+                budget.void_attempt()
+                stopped = True
+                continue
+            _record_outcome(args, archive, budget, outcome, generation, slot["attempt"],
+                            slot["design_id"], archive_context, file_path,
+                            extra={"round": round_index, "proposal_index": slot["index"],
+                                   "proposals_per_round": args.proposals_per_round})
+        if stopped:
+            return True
+    return False
 
 
 # Stage 0.5 reference conditions. The bare agent is the floor for Q1 and the
@@ -560,8 +654,9 @@ def run_baseline(args):
         if rep == 0:
             samples = result.get("samples") or []
             for s in samples[:5]:
+                # DROP samples carry an F1 score rather than a 0/1 "correct".
                 print(f"    target={s['target']!r} prediction={str(s.get('prediction'))[:70]!r} "
-                      f"correct={s['correct']}")
+                      f"f1={s.get('f1', s.get('correct'))}")
         print(f"  {args.baseline} rep {rep + 1}/{args.baseline_repeats}: "
               f"median accuracy {medians[-1]:.4f}")
 
@@ -622,9 +717,24 @@ def evaluate(args):
             archive = json.load(json_file)
         sol = archive[current_idx]
         cap = _test_timeout(args, sol)
+        selected = _selected_for_test(args, archive, current_idx)
         # Designs whose test run failed are retried in place; results are matched by position.
-        if current_idx < len(eval_archive) and not _should_retest(eval_archive[current_idx], cap):
+        if current_idx < len(eval_archive) and not _should_retest(eval_archive[current_idx], cap) \
+                and not (selected and eval_archive[current_idx].get('test_skipped')):
             current_idx += 1
+            continue
+        if not selected:
+            # Lean protocol: a placeholder keeps results aligned by position.
+            skipped = {k: v for k, v in sol.items() if not k.startswith('test_')}
+            skipped['test_skipped'] = True
+            if current_idx < len(eval_archive):
+                eval_archive[current_idx] = skipped
+            else:
+                eval_archive.append(skipped)
+            current_idx += 1
+            os.makedirs(os.path.dirname(eval_file_path), exist_ok=True)
+            with open(eval_file_path, 'w') as json_file:
+                json.dump(eval_archive, json_file, indent=4)
             continue
         if args.deadline_epoch and time.time() >= args.deadline_epoch:
             print(f"stopping test evaluation before design {current_idx}: within the walltime safety margin")
@@ -670,6 +780,21 @@ def evaluate(args):
     _write_evaluation_summary(args, eval_archive, len(archive), stopped_on_deadline)
 
 
+def _selected_for_test(args, archive, idx):
+    """Whether design ``idx`` gets a test run.
+
+    ``--test_top_k`` 0 tests every design (the ADAS protocol). Otherwise only the
+    seed agents and the k best generated designs by validation accuracy, earliest
+    generation first on ties, so selection never looks at test results.
+    """
+    top_k = getattr(args, "test_top_k", 0) or 0
+    if top_k <= 0 or archive[idx].get('generation') == 'initial':
+        return True
+    generated = [i for i, e in enumerate(archive) if e.get('generation') != 'initial']
+    ranked = sorted(generated, key=lambda i: (-archive[i].get('raw_median_accuracy', 0.0), i))
+    return idx in ranked[:top_k]
+
+
 def _test_timeout(args, sol):
     """Wall-clock cap for one design's test run.
 
@@ -704,7 +829,8 @@ def _write_evaluation_summary(args, eval_archive, n_designs, stopped_on_deadline
     """Read by maybe_resubmit: a test evaluation stopped by the deadline needs another job."""
     summary = {
         "designs": n_designs,
-        "tested": sum(1 for e in eval_archive if not e.get('test_error')),
+        "tested": sum(1 for e in eval_archive if not e.get('test_error') and not e.get('test_skipped')),
+        "skipped": sum(1 for e in eval_archive if e.get('test_skipped')),
         "test_errors": sum(1 for e in eval_archive if e.get('test_error')),
         "untested": n_designs - len(eval_archive),
         "stopped_on_deadline": stopped_on_deadline,
@@ -747,7 +873,9 @@ def run_evaluation(args, forward_str, timeout=None):
     if args.no_sandbox:
         result = _sandboxed_evaluate(**kwargs)
     else:
-        policy = SandboxPolicy.from_args(args, [args.worker_base_url, args.meta_base_url])
+        # Worker only: behind the Copilot gateway the meta port bills the designer
+        # model, and generated code has no business reaching it.
+        policy = SandboxPolicy.from_args(args, [args.worker_base_url])
         policy.timeout_s = limit
         try:
             result = run_sandboxed(_ENTRY_MODULE, "_sandboxed_evaluate", kwargs, policy)
@@ -931,6 +1059,10 @@ def build_parser():
                         help="Successful archive entries to collect. Defaults to --n_generation.")
     parser.add_argument('--max_attempts', type=int, default=None,
                         help="Total tries allowed. Defaults to 3x --target_generations.")
+    parser.add_argument('--proposals_per_round', type=int, default=1,
+                        help="Designs proposed per round from one archive snapshot and evaluated "
+                             "concurrently. 1 is the ADAS loop; above 1 the designer sees results "
+                             "once per round.")
 
     # --- conditions ---
     parser.add_argument('--init_archive', type=str, default='seed', choices=['seed', 'empty'])
@@ -952,6 +1084,9 @@ def build_parser():
 
     parser.add_argument('--search_only', action='store_true', default=False)
     parser.add_argument('--evaluate_only', action='store_true', default=False)
+    parser.add_argument('--test_top_k', type=int, default=0,
+                        help="Test only the seed agents and the k best generated designs by "
+                             "validation accuracy; 0 tests every design (the ADAS protocol).")
     parser.add_argument('--seed_cache_dir', type=str, default=None,
                         help="Shared seed-fitness cache; default is per cell under --save_dir.")
     parser.add_argument('--require_seed_cache', action='store_true', default=False)
@@ -974,6 +1109,8 @@ def build_parser():
 
 if __name__ == "__main__":
     args = build_parser().parse_args()
+    if args.proposals_per_round < 1:
+        raise SystemExit("--proposals_per_round must be at least 1")
     if args.run_id is None:
         args.run_id = args.expr_name
     if args.target_generations is None:
