@@ -1,0 +1,52 @@
+{
+  "search|initial:Chain-of-Thought|worker": {
+    "prompt_tokens": 91805,
+    "completion_tokens": 1241391,
+    "reasoning_tokens": 1209891,
+    "reasoning_chars": 3712647,
+    "n_calls": 100,
+    "n_truncated": 13,
+    "latency_s": 57680.14372563362,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:Self-Refine (Reflexion)|worker": {
+    "prompt_tokens": 480916,
+    "completion_tokens": 3365403,
+    "reasoning_tokens": 3248088,
+    "reasoning_chars": 10171248,
+    "n_calls": 400,
+    "n_truncated": 42,
+    "latency_s": 162546.47507596016,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:LLM Debate|worker": {
+    "prompt_tokens": 582726,
+    "completion_tokens": 4362662,
+    "reasoning_tokens": 4217926,
+    "reasoning_chars": 12988637,
+    "n_calls": 500,
+    "n_truncated": 58,
+    "latency_s": 221097.0708372593,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:Self-Consistency with Chain-of-Thought|worker": {
+    "prompt_tokens": 692640,
+    "completion_tokens": 7063196,
+    "reasoning_tokens": 6897976,
+    "reasoning_chars": 21314405,
+    "n_calls": 600,
+    "n_truncated": 91,
+    "latency_s": 482833.93876743317,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  },
+  "search|initial:Quality-Diversity|worker": {
+    "prompt_tokens": 378547,
+    "completion_tokens": 3313753,
+    "reasoning_tokens": 3221937,
+    "reasoning_chars": 10253238,
+    "n_calls": 400,
+    "n_truncated": 56,
+    "latency_s": 191583.46198534966,
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  }
+}

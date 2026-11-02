@@ -1,0 +1,12 @@
+{
+  "baseline|cot:rep1|worker": {
+    "prompt_tokens": 90505,
+    "completion_tokens": 88381,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 100,
+    "n_truncated": 0,
+    "latency_s": 2181.6555984020233,
+    "model": "microsoft/phi-4"
+  }
+}

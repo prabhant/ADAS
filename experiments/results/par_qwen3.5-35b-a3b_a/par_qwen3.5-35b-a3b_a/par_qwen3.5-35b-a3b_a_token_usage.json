@@ -1,0 +1,762 @@
+{
+  "search|1|meta": {
+    "prompt_tokens": 29311,
+    "completion_tokens": 14803,
+    "reasoning_tokens": 11254,
+    "reasoning_chars": 46186,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 65.2078275680542,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|1|worker": {
+    "prompt_tokens": 1337817,
+    "completion_tokens": 528655,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1000,
+    "n_truncated": 0,
+    "latency_s": 14852.360347747803,
+    "model": "microsoft/phi-4"
+  },
+  "search|2|meta": {
+    "prompt_tokens": 35725,
+    "completion_tokens": 9281,
+    "reasoning_tokens": 4985,
+    "reasoning_chars": 23057,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 40.560011863708496,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|2|worker": {
+    "prompt_tokens": 2666409,
+    "completion_tokens": 650115,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1900,
+    "n_truncated": 0,
+    "latency_s": 20774.23611497879,
+    "model": "microsoft/phi-4"
+  },
+  "search|3|meta": {
+    "prompt_tokens": 59503,
+    "completion_tokens": 10286,
+    "reasoning_tokens": 4203,
+    "reasoning_chars": 19508,
+    "n_calls": 4,
+    "n_truncated": 0,
+    "latency_s": 45.267874240875244,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|3|worker": {
+    "prompt_tokens": 3079722,
+    "completion_tokens": 666198,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1400,
+    "n_truncated": 0,
+    "latency_s": 27186.525750398636,
+    "model": "microsoft/phi-4"
+  },
+  "search|4|meta": {
+    "prompt_tokens": 47639,
+    "completion_tokens": 8528,
+    "reasoning_tokens": 1942,
+    "reasoning_chars": 9003,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 37.6857476234436,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|4|worker": {
+    "prompt_tokens": 4084293,
+    "completion_tokens": 686281,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1600,
+    "n_truncated": 0,
+    "latency_s": 32745.306555747986,
+    "model": "microsoft/phi-4"
+  },
+  "search|5|meta": {
+    "prompt_tokens": 157957,
+    "completion_tokens": 38548,
+    "reasoning_tokens": 11489,
+    "reasoning_chars": 50443,
+    "n_calls": 8,
+    "n_truncated": 1,
+    "latency_s": 169.93966841697693,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|5|worker": {
+    "prompt_tokens": 3628990,
+    "completion_tokens": 742788,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1568,
+    "n_truncated": 0,
+    "latency_s": 30368.452083587646,
+    "model": "microsoft/phi-4"
+  },
+  "search|6|meta": {
+    "prompt_tokens": 63314,
+    "completion_tokens": 8535,
+    "reasoning_tokens": 2087,
+    "reasoning_chars": 10007,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 37.910836696624756,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|6|worker": {
+    "prompt_tokens": 5347022,
+    "completion_tokens": 976906,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2100,
+    "n_truncated": 1,
+    "latency_s": 46020.5462076664,
+    "model": "microsoft/phi-4"
+  },
+  "search|7|meta": {
+    "prompt_tokens": 97597,
+    "completion_tokens": 12832,
+    "reasoning_tokens": 2560,
+    "reasoning_chars": 12114,
+    "n_calls": 4,
+    "n_truncated": 0,
+    "latency_s": 57.17807054519653,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|7|worker": {
+    "prompt_tokens": 6631554,
+    "completion_tokens": 1062040,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2405,
+    "n_truncated": 0,
+    "latency_s": 59233.65129780769,
+    "model": "microsoft/phi-4"
+  },
+  "search|8|meta": {
+    "prompt_tokens": 79503,
+    "completion_tokens": 11217,
+    "reasoning_tokens": 2656,
+    "reasoning_chars": 12371,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 50.02184987068176,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|8|worker": {
+    "prompt_tokens": 3759367,
+    "completion_tokens": 665833,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1500,
+    "n_truncated": 0,
+    "latency_s": 31707.25836443901,
+    "model": "microsoft/phi-4"
+  },
+  "search|9|meta": {
+    "prompt_tokens": 87702,
+    "completion_tokens": 11065,
+    "reasoning_tokens": 4082,
+    "reasoning_chars": 19059,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 49.51340651512146,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|9|worker": {
+    "prompt_tokens": 7433208,
+    "completion_tokens": 1110740,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 3892,
+    "n_truncated": 0,
+    "latency_s": 52625.60453772545,
+    "model": "microsoft/phi-4"
+  },
+  "search|10|meta": {
+    "prompt_tokens": 93795,
+    "completion_tokens": 11005,
+    "reasoning_tokens": 2378,
+    "reasoning_chars": 11470,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 49.373361110687256,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|10|worker": {
+    "prompt_tokens": 3302302,
+    "completion_tokens": 657649,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1400,
+    "n_truncated": 0,
+    "latency_s": 28132.54415845871,
+    "model": "microsoft/phi-4"
+  },
+  "search|11|meta": {
+    "prompt_tokens": 103388,
+    "completion_tokens": 12805,
+    "reasoning_tokens": 5520,
+    "reasoning_chars": 22917,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 57.5448100566864,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|11|worker": {
+    "prompt_tokens": 6363253,
+    "completion_tokens": 1309961,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2184,
+    "n_truncated": 0,
+    "latency_s": 65367.83700633049,
+    "model": "microsoft/phi-4"
+  },
+  "search|12|meta": {
+    "prompt_tokens": 156099,
+    "completion_tokens": 16515,
+    "reasoning_tokens": 3322,
+    "reasoning_chars": 15759,
+    "n_calls": 4,
+    "n_truncated": 0,
+    "latency_s": 73.66514348983765,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|12|worker": {
+    "prompt_tokens": 4830873,
+    "completion_tokens": 698731,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2568,
+    "n_truncated": 0,
+    "latency_s": 30508.308358192444,
+    "model": "microsoft/phi-4"
+  },
+  "search|13|meta": {
+    "prompt_tokens": 173023,
+    "completion_tokens": 13792,
+    "reasoning_tokens": 2705,
+    "reasoning_chars": 12349,
+    "n_calls": 4,
+    "n_truncated": 0,
+    "latency_s": 59.285738945007324,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|13|worker": {
+    "prompt_tokens": 4937529,
+    "completion_tokens": 625875,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2000,
+    "n_truncated": 0,
+    "latency_s": 29182.403985977173,
+    "model": "microsoft/phi-4"
+  },
+  "search|14|meta": {
+    "prompt_tokens": 177911,
+    "completion_tokens": 13162,
+    "reasoning_tokens": 2716,
+    "reasoning_chars": 12791,
+    "n_calls": 4,
+    "n_truncated": 0,
+    "latency_s": 56.73039174079895,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|14|worker": {
+    "prompt_tokens": 2239922,
+    "completion_tokens": 472068,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1400,
+    "n_truncated": 1,
+    "latency_s": 17231.46212697029,
+    "model": "microsoft/phi-4"
+  },
+  "search|15|meta": {
+    "prompt_tokens": 134011,
+    "completion_tokens": 10807,
+    "reasoning_tokens": 1985,
+    "reasoning_chars": 9262,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 46.59667730331421,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|15|worker": {
+    "prompt_tokens": 1786096,
+    "completion_tokens": 345733,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1118,
+    "n_truncated": 0,
+    "latency_s": 12478.239702939987,
+    "model": "microsoft/phi-4"
+  },
+  "search|16|meta": {
+    "prompt_tokens": 258393,
+    "completion_tokens": 18679,
+    "reasoning_tokens": 4571,
+    "reasoning_chars": 22502,
+    "n_calls": 5,
+    "n_truncated": 0,
+    "latency_s": 81.25162386894226,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|16|worker": {
+    "prompt_tokens": 5804269,
+    "completion_tokens": 1292762,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2600,
+    "n_truncated": 2,
+    "latency_s": 54294.39170360565,
+    "model": "microsoft/phi-4"
+  },
+  "search|17|meta": {
+    "prompt_tokens": 152999,
+    "completion_tokens": 12885,
+    "reasoning_tokens": 2314,
+    "reasoning_chars": 11291,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 55.85491943359375,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|17|worker": {
+    "prompt_tokens": 6626645,
+    "completion_tokens": 2007483,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 4536,
+    "n_truncated": 0,
+    "latency_s": 60898.47118592262,
+    "model": "microsoft/phi-4"
+  },
+  "search|18|meta": {
+    "prompt_tokens": 166150,
+    "completion_tokens": 12506,
+    "reasoning_tokens": 2501,
+    "reasoning_chars": 12128,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 54.763702154159546,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|18|worker": {
+    "prompt_tokens": 4258914,
+    "completion_tokens": 702282,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1600,
+    "n_truncated": 0,
+    "latency_s": 35346.60668349266,
+    "model": "microsoft/phi-4"
+  },
+  "search|19|meta": {
+    "prompt_tokens": 175575,
+    "completion_tokens": 11037,
+    "reasoning_tokens": 2211,
+    "reasoning_chars": 10201,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 48.59062457084656,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|19|worker": {
+    "prompt_tokens": 3992162,
+    "completion_tokens": 973547,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1841,
+    "n_truncated": 1,
+    "latency_s": 38929.080407619476,
+    "model": "microsoft/phi-4"
+  },
+  "search|20|meta": {
+    "prompt_tokens": 182707,
+    "completion_tokens": 10859,
+    "reasoning_tokens": 2091,
+    "reasoning_chars": 9974,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 48.06237244606018,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|20|worker": {
+    "prompt_tokens": 3590410,
+    "completion_tokens": 464796,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 1459,
+    "n_truncated": 1,
+    "latency_s": 23201.00702571869,
+    "model": "microsoft/phi-4"
+  },
+  "search|21|meta": {
+    "prompt_tokens": 191379,
+    "completion_tokens": 14707,
+    "reasoning_tokens": 5946,
+    "reasoning_chars": 26201,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 64.85244059562683,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|21|worker": {
+    "prompt_tokens": 4813676,
+    "completion_tokens": 686666,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2000,
+    "n_truncated": 0,
+    "latency_s": 30248.040153503418,
+    "model": "microsoft/phi-4"
+  },
+  "search|22|meta": {
+    "prompt_tokens": 202081,
+    "completion_tokens": 17197,
+    "reasoning_tokens": 2223,
+    "reasoning_chars": 10523,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 76.31361317634583,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|22|worker": {
+    "prompt_tokens": 4378503,
+    "completion_tokens": 709058,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2360,
+    "n_truncated": 0,
+    "latency_s": 29905.365188121796,
+    "model": "microsoft/phi-4"
+  },
+  "search|23|meta": {
+    "prompt_tokens": 235028,
+    "completion_tokens": 12465,
+    "reasoning_tokens": 2750,
+    "reasoning_chars": 11890,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 56.6595721244812,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|23|worker": {
+    "prompt_tokens": 6803694,
+    "completion_tokens": 1159527,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 3779,
+    "n_truncated": 0,
+    "latency_s": 49565.579973220825,
+    "model": "microsoft/phi-4"
+  },
+  "search|24|meta": {
+    "prompt_tokens": 815879,
+    "completion_tokens": 51437,
+    "reasoning_tokens": 12103,
+    "reasoning_chars": 50411,
+    "n_calls": 10,
+    "n_truncated": 1,
+    "latency_s": 233.33401155471802,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|24|worker": {
+    "prompt_tokens": 6774318,
+    "completion_tokens": 1661955,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2859,
+    "n_truncated": 1,
+    "latency_s": 78961.76242423058,
+    "model": "microsoft/phi-4"
+  },
+  "search|25|meta": {
+    "prompt_tokens": 245076,
+    "completion_tokens": 19432,
+    "reasoning_tokens": 9727,
+    "reasoning_chars": 40297,
+    "n_calls": 3,
+    "n_truncated": 0,
+    "latency_s": 87.92138123512268,
+    "model": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "search|25|worker": {
+    "prompt_tokens": 3746657,
+    "completion_tokens": 676773,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 2100,
+    "n_truncated": 0,
+    "latency_s": 28047.43562412262,
+    "model": "microsoft/phi-4"
+  },
+  "test|initial|worker": {
+    "prompt_tokens": 8904867,
+    "completion_tokens": 3365143,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 6000,
+    "n_truncated": 0,
+    "latency_s": 161401.1418981552,
+    "model": "microsoft/phi-4"
+  },
+  "test|1|worker": {
+    "prompt_tokens": 4102366,
+    "completion_tokens": 1497092,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 3000,
+    "n_truncated": 0,
+    "latency_s": 67353.47905898094,
+    "model": "microsoft/phi-4"
+  },
+  "test|2|worker": {
+    "prompt_tokens": 8333806,
+    "completion_tokens": 1977324,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 5700,
+    "n_truncated": 0,
+    "latency_s": 105557.08992815018,
+    "model": "microsoft/phi-4"
+  },
+  "test|3|worker": {
+    "prompt_tokens": 9545450,
+    "completion_tokens": 1891486,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 4200,
+    "n_truncated": 2,
+    "latency_s": 147556.75479078293,
+    "model": "microsoft/phi-4"
+  },
+  "test|4|worker": {
+    "prompt_tokens": 12667275,
+    "completion_tokens": 2012618,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 4800,
+    "n_truncated": 0,
+    "latency_s": 177319.65209579468,
+    "model": "microsoft/phi-4"
+  },
+  "test|5|worker": {
+    "prompt_tokens": 11039445,
+    "completion_tokens": 2148096,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 4744,
+    "n_truncated": 0,
+    "latency_s": 172380.39206647873,
+    "model": "microsoft/phi-4"
+  },
+  "test|6|worker": {
+    "prompt_tokens": 16320495,
+    "completion_tokens": 2738558,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 6299,
+    "n_truncated": 0,
+    "latency_s": 212570.02746367455,
+    "model": "microsoft/phi-4"
+  },
+  "test|7|worker": {
+    "prompt_tokens": 20275131,
+    "completion_tokens": 3082916,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 7241,
+    "n_truncated": 0,
+    "latency_s": 275105.81244421005,
+    "model": "microsoft/phi-4"
+  },
+  "test|8|worker": {
+    "prompt_tokens": 11524195,
+    "completion_tokens": 1886493,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 4500,
+    "n_truncated": 0,
+    "latency_s": 171774.88309049606,
+    "model": "microsoft/phi-4"
+  },
+  "test|9|worker": {
+    "prompt_tokens": 23174229,
+    "completion_tokens": 3350119,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 11741,
+    "n_truncated": 0,
+    "latency_s": 283519.87086987495,
+    "model": "microsoft/phi-4"
+  },
+  "test|10|worker": {
+    "prompt_tokens": 10180013,
+    "completion_tokens": 1893353,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 4200,
+    "n_truncated": 1,
+    "latency_s": 156248.41342830658,
+    "model": "microsoft/phi-4"
+  },
+  "test|11|worker": {
+    "prompt_tokens": 19060871,
+    "completion_tokens": 3704889,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 6426,
+    "n_truncated": 0,
+    "latency_s": 290733.344727993,
+    "model": "microsoft/phi-4"
+  },
+  "test|12|worker": {
+    "prompt_tokens": 15010764,
+    "completion_tokens": 2048222,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 7594,
+    "n_truncated": 0,
+    "latency_s": 174134.65845870972,
+    "model": "microsoft/phi-4"
+  },
+  "test|13|worker": {
+    "prompt_tokens": 15343835,
+    "completion_tokens": 1863749,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 6000,
+    "n_truncated": 2,
+    "latency_s": 197933.89603090286,
+    "model": "microsoft/phi-4"
+  },
+  "test|14|worker": {
+    "prompt_tokens": 6861281,
+    "completion_tokens": 1358362,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 4200,
+    "n_truncated": 1,
+    "latency_s": 94051.09214234352,
+    "model": "microsoft/phi-4"
+  },
+  "test|15|worker": {
+    "prompt_tokens": 5556240,
+    "completion_tokens": 1032254,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 3366,
+    "n_truncated": 0,
+    "latency_s": 65084.741079092026,
+    "model": "microsoft/phi-4"
+  },
+  "test|16|worker": {
+    "prompt_tokens": 16635829,
+    "completion_tokens": 3315231,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 6300,
+    "n_truncated": 2,
+    "latency_s": 257347.24558663368,
+    "model": "microsoft/phi-4"
+  },
+  "test|17|worker": {
+    "prompt_tokens": 20814292,
+    "completion_tokens": 5940511,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 13651,
+    "n_truncated": 1,
+    "latency_s": 323298.6239640713,
+    "model": "microsoft/phi-4"
+  },
+  "test|18|worker": {
+    "prompt_tokens": 13117551,
+    "completion_tokens": 2148241,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 4800,
+    "n_truncated": 0,
+    "latency_s": 172508.94793200493,
+    "model": "microsoft/phi-4"
+  },
+  "test|19|worker": {
+    "prompt_tokens": 12271149,
+    "completion_tokens": 2789323,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 5546,
+    "n_truncated": 0,
+    "latency_s": 209496.48588252068,
+    "model": "microsoft/phi-4"
+  },
+  "test|20|worker": {
+    "prompt_tokens": 11027385,
+    "completion_tokens": 1442909,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 4277,
+    "n_truncated": 0,
+    "latency_s": 149558.8622956276,
+    "model": "microsoft/phi-4"
+  },
+  "test|21|worker": {
+    "prompt_tokens": 14969787,
+    "completion_tokens": 2035934,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 6000,
+    "n_truncated": 0,
+    "latency_s": 175075.0246694088,
+    "model": "microsoft/phi-4"
+  },
+  "test|22|worker": {
+    "prompt_tokens": 13258953,
+    "completion_tokens": 2038412,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 7087,
+    "n_truncated": 1,
+    "latency_s": 170637.5359055996,
+    "model": "microsoft/phi-4"
+  },
+  "test|23|worker": {
+    "prompt_tokens": 21205865,
+    "completion_tokens": 3457022,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 11579,
+    "n_truncated": 3,
+    "latency_s": 279361.90755081177,
+    "model": "microsoft/phi-4"
+  },
+  "test|24|worker": {
+    "prompt_tokens": 21030338,
+    "completion_tokens": 5147959,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 8570,
+    "n_truncated": 8,
+    "latency_s": 355045.7046787739,
+    "model": "microsoft/phi-4"
+  },
+  "test|25|worker": {
+    "prompt_tokens": 11560301,
+    "completion_tokens": 2022203,
+    "reasoning_tokens": 0,
+    "reasoning_chars": 0,
+    "n_calls": 6300,
+    "n_truncated": 5,
+    "latency_s": 155803.41036868095,
+    "model": "microsoft/phi-4"
+  }
+}
