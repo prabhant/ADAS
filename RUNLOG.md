@@ -955,3 +955,35 @@ Inspect with: bash experiments/slurm/status.sh
   Code-executing designs: run the worker-free check before crediting them.
 - worker calls log JSON errors in all cells ("not returning enough fields"
   13-20%, as in the seed screen): Mistral output, not a server difference.
+
+### 2026-11-02 - batch14 complete (DROP panel, Mistral-7B worker): headline
+
+- All three COMPLETED 2026-11-01, no resubmissions: gpt-oss-120b 06:19-12:43
+  (6.4 h), qwen3.5-27b 07:02-13:58 (6.9 h), qwen3.5-35b-a3b 10:06-14:33
+  (4.5 h). 30 gens each (30 / 32 / 30 attempts); 37/37 designs tested in
+  every cell, 0 test errors.
+- Seeds re-scored on the 800 test questions, per cell / pooled: CoT
+  41.1/39.0/39.8 -> 40.0, CoT-SC 43.4 (best pooled), Self-Refine 38.5,
+  Debate 40.5 (best on val, 49.9), Step-back 28.5, QD 38.8, Roles 40.6.
+  Every agent scores ~5 F1 lower on test than on validation. Seed oracle
+  (max F1 over the 21 seed runs) 79.4.
+- Validation-selected designs (no ties), test F1 and paired bootstrap over
+  the 800 questions vs pooled seeds (95% CI):
+  - qwen3.5-27b gen 28 "Adaptive Type-Aware Debate": val 53.2, test 46.1;
+    vs Debate +5.6 [+2.6, +8.5], vs CoT-SC +2.7 [-0.2, +5.8], vs CoT +6.1
+    [+3.1, +9.2]; 7 calls / 8.5k tokens per question (Debate 7 / 6.8k).
+  - gpt-oss-120b gen 27 "Self-Consistent Ranker": val 47.8, test 40.2;
+    vs Debate -0.3, vs CoT-SC -3.2 [-6.3, +0.1], vs CoT +0.3; 25 calls /
+    24.5k tokens.
+  - qwen3.5-35b-a3b gen 8 "Confidence-Gated Debate": val 47.8, test 41.4;
+    vs Debate +0.9, vs CoT-SC -2.0, vs CoT +1.4; 3 calls / 3.2k tokens.
+    18/30 of its designs score below 30 F1 on validation.
+- Upper bound (best design by test) vs pooled CoT-SC: qwen3.5-27b gen 29
+  46.6 (+3.2 [+0.2, +6.2]), gpt-oss-120b gen 9 47.1 (+3.6 [+0.2, +7.1]);
+  1/30 significantly above CoT-SC in each; none for qwen3.5-35b-a3b.
+  Spearman val~test 0.94 / 0.94 / 0.86.
+- Reading so far: at most a small gain (+3 F1 over the best seed on test,
+  CI touching 0), nothing like ADAS's +13.6 on DROP or this project's ARC
+  result. Script: session dbfc01f3 files/drop_headline.py.
+- Still to do before findings.md: worker-free check (gpt-oss-120b's gen 9 is
+  extract -> code -> verify), answer-before-reasoning split, full table.
